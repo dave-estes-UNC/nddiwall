@@ -1,0 +1,6 @@
+[submodule "grpc"]
+	path = grpc
+	url = ./grpc
+[submodule "nddi"]
+	path = nddi
+	url = ./nddi

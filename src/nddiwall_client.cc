@@ -37,14 +37,14 @@
 
 #include <grpc++/grpc++.h>
 
-#include "helloworld.grpc.pb.h"
+#include "nddiwall.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::Greeter;
+using nddiwall::HelloRequest;
+using nddiwall::HelloReply;
+using nddiwall::Greeter;
 
 class GreeterClient {
  public:

@@ -37,15 +37,15 @@
 
 #include <grpc++/grpc++.h>
 
-#include "helloworld.grpc.pb.h"
+#include "nddiwall.grpc.pb.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::Greeter;
+using nddiwall::HelloRequest;
+using nddiwall::HelloReply;
+using nddiwall::Greeter;
 
 // Logic and data behind the server's behavior.
 class GreeterServiceImpl final : public Greeter::Service {

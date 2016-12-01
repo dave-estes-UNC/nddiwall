@@ -12,15 +12,66 @@ PROTOS_PATH = ./protos
 
 vpath %.proto $(PROTOS_PATH)
 
+ifeq ($(NO_OMP), 1)
+	CCFLAGS+=-DNO_OMP
+	CPPFLAGS+=-DNO_OMP
+else
+	CCFLAGS+=-fopenmp
+	CPPFLAGS+=-fopenmp
+endif
+
+ifeq ($(NO_GL), 1)
+	CCFLAGS+=-DNO_GL
+	CPPFLAGS+=-DNO_GL
+else
+	ifeq ($(shell uname),Darwin)
+		LDFLAGS+=-framework Carbon -framework OpenGL -framework GLUT
+	else
+		CPPFLAGS+=-DGL_GLEXT_PROTOTYPES
+		LDFLAGS+=-lGL -lglut -lGLU
+	endif
+endif
+
+ifeq ($(NO_CL), 1)
+	CCFLAGS+=-DNO_CL
+	CPPFLAGS+=-DNO_CL
+else
+	ifeq ($(shell uname),Darwin)
+		LDFLAGS+=-framework OpenCL
+	else
+		CCFLAGS+=-I/opt/AMDAPP/include/
+		CPPFLAGS+=-I/opt/AMDAPP/include/
+		LDFLAGS+=-L/opt/AMDAPP/lib/x86_64 -L/opt/AMDAPP/lib/x86 -lOpenCL
+	endif
+endif
+
+ifeq ($(PROFILE), 1)
+	CCFLAGS+=-pg
+	CPPFLAGS+=-pg
+	LDFLAGS+=-pg
+endif
+
+CPPFLAGS+=-D__STDC_CONSTANT_MACROS
+
+LDFLAGS+=-lz -lavutil -lavformat -lavcodec -lswscale `pkg-config --libs opencv`
+
+ifeq ($(DEBUG), 1)
+	CCFLAGS+=-g -DDEBUG
+	CPPFLAGS+=-g -DDEBUG
+else
+	CCFLAGS+= -O3 -ffast-math
+	CPPFLAGS+= -O3 -ffast-math
+endif
+
 all: system-check nddiwall_client nddiwall_server
 
 nddiwall_client: nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_client.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-nddiwall_server: nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_server.o
+nddiwall_server: nddi/BaseNddiDisplay.o nddi/ClNddiDisplay.o nddi/GlNddiDisplay.o nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-.PRECIOUS: %.grpc.pb.cc
+	.PRECIOUS: %.grpc.pb.cc
 %.grpc.pb.cc: %.proto
 	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 
@@ -29,7 +80,7 @@ nddiwall_server: nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_server.o
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h nddiwall_client nddiwall_server
+	rm -f *.o nddi/*.o *.pb.cc *.pb.h nddiwall_client nddiwall_server
 
 
 # The following is to test your system and ensure a smoother experience.

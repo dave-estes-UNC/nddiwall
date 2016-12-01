@@ -2,5 +2,5 @@
 	path = grpc
 	url = ./grpc
 [submodule "nddi"]
-	path = nddi
+	path = src/nddi
 	url = ./nddi

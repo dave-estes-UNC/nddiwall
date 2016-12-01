@@ -35,7 +35,15 @@
 #include <memory>
 #include <string>
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
 #include <grpc++/grpc++.h>
+
+#include "nddi/GlNddiDisplay.h"
 
 #include "nddiwall.grpc.pb.h"
 
@@ -43,23 +51,37 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using nddiwall::HelloRequest;
-using nddiwall::HelloReply;
-using nddiwall::Greeter;
+using nddiwall::InitializeRequest;
+using nddiwall::StatusReply;
+using nddiwall::NddiWall;
 
 // Logic and data behind the server's behavior.
-class GreeterServiceImpl final : public Greeter::Service {
-  Status SayHello(ServerContext* context, const HelloRequest* request,
-                  HelloReply* reply) override {
-    std::string prefix("Hello ");
-    reply->set_message(prefix + request->name());
+class NddiServiceImpl final : public NddiWall::Service {
+
+  GlNddiDisplay* myDisplay;
+
+  Status Initialize(ServerContext* context, const InitializeRequest* request,
+                  StatusReply* reply) override {
+
+    std::cout << "Server got a request to initialize an NDDI Display." << std::endl;
+
+    vector<unsigned int> fvDimensions;
+    for (int i = 0; i < request->framevolumedimensionalsizes_size(); i++) {
+        fvDimensions.push_back(request->framevolumedimensionalsizes(i));
+    }
+    myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
+                                  request->displaywidth(),         // display size
+                                  request->displayheight(),
+                                  request->numcoefficientplanes(), // number of coefficient planes on the display
+                                  request->inputvectorsize());     // input vector size (x, y, t)
+
     return Status::OK;
   }
 };
 
 void RunServer() {
   std::string server_address("0.0.0.0:50051");
-  GreeterServiceImpl service;
+  NddiServiceImpl service;
 
   ServerBuilder builder;
   // Listen on the given address without any authentication mechanism.

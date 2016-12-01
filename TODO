@@ -1,6 +1,12 @@
-- Create skeleton server/client using a grpc example.
-- Define simple initial service and messages to initialize NDDI Display.
-  - Contructor
+* Create skeleton server/client using a grpc example.
+* Define simple initial service and messages to initialize NDDI Display.
+  * Contructor
+- Back in the pixelbridge project, fix costmodel to set headless based on global configuration in pixelbridge main.
+- Push latest changes to NDDI (costmodel/headless and splitting of features.h)
+- Fix GOMP link errors.
+- Fix CL and GL warnings.
+- Fix .PRECIOUS make errors.
+- Add GL window support to the server so we can start seeing progress.
 - Define additional messages matching the remaining APIs.
   - int DisplayWidth()
   - int DisplayHeight()
@@ -21,3 +27,4 @@
   - void SetPixelByteSignMode(SignMode mode)
   - void SetFullScaler(uint16_t scaler)
   - uint16_t GetFullScaler()
+- Change int to uint for NDDI Interface where appropriate.

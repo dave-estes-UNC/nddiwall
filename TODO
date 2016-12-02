@@ -1,8 +1,8 @@
 * Create skeleton server/client using a grpc example.
 * Define simple initial service and messages to initialize NDDI Display.
   * Contructor
-- Back in the pixelbridge project, fix costmodel to set headless based on global configuration in pixelbridge main.
-- Push latest changes to NDDI (costmodel/headless and splitting of features.h)
+* Back in the pixelbridge project, fix costmodel to set headless based on global configuration in pixelbridge main.
+* Push latest changes to NDDI (costmodel/headless and splitting of features.h)
 - Fix GOMP link errors.
 - Fix CL and GL warnings.
 - Fix .PRECIOUS make errors.

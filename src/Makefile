@@ -66,12 +66,12 @@ endif
 all: system-check nddiwall_client nddiwall_server
 
 nddiwall_client: nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_client.o
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(CPPFLAGS) $(LDFLAGS) -o $@
 
 nddiwall_server: nddi/BaseNddiDisplay.o nddi/ClNddiDisplay.o nddi/GlNddiDisplay.o nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_server.o
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(CPPFLAGS) $(LDFLAGS) -o $@
 
-	.PRECIOUS: %.grpc.pb.cc
+.PRECIOUS: %.grpc.pb.cc
 %.grpc.pb.cc: %.proto
 	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 

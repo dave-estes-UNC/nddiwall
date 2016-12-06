@@ -44,7 +44,13 @@ using grpc::ClientContext;
 using grpc::Status;
 using nddiwall::InitializeRequest;
 using nddiwall::StatusReply;
+using nddiwall::DisplayWidthRequest;
+using nddiwall::DisplayHeightRequest;
+using nddiwall::WidthReply;
+using nddiwall::HeightReply;
 using nddiwall::NddiWall;
+
+using namespace std;
 
 class NddiWallClient {
  public:
@@ -80,6 +86,34 @@ class NddiWallClient {
     }
   }
 
+  int getWidth() {
+      DisplayWidthRequest request;
+      WidthReply reply;
+      ClientContext context;
+      Status status = stub_->DisplayWidth(&context, request, &reply);
+      if (status.ok()) {
+          return reply.width();
+      } else {
+        std::cout << status.error_code() << ": " << status.error_message()
+                  << std::endl;
+        return 0;
+      }
+  }
+
+  int getHeight() {
+      DisplayHeightRequest request;
+      HeightReply reply;
+      ClientContext context;
+      Status status = stub_->DisplayHeight(&context, request, &reply);
+      if (status.ok()) {
+          return reply.height();
+      } else {
+        std::cout << status.error_code() << ": " << status.error_message()
+                  << std::endl;
+        return 0;
+      }
+  }
+
  private:
   std::unique_ptr<NddiWall::Stub> stub_;
 };
@@ -94,6 +128,9 @@ int main(int argc, char** argv) {
 
   // Initialize the NDDI Display
   client.initialize();
+
+  cout << "Width is " << client.getWidth() << endl;
+  cout << "Height is " << client.getHeight() << endl;
 
   return 0;
 }

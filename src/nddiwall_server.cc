@@ -54,6 +54,10 @@ using grpc::ServerContext;
 using grpc::Status;
 using nddiwall::InitializeRequest;
 using nddiwall::StatusReply;
+using nddiwall::DisplayWidthRequest;
+using nddiwall::DisplayHeightRequest;
+using nddiwall::WidthReply;
+using nddiwall::HeightReply;
 using nddiwall::NddiWall;
 
 /*
@@ -70,18 +74,48 @@ class NddiServiceImpl final : public NddiWall::Service {
 
     std::cout << "Server got a request to initialize an NDDI Display." << std::endl;
 
-    // Initialize the NDDI display
-    vector<unsigned int> fvDimensions;
-    for (int i = 0; i < request->framevolumedimensionalsizes_size(); i++) {
-        fvDimensions.push_back(request->framevolumedimensionalsizes(i));
+    if (!myDisplay) {
+        // Initialize the NDDI display
+        vector<unsigned int> fvDimensions;
+        for (int i = 0; i < request->framevolumedimensionalsizes_size(); i++) {
+            fvDimensions.push_back(request->framevolumedimensionalsizes(i));
+        }
+        myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
+                                      request->displaywidth(),         // display size
+                                      request->displayheight(),
+                                      request->numcoefficientplanes(), // number of coefficient planes on the display
+                                      request->inputvectorsize());     // input vector size (x, y, t)
+        reply->set_status(reply->OK);
+    } else {
+        reply->set_status(reply->NOT_OK);
     }
-    myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
-                                  request->displaywidth(),         // display size
-                                  request->displayheight(),
-                                  request->numcoefficientplanes(), // number of coefficient planes on the display
-                                  request->inputvectorsize());     // input vector size (x, y, t)
-
     return Status::OK;
+  }
+
+  Status DisplayWidth(ServerContext* context, const DisplayWidthRequest* request,
+                      WidthReply* reply) override {
+
+      std::cout << "Server got a request for the NDDI Display width." << std::endl;
+
+      if (myDisplay) {
+          reply->set_width(myDisplay->DisplayWidth());
+      } else {
+          reply->set_width(0);;
+      }
+      return Status::OK;
+  }
+
+  Status DisplayHeight(ServerContext* context, const DisplayHeightRequest* request,
+                       HeightReply* reply) override {
+
+      std::cout << "Server got a request for the NDDI Display height." << std::endl;
+
+      if (myDisplay) {
+          reply->set_height(myDisplay->DisplayHeight());
+      } else {
+          reply->set_height(0);;
+      }
+      return Status::OK;
   }
 };
 

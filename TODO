@@ -7,9 +7,11 @@
 * Fix CL and GL warnings.
 * Fix .PRECIOUS make errors.
 * Add GL window support to the server so we can start seeing progress.
+- Change int to uint for NDDI Interface where appropriate.
+- Create a GrpcNddiDisplay for the client to use.
 - Define additional messages matching the remaining APIs.
-  - int DisplayWidth()
-  - int DisplayHeight()
+  * int DisplayWidth()
+  * int DisplayHeight()
   - void PutPixel(Pixel p, vector<unsigned int> &location)
   - void CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
@@ -27,4 +29,3 @@
   - void SetPixelByteSignMode(SignMode mode)
   - void SetFullScaler(uint16_t scaler)
   - uint16_t GetFullScaler()
-- Change int to uint for NDDI Interface where appropriate.

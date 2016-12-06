@@ -5,6 +5,10 @@ package nddiwall;
 service NddiWall {
   // Initializes the NDDI Display
   rpc Initialize (InitializeRequest) returns (StatusReply) {}
+
+  // Get display width/height
+  rpc DisplayWidth (DisplayWidthRequest) returns (WidthReply) {}
+  rpc DisplayHeight (DisplayHeightRequest) returns (HeightReply) {}
 }
 
 // The request for initializing the NDDI Display
@@ -16,11 +20,25 @@ message InitializeRequest {
   int32 inputVectorSize = 5;
 }
 
-// Simple status response
+// Simple status response for most requests
 message StatusReply {
   enum Status {
     OK = 0;
     NOT_OK = 1;
   }
   Status status = 1;
+}
+
+// Get Display Width/Height Requests
+message DisplayWidthRequest {
+}
+message DisplayHeightRequest {
+}
+
+// Get Display Width/Height Replies
+message WidthReply {
+  int32 width = 1;
+}
+message HeightReply {
+  int32 height = 1;
 }

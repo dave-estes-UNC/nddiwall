@@ -34,6 +34,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unistd.h>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -55,16 +56,21 @@ using nddiwall::InitializeRequest;
 using nddiwall::StatusReply;
 using nddiwall::NddiWall;
 
+/*
+ * Globals
+ */
+GlNddiDisplay* myDisplay;
+pthread_t serverThread;
+
 // Logic and data behind the server's behavior.
 class NddiServiceImpl final : public NddiWall::Service {
-
-  GlNddiDisplay* myDisplay;
 
   Status Initialize(ServerContext* context, const InitializeRequest* request,
                   StatusReply* reply) override {
 
     std::cout << "Server got a request to initialize an NDDI Display." << std::endl;
 
+    // Initialize the NDDI display
     vector<unsigned int> fvDimensions;
     for (int i = 0; i < request->framevolumedimensionalsizes_size(); i++) {
         fvDimensions.push_back(request->framevolumedimensionalsizes(i));
@@ -79,7 +85,7 @@ class NddiServiceImpl final : public NddiWall::Service {
   }
 };
 
-void RunServer() {
+void* runServer(void *) {
   std::string server_address("0.0.0.0:50051");
   NddiServiceImpl service;
 
@@ -98,8 +104,115 @@ void RunServer() {
   server->Wait();
 }
 
+void renderFrame() {
+    // Draw
+    glutPostRedisplay();
+}
+
+void draw( void ) {
+
+    if (!myDisplay)
+        return;
+
+    // Grab the frame buffer from the NDDI display
+    GLuint texture = myDisplay->GetFrameBufferTex();
+
+// TODO(CDE): Temporarily putting this here until GlNddiDisplay and ClNddiDisplay
+//            are using the exact same kind of GL textures
+#ifndef NO_CL
+    glClearColor(0.0f, 0.0f, 1.0f, 1.0f );
+    glClear( GL_COLOR_BUFFER_BIT );
+
+    // Draw the texture with ARB Rectangles
+    glEnable(GL_TEXTURE_RECTANGLE_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture );
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex2f(-1.0, 1.0);
+    glTexCoord2f(0, myDisplay->DisplayHeight()); glVertex2f(-1.0, -1.0);
+    glTexCoord2f(myDisplay->DisplayWidth(), myDisplay->DisplayHeight()); glVertex2f(1.0, -1.0);
+    glTexCoord2f(myDisplay->DisplayWidth(), 0); glVertex2f(1.0, 1.0);
+    glEnd();
+
+    glDisable(GL_TEXTURE_RECTANGLE_ARB);
+#else
+    glBindTexture( GL_TEXTURE_2D, texture );
+
+    glBegin( GL_QUADS );
+    glTexCoord2d(0.0,0.0); glVertex2d(-1.0,1.0);
+    glTexCoord2d(1.0,0.0); glVertex2d(1.0,1.0);
+    glTexCoord2d(1.0,1.0); glVertex2d(1.0,-1.0);
+    glTexCoord2d(0.0,1.0); glVertex2d(-1.0,-1.0);
+    glEnd();
+
+    glBindTexture( GL_TEXTURE_2D, 0 );
+#endif
+
+    // Update the window
+    glutSwapBuffers();
+}
+
+void keyboard( unsigned char key, int x, int y ) {
+
+    switch (key) {
+        case 27: // Esc
+            pthread_cancel(serverThread);
+            delete myDisplay;
+            exit(0);
+            break;
+        default:
+            break;
+    }
+
+    glutPostRedisplay();
+}
+
+static bool doing_it = false;
+
+void mouse( int button, int state, int x, int y ) {
+
+    if (button == GLUT_LEFT && state == GLUT_DOWN) {
+        doing_it = true;
+    } else {
+        doing_it = false;
+    }
+    glutPostRedisplay();
+}
+
+void motion( int x, int y ) {
+
+    if (doing_it) {
+        glutPostRedisplay();
+    }
+}
+
 int main(int argc, char** argv) {
-  RunServer();
+
+  //RunServer();
+  pthread_create(&serverThread, NULL, runServer, NULL);
+
+  // Wait until the server initializes the NDDI display for a client.
+  while (!myDisplay)
+    usleep(200);
+
+  // Initialize GLUT
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
+  glutInitWindowSize(myDisplay->DisplayWidth(), myDisplay->DisplayHeight());
+
+  glutCreateWindow("NDDI Display Wall");
+
+  glutDisplayFunc(draw);
+  glutKeyboardFunc(keyboard);
+  glutMouseFunc(mouse);
+  glutMotionFunc(motion);
+
+  glEnable(GL_TEXTURE_2D);
+
+  glutIdleFunc(renderFrame);
+
+  // Run main loop
+  glutMainLoop();
 
   return 0;
 }

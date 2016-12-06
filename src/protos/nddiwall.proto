@@ -14,10 +14,10 @@ service NddiWall {
 // The request for initializing the NDDI Display
 message InitializeRequest {
   repeated int32 frameVolumeDimensionalSizes = 1;
-  int32 displayWidth = 2;
-  int32 displayHeight = 3;
-  int32 numCoefficientPlanes = 4;
-  int32 inputVectorSize = 5;
+  uint32 displayWidth = 2;
+  uint32 displayHeight = 3;
+  uint32 numCoefficientPlanes = 4;
+  uint32 inputVectorSize = 5;
 }
 
 // Simple status response for most requests
@@ -37,8 +37,8 @@ message DisplayHeightRequest {
 
 // Get Display Width/Height Replies
 message WidthReply {
-  int32 width = 1;
+  uint32 width = 1;
 }
 message HeightReply {
-  int32 height = 1;
+  uint32 height = 1;
 }

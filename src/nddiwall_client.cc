@@ -86,7 +86,7 @@ class NddiWallClient {
     }
   }
 
-  int getWidth() {
+  uint32_t getWidth() {
       DisplayWidthRequest request;
       WidthReply reply;
       ClientContext context;
@@ -100,7 +100,7 @@ class NddiWallClient {
       }
   }
 
-  int getHeight() {
+  uint32_t getHeight() {
       DisplayHeightRequest request;
       HeightReply reply;
       ClientContext context;

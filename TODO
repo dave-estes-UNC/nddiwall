@@ -12,7 +12,7 @@
 + Define additional messages matching the remaining APIs.
   * unsigned int DisplayWidth()
   * unsigned int DisplayHeight()
-  - unsigned int NumCoefficientPlanes()
+  * unsigned int NumCoefficientPlanes()
   - void PutPixel(Pixel p, vector<unsigned int> &location)
   - void CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)

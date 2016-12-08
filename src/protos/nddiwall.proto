@@ -7,8 +7,11 @@ service NddiWall {
   rpc Initialize (InitializeRequest) returns (StatusReply) {}
 
   // Get display width/height
-  rpc DisplayWidth (DisplayWidthRequest) returns (WidthReply) {}
-  rpc DisplayHeight (DisplayHeightRequest) returns (HeightReply) {}
+  rpc DisplayWidth (DisplayWidthRequest) returns (DisplayWidthReply) {}
+  rpc DisplayHeight (DisplayHeightRequest) returns (DisplayHeightReply) {}
+  
+  // Get number of coefficient planes
+  rpc NumCoefficientPlanes (NumCoefficientPlanesRequest) returns (NumCoefficientPlanesReply) {}
 }
 
 // The request for initializing the NDDI Display
@@ -36,9 +39,18 @@ message DisplayHeightRequest {
 }
 
 // Get Display Width/Height Replies
-message WidthReply {
+message DisplayWidthReply {
   uint32 width = 1;
 }
-message HeightReply {
+message DisplayHeightReply {
   uint32 height = 1;
+}
+
+// NumCoefficientPlanes Request
+message NumCoefficientPlanesRequest {
+}
+
+// NumCoefficientPlanes Reply
+message NumCoefficientPlanesReply {
+  uint32 planes = 1;
 }

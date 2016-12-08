@@ -50,7 +50,7 @@ GrpcNddiDisplay::~GrpcNddiDisplay() {}
 
 unsigned int GrpcNddiDisplay::DisplayWidth() {
     DisplayWidthRequest request;
-    WidthReply reply;
+    DisplayWidthReply reply;
     ClientContext context;
     Status status = stub_->DisplayWidth(&context, request, &reply);
     if (status.ok()) {
@@ -64,7 +64,7 @@ unsigned int GrpcNddiDisplay::DisplayWidth() {
 
 unsigned int GrpcNddiDisplay::DisplayHeight() {
     DisplayHeightRequest request;
-    HeightReply reply;
+    DisplayHeightReply reply;
     ClientContext context;
     Status status = stub_->DisplayHeight(&context, request, &reply);
     if (status.ok()) {
@@ -77,7 +77,17 @@ unsigned int GrpcNddiDisplay::DisplayHeight() {
 }
 
 unsigned int GrpcNddiDisplay::NumCoefficientPlanes() {
-    return 0;
+    NumCoefficientPlanesRequest request;
+    NumCoefficientPlanesReply reply;
+    ClientContext context;
+    Status status = stub_->NumCoefficientPlanes(&context, request, &reply);
+    if (status.ok()) {
+        return reply.planes();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return 0;
+    }
 }
 
 void GrpcNddiDisplay::PutPixel(Pixel p, vector<unsigned int> &location) {

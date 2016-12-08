@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
 
     cout << "Width is " << myDisplay.DisplayWidth() << endl;
     cout << "Height is " << myDisplay.DisplayHeight() << endl;
+    cout << "Numer of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << endl;
 
 
   return 0;

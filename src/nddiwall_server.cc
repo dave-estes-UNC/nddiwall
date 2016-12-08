@@ -56,8 +56,10 @@ using nddiwall::InitializeRequest;
 using nddiwall::StatusReply;
 using nddiwall::DisplayWidthRequest;
 using nddiwall::DisplayHeightRequest;
-using nddiwall::WidthReply;
-using nddiwall::HeightReply;
+using nddiwall::DisplayWidthReply;
+using nddiwall::DisplayHeightReply;
+using nddiwall::NumCoefficientPlanesRequest;
+using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::NddiWall;
 
 /*
@@ -93,27 +95,40 @@ class NddiServiceImpl final : public NddiWall::Service {
   }
 
   Status DisplayWidth(ServerContext* context, const DisplayWidthRequest* request,
-                      WidthReply* reply) override {
+                      DisplayWidthReply* reply) override {
 
       std::cout << "Server got a request for the NDDI Display width." << std::endl;
 
       if (myDisplay) {
           reply->set_width(myDisplay->DisplayWidth());
       } else {
-          reply->set_width(0);;
+          reply->set_width(0);
       }
       return Status::OK;
   }
 
   Status DisplayHeight(ServerContext* context, const DisplayHeightRequest* request,
-                       HeightReply* reply) override {
+                       DisplayHeightReply* reply) override {
 
       std::cout << "Server got a request for the NDDI Display height." << std::endl;
 
       if (myDisplay) {
           reply->set_height(myDisplay->DisplayHeight());
       } else {
-          reply->set_height(0);;
+          reply->set_height(0);
+      }
+      return Status::OK;
+  }
+
+  Status NumCoefficientPlanes(ServerContext* context, const NumCoefficientPlanesRequest* request,
+                              NumCoefficientPlanesReply* reply) override {
+
+      std::cout << "Server got a request for the NDDI Display number of coefficient planest." << std::endl;
+
+      if (myDisplay) {
+          reply->set_planes(myDisplay->NumCoefficientPlanes());
+      } else {
+          reply->set_planes(0);
       }
       return Status::OK;
   }

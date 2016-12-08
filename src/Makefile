@@ -65,7 +65,7 @@ endif
 
 all: system-check nddiwall_client nddiwall_server
 
-nddiwall_client: nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_client.o
+nddiwall_client: nddiwall.pb.o nddiwall.grpc.pb.o GrpcNddiDisplay.o nddiwall_client.o
 	$(CXX) $^ $(CPPFLAGS) $(LDFLAGS) -o $@
 
 nddiwall_server: nddi/BaseNddiDisplay.o nddi/ClNddiDisplay.o nddi/GlNddiDisplay.o nddiwall.pb.o nddiwall.grpc.pb.o nddiwall_server.o

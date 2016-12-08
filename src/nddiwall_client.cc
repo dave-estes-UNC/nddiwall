@@ -37,6 +37,7 @@
 
 #include <grpc++/grpc++.h>
 
+#include "GrpcNddiDisplay.h"
 #include "nddiwall.grpc.pb.h"
 
 using grpc::Channel;

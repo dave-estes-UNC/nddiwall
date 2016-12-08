@@ -1,7 +1,22 @@
 #ifndef GRPC_NDDI_DISPLAY_H
 #define GRPC_NDDI_DISPLAY_H
 
+#include <grpc++/grpc++.h>
+
 #include "nddi/NDimensionalDisplayInterface.h"
+
+#include "nddiwall.grpc.pb.h"
+
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::Status;
+using nddiwall::InitializeRequest;
+using nddiwall::StatusReply;
+using nddiwall::DisplayWidthRequest;
+using nddiwall::DisplayHeightRequest;
+using nddiwall::WidthReply;
+using nddiwall::HeightReply;
+using nddiwall::NddiWall;
 
 using namespace std;
 
@@ -12,17 +27,15 @@ namespace nddi {
      */
     class GrpcNddiDisplay : public NDimensionalDisplayInterface {
 
-    protected:
-
     public:
         GrpcNddiDisplay();
         GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                         unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
-                        bool headless = false);
+                        shared_ptr<Channel> channel);
         GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                         unsigned int displayWidth, unsigned int displayHeight,
                         unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
-                        bool headless = false);
+                        shared_ptr<Channel> channel);
         ~GrpcNddiDisplay();
         unsigned int DisplayWidth();
         unsigned int DisplayHeight();
@@ -45,6 +58,10 @@ namespace nddi {
         void SetFullScaler(uint16_t scaler);
         uint16_t GetFullScaler();
         CostModel* GetCostModel();
+
+    private:
+        unique_ptr<NddiWall::Stub> stub_;
+
     };
 
 }

@@ -38,100 +38,27 @@
 #include <grpc++/grpc++.h>
 
 #include "GrpcNddiDisplay.h"
-#include "nddiwall.grpc.pb.h"
-
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::Status;
-using nddiwall::InitializeRequest;
-using nddiwall::StatusReply;
-using nddiwall::DisplayWidthRequest;
-using nddiwall::DisplayHeightRequest;
-using nddiwall::WidthReply;
-using nddiwall::HeightReply;
-using nddiwall::NddiWall;
 
 using namespace std;
+using namespace nddi;
 
-class NddiWallClient {
- public:
-    NddiWallClient(std::shared_ptr<Channel> channel)
-      : stub_(NddiWall::NewStub(channel)) {}
-
-  // Assembles the client's payload, sends it and presents the response back
-  // from the server.
-  void initialize() {
-    // Data we are sending to the server.
-    InitializeRequest request;
-    request.add_framevolumedimensionalsizes(640);
-    request.add_framevolumedimensionalsizes(480);
-    request.set_displaywidth(640);
-    request.set_displayheight(480);
-    request.set_numcoefficientplanes(1);
-    request.set_inputvectorsize(2);
-
-    // Container for the data we expect from the server.
-    StatusReply reply;
-
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
-    ClientContext context;
-
-    // The actual RPC.
-    Status status = stub_->Initialize(&context, request, &reply);
-
-    // Act upon its status.
-    if (!status.ok()) {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-    }
-  }
-
-  uint32_t getWidth() {
-      DisplayWidthRequest request;
-      WidthReply reply;
-      ClientContext context;
-      Status status = stub_->DisplayWidth(&context, request, &reply);
-      if (status.ok()) {
-          return reply.width();
-      } else {
-        std::cout << status.error_code() << ": " << status.error_message()
-                  << std::endl;
-        return 0;
-      }
-  }
-
-  uint32_t getHeight() {
-      DisplayHeightRequest request;
-      HeightReply reply;
-      ClientContext context;
-      Status status = stub_->DisplayHeight(&context, request, &reply);
-      if (status.ok()) {
-          return reply.height();
-      } else {
-        std::cout << status.error_code() << ": " << status.error_message()
-                  << std::endl;
-        return 0;
-      }
-  }
-
- private:
-  std::unique_ptr<NddiWall::Stub> stub_;
-};
+const size_t DISPLAY_WIDTH = 1024;
+const size_t DISPLAY_HEIGHT = 768;
 
 int main(int argc, char** argv) {
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint (in this case,
-  // localhost at port 50051). We indicate that the channel isn't authenticated
-  // (use of InsecureChannelCredentials()).
-  NddiWallClient client(grpc::CreateChannel(
-      "localhost:50051", grpc::InsecureChannelCredentials()));
+    // Initialize the GRPC NDDI Display. It requires a channel, out of which the actual RPCs
+    // are created. This channel models a connection to an endpoint (in this case,
+    // localhost at port 50051). We indicate that the channel isn't authenticated
+    // (use of InsecureChannelCredentials()).
+    vector<unsigned int> frameVolumeDimensionalSizes;
+    frameVolumeDimensionalSizes.push_back(DISPLAY_WIDTH);
+    frameVolumeDimensionalSizes.push_back(DISPLAY_HEIGHT);
+    GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 2,
+            grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 
-  // Initialize the NDDI Display
-  client.initialize();
+    cout << "Width is " << myDisplay.DisplayWidth() << endl;
+    cout << "Height is " << myDisplay.DisplayHeight() << endl;
 
-  cout << "Width is " << client.getWidth() << endl;
-  cout << "Height is " << client.getHeight() << endl;
 
   return 0;
 }

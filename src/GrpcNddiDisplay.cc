@@ -5,26 +5,75 @@ using namespace std;
 
 // public
 
-GrpcNddiDisplay::GrpcNddiDisplay() {
-}
+GrpcNddiDisplay::GrpcNddiDisplay() {}
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
-                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize) {
+                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                                 shared_ptr<Channel> channel)
+: GrpcNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize, channel) {
 }
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int displayWidth, unsigned int displayHeight,
-                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize) {
+                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                                 shared_ptr<Channel> channel)
+: stub_(NddiWall::NewStub(channel)) {
+
+    // Data we are sending to the server.
+    InitializeRequest request;
+    request.add_framevolumedimensionalsizes(displayWidth);
+    request.add_framevolumedimensionalsizes(displayHeight);
+    request.set_displaywidth(displayWidth);
+    request.set_displayheight(displayHeight);
+    request.set_numcoefficientplanes(numCoefficientPlanes);
+    request.set_inputvectorsize(inputVectorSize);
+
+    // Container for the data we expect from the server.
+    StatusReply reply;
+
+    // Context for the client. It could be used to convey extra information to
+    // the server and/or tweak certain RPC behaviors.
+    ClientContext context;
+
+    // The actual RPC.
+    Status status = stub_->Initialize(&context, request, &reply);
+
+    // Act upon its status.
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
+
 }
 
 GrpcNddiDisplay::~GrpcNddiDisplay() {}
 
 unsigned int GrpcNddiDisplay::DisplayWidth() {
-    return 0;
+    DisplayWidthRequest request;
+    WidthReply reply;
+    ClientContext context;
+    Status status = stub_->DisplayWidth(&context, request, &reply);
+    if (status.ok()) {
+        return reply.width();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return 0;
+    }
 }
 
 unsigned int GrpcNddiDisplay::DisplayHeight() {
-    return 0;
+    DisplayHeightRequest request;
+    HeightReply reply;
+    ClientContext context;
+    Status status = stub_->DisplayHeight(&context, request, &reply);
+    if (status.ok()) {
+        return reply.height();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return 0;
+    }
 }
 
 unsigned int GrpcNddiDisplay::NumCoefficientPlanes() {

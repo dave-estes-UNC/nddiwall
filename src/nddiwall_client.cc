@@ -60,6 +60,29 @@ int main(int argc, char** argv) {
     cout << "Height is " << myDisplay.DisplayHeight() << endl;
     cout << "Numer of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << endl;
 
+    // Initialize FrameBuffer to just one pixel at (0,0)
+    vector<uint32_t> location;
+    location.push_back(0); location.push_back(0);
+    Pixel p;
+    p.packed = 0xffffffff;
+    myDisplay.PutPixel(p, location);
 
-  return 0;
+    // Initialize CoefficientPlane to all identity matrices
+    vector< vector<int> > coeffs;
+    coeffs.resize(2);
+    coeffs[0].push_back(1); coeffs[0].push_back(0);
+    coeffs[1].push_back(0); coeffs[1].push_back(1);
+
+    start.clear(); end.clear();
+
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(DISPLAY_WIDTH - 1); end.push_back(DISPLAY_HEIGHT - 1); end.push_back(0);
+
+    myDisplay->FillCoefficientMatrix(coeffs, start, end);
+
+    // Set the only plane to full on.
+    s.r = s.g = s.b = myDisplay->GetFullScaler();
+    myDisplay->FillScaler(s, start, end);
+
+    return 0;
 }

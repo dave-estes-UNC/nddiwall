@@ -1,7 +1,16 @@
 #include "GrpcNddiDisplay.h"
 
 using namespace nddi;
-using namespace std;
+
+using nddiwall::InitializeRequest;
+using nddiwall::StatusReply;
+using nddiwall::DisplayWidthRequest;
+using nddiwall::DisplayHeightRequest;
+using nddiwall::DisplayWidthReply;
+using nddiwall::DisplayHeightReply;
+using nddiwall::NumCoefficientPlanesRequest;
+using nddiwall::NumCoefficientPlanesReply;
+using nddiwall::PutPixelRequest;
 
 // public
 
@@ -43,7 +52,6 @@ GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSiz
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
     }
-
 }
 
 GrpcNddiDisplay::~GrpcNddiDisplay() {}
@@ -82,7 +90,7 @@ unsigned int GrpcNddiDisplay::NumCoefficientPlanes() {
     ClientContext context;
     Status status = stub_->NumCoefficientPlanes(&context, request, &reply);
     if (status.ok()) {
-        return reply.planes();
+      return reply.planes();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
@@ -91,6 +99,21 @@ unsigned int GrpcNddiDisplay::NumCoefficientPlanes() {
 }
 
 void GrpcNddiDisplay::PutPixel(Pixel p, vector<unsigned int> &location) {
+    PutPixelRequest request;
+    request.set_pixel(p.packed);
+    for (size_t i = 0; i < location.size(); i++) {
+      request.add_location(location[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->PutPixel(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
@@ -118,6 +141,7 @@ void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMat
 void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
                                             vector<unsigned int> &start,
                                             vector<unsigned int> &end) {
+    // TODO(CDE): This one first.
 }
 
 void GrpcNddiDisplay::FillCoefficient(int coefficient,
@@ -135,6 +159,7 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
 void GrpcNddiDisplay::FillScaler(Scaler scaler,
                                  vector<unsigned int> &start,
                                  vector<unsigned int> &end) {
+    // TODO(CDE): This one second.
 }
 
 void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
@@ -154,6 +179,7 @@ void GrpcNddiDisplay::SetFullScaler(uint16_t scaler) {
 }
 
 uint16_t GrpcNddiDisplay::GetFullScaler() {
+    // TODO(CDE): This one third.
     return 0;
 }
 

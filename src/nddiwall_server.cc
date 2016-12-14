@@ -60,6 +60,7 @@ using nddiwall::DisplayWidthReply;
 using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
+using nddiwall::PutPixelRequest;
 using nddiwall::NddiWall;
 
 /*
@@ -72,10 +73,8 @@ pthread_t serverThread;
 class NddiServiceImpl final : public NddiWall::Service {
 
   Status Initialize(ServerContext* context, const InitializeRequest* request,
-                  StatusReply* reply) override {
-
+                    StatusReply* reply) override {
     std::cout << "Server got a request to initialize an NDDI Display." << std::endl;
-
     if (!myDisplay) {
         // Initialize the NDDI display
         vector<unsigned int> fvDimensions;
@@ -96,9 +95,7 @@ class NddiServiceImpl final : public NddiWall::Service {
 
   Status DisplayWidth(ServerContext* context, const DisplayWidthRequest* request,
                       DisplayWidthReply* reply) override {
-
       std::cout << "Server got a request for the NDDI Display width." << std::endl;
-
       if (myDisplay) {
           reply->set_width(myDisplay->DisplayWidth());
       } else {
@@ -109,9 +106,7 @@ class NddiServiceImpl final : public NddiWall::Service {
 
   Status DisplayHeight(ServerContext* context, const DisplayHeightRequest* request,
                        DisplayHeightReply* reply) override {
-
       std::cout << "Server got a request for the NDDI Display height." << std::endl;
-
       if (myDisplay) {
           reply->set_height(myDisplay->DisplayHeight());
       } else {
@@ -122,9 +117,7 @@ class NddiServiceImpl final : public NddiWall::Service {
 
   Status NumCoefficientPlanes(ServerContext* context, const NumCoefficientPlanesRequest* request,
                               NumCoefficientPlanesReply* reply) override {
-
       std::cout << "Server got a request for the NDDI Display number of coefficient planest." << std::endl;
-
       if (myDisplay) {
           reply->set_planes(myDisplay->NumCoefficientPlanes());
       } else {
@@ -132,6 +125,25 @@ class NddiServiceImpl final : public NddiWall::Service {
       }
       return Status::OK;
   }
+
+  Status PutPixel(ServerContext* context, const PutPixelRequest* request,
+                  StatusReply* reply) override {
+      std::cout << "Server got a request to PutPixel." << std::endl;
+      if (myDisplay) {
+          vector<unsigned int> location;
+          for (int i = 0; i < request->location_size(); i++) {
+              location.push_back(request->location(i));
+          }
+          Pixel p;
+          p.packed = request->pixel();
+          myDisplay->PutPixel(p, location);
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
 };
 
 void* runServer(void *) {

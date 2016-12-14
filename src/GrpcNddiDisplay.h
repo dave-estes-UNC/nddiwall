@@ -10,14 +10,6 @@
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using nddiwall::InitializeRequest;
-using nddiwall::StatusReply;
-using nddiwall::DisplayWidthRequest;
-using nddiwall::DisplayHeightRequest;
-using nddiwall::DisplayWidthReply;
-using nddiwall::DisplayHeightReply;
-using nddiwall::NumCoefficientPlanesRequest;
-using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::NddiWall;
 
 using namespace std;

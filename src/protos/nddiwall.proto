@@ -3,27 +3,41 @@ syntax = "proto3";
 package nddiwall;
 
 service NddiWall {
-  // Initializes the NDDI Display
   rpc Initialize (InitializeRequest) returns (StatusReply) {}
-
-  // Get display width/height
   rpc DisplayWidth (DisplayWidthRequest) returns (DisplayWidthReply) {}
   rpc DisplayHeight (DisplayHeightRequest) returns (DisplayHeightReply) {}
-  
-  // Get number of coefficient planes
   rpc NumCoefficientPlanes (NumCoefficientPlanesRequest) returns (NumCoefficientPlanesReply) {}
+  rpc PutPixel (PutPixelRequest) returns (StatusReply) {}
 }
 
-// The request for initializing the NDDI Display
+//
+// Requests
+//
 message InitializeRequest {
-  repeated int32 frameVolumeDimensionalSizes = 1;
+  repeated uint32 frameVolumeDimensionalSizes = 1;
   uint32 displayWidth = 2;
   uint32 displayHeight = 3;
   uint32 numCoefficientPlanes = 4;
   uint32 inputVectorSize = 5;
 }
 
-// Simple status response for most requests
+message DisplayWidthRequest {
+}
+
+message DisplayHeightRequest {
+}
+
+message NumCoefficientPlanesRequest {
+}
+
+message PutPixelRequest {
+  uint32 pixel = 1;
+  repeated uint32 location = 2;
+}
+
+//
+// Replies
+//
 message StatusReply {
   enum Status {
     OK = 0;
@@ -32,25 +46,14 @@ message StatusReply {
   Status status = 1;
 }
 
-// Get Display Width/Height Requests
-message DisplayWidthRequest {
-}
-message DisplayHeightRequest {
-}
-
-// Get Display Width/Height Replies
 message DisplayWidthReply {
   uint32 width = 1;
 }
+
 message DisplayHeightReply {
   uint32 height = 1;
 }
 
-// NumCoefficientPlanes Request
-message NumCoefficientPlanesRequest {
-}
-
-// NumCoefficientPlanes Reply
 message NumCoefficientPlanesReply {
   uint32 planes = 1;
 }

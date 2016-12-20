@@ -61,6 +61,7 @@ using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
+using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
@@ -147,22 +148,44 @@ class NddiServiceImpl final : public NddiWall::Service {
       return Status::OK;
   }
 
+  Status FillScaler(ServerContext* context, const FillScalerRequest* request,
+                  StatusReply* reply) override {
+      std::cout << "Server got a request to FillScaler." << std::endl;
+      if (myDisplay) {
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+          }
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+          }
+          Scaler s;
+          s.packed = request->scaler();
+          myDisplay->FillScaler(s, start, end);
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
   Status GetFullScaler(ServerContext* context, const GetFullScalerRequest* request,
                        GetFullScalerReply* reply) override {
       std::cout << "Server got a request for the maximum scaler." << std::endl;
       if (myDisplay) {
-          reply->set_scaler(myDisplay->GetFullScaler());
+          reply->set_fullscaler(myDisplay->GetFullScaler());
       } else {
-          reply->set_scaler(0);
+          reply->set_fullscaler(0);
       }
       return Status::OK;
   }
 
   Status SetFullScaler(ServerContext* context, const SetFullScalerRequest* request,
                        StatusReply* reply) override {
-      std::cout << "Server got a request to set the maximum scaler to " << request->scaler() << "." << std::endl;
+      std::cout << "Server got a request to set the maximum scaler to " << request->fullscaler() << "." << std::endl;
       if (myDisplay) {
-          myDisplay->SetFullScaler((uint16_t)request->scaler());
+          myDisplay->SetFullScaler((uint16_t)request->fullscaler());
           reply->set_status(reply->OK);
       } else {
           reply->set_status(reply->NOT_OK);

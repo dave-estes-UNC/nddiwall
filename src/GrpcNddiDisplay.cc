@@ -11,6 +11,7 @@ using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
+using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
@@ -162,7 +163,24 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
 void GrpcNddiDisplay::FillScaler(Scaler scaler,
                                  vector<unsigned int> &start,
                                  vector<unsigned int> &end) {
-    // TODO(CDE): This one second.
+    FillScalerRequest request;
+    request.set_scaler(scaler.packed);
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+    }
+    for (size_t i = 0; i < end.size(); i++) {
+      request.add_end(end[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->FillScaler(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
@@ -178,9 +196,9 @@ void GrpcNddiDisplay::FillScalerTileStack(vector<uint64_t> &scalers,
 void GrpcNddiDisplay::SetPixelByteSignMode(SignMode mode) {
 }
 
-void GrpcNddiDisplay::SetFullScaler(uint16_t scaler) {
+void GrpcNddiDisplay::SetFullScaler(uint16_t fullScaler) {
     SetFullScalerRequest request;
-    request.set_scaler(scaler);
+    request.set_fullscaler(fullScaler);
 
     StatusReply reply;
 
@@ -199,7 +217,7 @@ uint16_t GrpcNddiDisplay::GetFullScaler() {
     ClientContext context;
     Status status = stub_->GetFullScaler(&context, request, &reply);
     if (status.ok()) {
-      return (uint16_t)reply.scaler();
+      return (uint16_t)reply.fullscaler();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;

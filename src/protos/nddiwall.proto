@@ -8,6 +8,8 @@ service NddiWall {
   rpc DisplayHeight (DisplayHeightRequest) returns (DisplayHeightReply) {}
   rpc NumCoefficientPlanes (NumCoefficientPlanesRequest) returns (NumCoefficientPlanesReply) {}
   rpc PutPixel (PutPixelRequest) returns (StatusReply) {}
+  rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
+  rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
 }
 
 //
@@ -35,6 +37,13 @@ message PutPixelRequest {
   repeated uint32 location = 2;
 }
 
+message GetFullScalerRequest {
+}
+
+message SetFullScalerRequest {
+  uint32 scaler = 1;
+}
+
 //
 // Replies
 //
@@ -56,4 +65,8 @@ message DisplayHeightReply {
 
 message NumCoefficientPlanesReply {
   uint32 planes = 1;
+}
+
+message GetFullScalerReply {
+  uint32 scaler = 1;
 }

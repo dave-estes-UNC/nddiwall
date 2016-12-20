@@ -11,6 +11,9 @@ using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
+using nddiwall::GetFullScalerRequest;
+using nddiwall::GetFullScalerReply;
+using nddiwall::SetFullScalerRequest;
 
 // public
 
@@ -176,10 +179,32 @@ void GrpcNddiDisplay::SetPixelByteSignMode(SignMode mode) {
 }
 
 void GrpcNddiDisplay::SetFullScaler(uint16_t scaler) {
+    SetFullScalerRequest request;
+    request.set_scaler(scaler);
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->SetFullScaler(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 uint16_t GrpcNddiDisplay::GetFullScaler() {
-    // TODO(CDE): This one third.
+    GetFullScalerRequest request;
+    GetFullScalerReply reply;
+    ClientContext context;
+    Status status = stub_->GetFullScaler(&context, request, &reply);
+    if (status.ok()) {
+      return (uint16_t)reply.scaler();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return 0;
+    }
     return 0;
 }
 

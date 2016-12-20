@@ -28,5 +28,5 @@
   - void FillScalerTiles(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
   - void FillScalerTileStack(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size)
   - void SetPixelByteSignMode(SignMode mode)
-  - void SetFullScaler(uint16_t scaler)
-  + uint16_t GetFullScaler()
+  * void SetFullScaler(uint16_t scaler)
+  * uint16_t GetFullScaler()

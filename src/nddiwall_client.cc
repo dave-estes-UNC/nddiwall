@@ -39,7 +39,6 @@
 
 #include "GrpcNddiDisplay.h"
 
-using namespace std;
 using namespace nddi;
 
 const size_t DISPLAY_WIDTH = 1024;
@@ -56,9 +55,9 @@ int main(int argc, char** argv) {
     GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 2,
             grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 
-    cout << "Width is " << myDisplay.DisplayWidth() << endl;
-    cout << "Height is " << myDisplay.DisplayHeight() << endl;
-    cout << "Numer of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << endl;
+    std::cout << "Width is " << myDisplay.DisplayWidth() << std::endl;
+    std::cout << "Height is " << myDisplay.DisplayHeight() << std::endl;
+    std::cout << "Numer of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << std::endl;
 
     // Initialize FrameBuffer to just one pixel at (0,0)
     vector<uint32_t> location;
@@ -73,16 +72,19 @@ int main(int argc, char** argv) {
     coeffs[0].push_back(1); coeffs[0].push_back(0);
     coeffs[1].push_back(0); coeffs[1].push_back(1);
 
+    vector<unsigned int> start, end;
     start.clear(); end.clear();
 
     start.push_back(0); start.push_back(0); start.push_back(0);
     end.push_back(DISPLAY_WIDTH - 1); end.push_back(DISPLAY_HEIGHT - 1); end.push_back(0);
 
-    myDisplay->FillCoefficientMatrix(coeffs, start, end);
+    myDisplay.FillCoefficientMatrix(coeffs, start, end);
 
     // Set the only plane to full on.
-    s.r = s.g = s.b = myDisplay->GetFullScaler();
-    myDisplay->FillScaler(s, start, end);
+    Scaler s;
+    s.r = s.g = s.b = myDisplay.GetFullScaler();
+    myDisplay.SetFullScaler(s.r);
+    myDisplay.FillScaler(s, start, end);
 
     return 0;
 }

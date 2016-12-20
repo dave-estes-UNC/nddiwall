@@ -61,6 +61,9 @@ using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
+using nddiwall::GetFullScalerRequest;
+using nddiwall::GetFullScalerReply;
+using nddiwall::SetFullScalerRequest;
 using nddiwall::NddiWall;
 
 /*
@@ -117,7 +120,7 @@ class NddiServiceImpl final : public NddiWall::Service {
 
   Status NumCoefficientPlanes(ServerContext* context, const NumCoefficientPlanesRequest* request,
                               NumCoefficientPlanesReply* reply) override {
-      std::cout << "Server got a request for the NDDI Display number of coefficient planest." << std::endl;
+      std::cout << "Server got a request for the NDDI Display number of coefficient planes." << std::endl;
       if (myDisplay) {
           reply->set_planes(myDisplay->NumCoefficientPlanes());
       } else {
@@ -137,6 +140,29 @@ class NddiServiceImpl final : public NddiWall::Service {
           Pixel p;
           p.packed = request->pixel();
           myDisplay->PutPixel(p, location);
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status GetFullScaler(ServerContext* context, const GetFullScalerRequest* request,
+                       GetFullScalerReply* reply) override {
+      std::cout << "Server got a request for the maximum scaler." << std::endl;
+      if (myDisplay) {
+          reply->set_scaler(myDisplay->GetFullScaler());
+      } else {
+          reply->set_scaler(0);
+      }
+      return Status::OK;
+  }
+
+  Status SetFullScaler(ServerContext* context, const SetFullScalerRequest* request,
+                       StatusReply* reply) override {
+      std::cout << "Server got a request to set the maximum scaler to " << request->scaler() << "." << std::endl;
+      if (myDisplay) {
+          myDisplay->SetFullScaler((uint16_t)request->scaler());
           reply->set_status(reply->OK);
       } else {
           reply->set_status(reply->NOT_OK);

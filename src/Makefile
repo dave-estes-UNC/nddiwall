@@ -5,8 +5,8 @@ LDFLAGS += -L/usr/local/lib `pkg-config --libs grpc++ grpc`       \
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed \
            -lprotobuf -lpthread -ldl
 
-CPPFLAGS += -DSUPRESS_EXCESS_RENDERING
-CXXFLAGS += -DSUPRESS_EXCESS_RENDERING
+CPPFLAGS += -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO
+CXXFLAGS += -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO
 
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin

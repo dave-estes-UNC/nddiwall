@@ -44,6 +44,7 @@
 
 #include <grpc++/grpc++.h>
 
+#include "nddi/Features.h"
 #include "nddi/GlNddiDisplay.h"
 
 #include "nddiwall.grpc.pb.h"
@@ -61,6 +62,8 @@ using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
+using nddiwall::FillPixelRequest;
+using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
@@ -80,16 +83,28 @@ class NddiServiceImpl final : public NddiWall::Service {
                     StatusReply* reply) override {
     std::cout << "Server got a request to initialize an NDDI Display." << std::endl;
     if (!myDisplay) {
-        // Initialize the NDDI display
+        inputVectorSize_ = request->inputvectorsize();
+        frameVolumeDimensionality_ = request->framevolumedimensionalsizes_size();
+
+        std::cout << "  - Frame Volume: ";
         vector<unsigned int> fvDimensions;
         for (int i = 0; i < request->framevolumedimensionalsizes_size(); i++) {
             fvDimensions.push_back(request->framevolumedimensionalsizes(i));
+            if (i) { std::cout << "x"; }
+            std::cout << request->framevolumedimensionalsizes(i);
         }
+        std::cout << std::endl;
+        std::cout << "  - Display: " << request->displaywidth() << "x" << request->displayheight() << std::endl;
+        std::cout << "  - Coefficient Planes: " << request->numcoefficientplanes() << std::endl;
+        std::cout << "  - Input Vector Size: " << request->inputvectorsize() << std::endl;
+
+        // Initialize the NDDI display
         myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
                                       request->displaywidth(),         // display size
                                       request->displayheight(),
                                       request->numcoefficientplanes(), // number of coefficient planes on the display
                                       request->inputvectorsize());     // input vector size (x, y, t)
+
         reply->set_status(reply->OK);
     } else {
         reply->set_status(reply->NOT_OK);
@@ -134,13 +149,100 @@ class NddiServiceImpl final : public NddiWall::Service {
                   StatusReply* reply) override {
       std::cout << "Server got a request to PutPixel." << std::endl;
       if (myDisplay) {
+          std::cout << "  - Location: (";
           vector<unsigned int> location;
           for (int i = 0; i < request->location_size(); i++) {
               location.push_back(request->location(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->location(i);
           }
+          std::cout << ")" << std::endl;
+
           Pixel p;
           p.packed = request->pixel();
+          std::cout << "  - Pixel: " << (uint32_t)p.r << " " << (uint32_t)p.g << " " << (uint32_t)p.b << " " << (uint32_t)p.a << std::endl;
+
           myDisplay->PutPixel(p, location);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status FillPixel(ServerContext* context, const FillPixelRequest* request,
+                  StatusReply* reply) override {
+      std::cout << "Server got a request to FillPixel." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Start: (";
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - End: (";
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->end(i);
+          }
+          std::cout << ")" << std::endl;
+
+          Pixel p;
+          p.packed = request->pixel();
+          std::cout << "  - Pixel: " << (uint32_t)p.r << " " << (uint32_t)p.g << " " << (uint32_t)p.b << " " << (uint32_t)p.a << std::endl;
+
+          myDisplay->FillPixel(p, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status FillCoefficientMatrix(ServerContext* context, const FillCoefficientMatrixRequest* request,
+                               StatusReply* reply) override {
+      std::cout << "Server got a request to FillCoefficientMatrix." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Coefficient Matrix:" << std::endl;
+          vector< vector<int> > coefficientMatrix;
+          assert(request->coefficientmatrix_size() == inputVectorSize_ * frameVolumeDimensionality_);
+          coefficientMatrix.resize(frameVolumeDimensionality_);
+          for (int j = 0; j < frameVolumeDimensionality_; j++) {
+              std::cout << "    ";
+              for (int i = 0; i < inputVectorSize_; i++) {
+                  coefficientMatrix[j].push_back(request->coefficientmatrix(j * frameVolumeDimensionality_ + i));
+                  std::cout << request->coefficientmatrix(j * frameVolumeDimensionality_ + i) << " ";
+              }
+              std::cout << std::endl;
+          }
+
+          std::cout << "  - Start: (";
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - End: (";
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->end(i);
+          }
+          std::cout << ")" << std::endl;
+
+          myDisplay->FillCoefficientMatrix(coefficientMatrix, start, end);
+
           reply->set_status(reply->OK);
       } else {
           reply->set_status(reply->NOT_OK);
@@ -152,17 +254,30 @@ class NddiServiceImpl final : public NddiWall::Service {
                   StatusReply* reply) override {
       std::cout << "Server got a request to FillScaler." << std::endl;
       if (myDisplay) {
+          std::cout << "  - Start: (";
           vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
               start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
           }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - End: (";
           vector<unsigned int> end;
           for (int i = 0; i < request->end_size(); i++) {
               end.push_back(request->end(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->end(i);
           }
+          std::cout << ")" << std::endl;
+
           Scaler s;
           s.packed = request->scaler();
+          std::cout << "  - Scaler: " << s.r << " " << s.g << " " << s.r << " " << s.a << std::endl;
+
           myDisplay->FillScaler(s, start, end);
+
           reply->set_status(reply->OK);
       } else {
           reply->set_status(reply->NOT_OK);
@@ -183,7 +298,8 @@ class NddiServiceImpl final : public NddiWall::Service {
 
   Status SetFullScaler(ServerContext* context, const SetFullScalerRequest* request,
                        StatusReply* reply) override {
-      std::cout << "Server got a request to set the maximum scaler to " << request->fullscaler() << "." << std::endl;
+      std::cout << "Server got a request to set the maximum scaler." << std::endl;
+      std::cout << "  - Full Scaler: " <<  request->fullscaler() << std::endl;
       if (myDisplay) {
           myDisplay->SetFullScaler((uint16_t)request->fullscaler());
           reply->set_status(reply->OK);
@@ -192,6 +308,8 @@ class NddiServiceImpl final : public NddiWall::Service {
       }
       return Status::OK;
   }
+
+  unsigned int inputVectorSize_, frameVolumeDimensionality_;
 
 };
 

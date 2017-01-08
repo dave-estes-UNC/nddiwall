@@ -11,6 +11,8 @@ using nddiwall::DisplayHeightReply;
 using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
+using nddiwall::FillPixelRequest;
+using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
@@ -34,8 +36,9 @@ GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSiz
 
     // Data we are sending to the server.
     InitializeRequest request;
-    request.add_framevolumedimensionalsizes(displayWidth);
-    request.add_framevolumedimensionalsizes(displayHeight);
+    for (size_t i = 0; i < frameVolumeDimensionalSizes.size(); i++) {
+        request.add_framevolumedimensionalsizes(frameVolumeDimensionalSizes[i]);
+    }
     request.set_displaywidth(displayWidth);
     request.set_displayheight(displayHeight);
     request.set_numcoefficientplanes(numCoefficientPlanes);
@@ -130,6 +133,24 @@ void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned i
 }
 
 void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {
+    FillPixelRequest request;
+    request.set_pixel(p.packed);
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+    }
+    for (size_t i = 0; i < end.size(); i++) {
+      request.add_end(end[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->FillPixel(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {
@@ -145,7 +166,28 @@ void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMat
 void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
                                             vector<unsigned int> &start,
                                             vector<unsigned int> &end) {
-    // TODO(CDE): This one first.
+    FillCoefficientMatrixRequest request;
+    for (size_t j = 0; j < coefficientMatrix.size(); j++) {
+        for (size_t i = 0; i < coefficientMatrix[j].size(); i++) {
+            request.add_coefficientmatrix(coefficientMatrix[j][i]);
+        }
+    }
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+    }
+    for (size_t i = 0; i < end.size(); i++) {
+      request.add_end(end[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->FillCoefficientMatrix(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillCoefficient(int coefficient,

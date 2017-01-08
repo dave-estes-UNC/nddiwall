@@ -3,6 +3,7 @@
 
 #include <grpc++/grpc++.h>
 
+#include "nddi/Features.h"
 #include "nddi/NDimensionalDisplayInterface.h"
 
 #include "nddiwall.grpc.pb.h"

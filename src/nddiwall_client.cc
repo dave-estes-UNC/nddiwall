@@ -41,8 +41,10 @@
 
 using namespace nddi;
 
-const size_t DISPLAY_WIDTH = 1024;
-const size_t DISPLAY_HEIGHT = 768;
+//const size_t DISPLAY_WIDTH = 1024;
+//const size_t DISPLAY_HEIGHT = 768;
+const size_t DISPLAY_WIDTH = 100;
+const size_t DISPLAY_HEIGHT = 100;
 
 int main(int argc, char** argv) {
     // Initialize the GRPC NDDI Display. It requires a channel, out of which the actual RPCs
@@ -57,14 +59,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Width is " << myDisplay.DisplayWidth() << std::endl;
     std::cout << "Height is " << myDisplay.DisplayHeight() << std::endl;
-    std::cout << "Numer of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << std::endl;
-
-    // Initialize FrameBuffer to just one pixel at (0,0)
-    vector<uint32_t> location;
-    location.push_back(0); location.push_back(0);
-    Pixel p;
-    p.packed = 0xffffffff;
-    myDisplay.PutPixel(p, location);
+    std::cout << "Number of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << std::endl;
 
     // Initialize CoefficientPlane to all identity matrices
     vector< vector<int> > coeffs;
@@ -82,9 +77,20 @@ int main(int argc, char** argv) {
 
     // Set the only plane to full on.
     Scaler s;
-    s.r = s.g = s.b = myDisplay.GetFullScaler();
-    myDisplay.SetFullScaler(s.r);
+    s.r = s.g = s.b = s.a = myDisplay.GetFullScaler();
     myDisplay.FillScaler(s, start, end);
+
+    // Fill FrameBuffer with white
+    Pixel p;
+    p.r = p.g = p.b = 0xff; p.a = 0xff;
+    start.pop_back(); end.pop_back();
+    myDisplay.FillPixel(p, start, end);
+
+    // Update the FrameBuffer with just one blue pixel at (10,10)
+    vector<uint32_t> location;
+    location.push_back(10); location.push_back(10);
+    p.r = p.g = 0x00;
+    myDisplay.PutPixel(p, location);
 
     return 0;
 }

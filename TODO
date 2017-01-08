@@ -9,19 +9,20 @@
 * Add GL window support to the server so we can start seeing progress.
 * Change int to uint for NDDI Interface where appropriate.
 * Create a GrpcNddiDisplay for the client to use.
+- Add dependencies to Makefile
 + Define additional messages matching the remaining APIs.
   * unsigned int DisplayWidth()
   * unsigned int DisplayHeight()
   * unsigned int NumCoefficientPlanes()
-  + void PutPixel(Pixel p, vector<unsigned int> &location)
+  * void PutPixel(Pixel p, vector<unsigned int> &location)
   - void CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
-  - void FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end)
+  * void FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest)
   - void UpdateInputVector(vector<int> &input)
   - void PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location)
-  + void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end)
+  * void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end)
   - void FillCoefficient(int coefficient, int row, int col, vector<unsigned int> &start, vector<unsigned int> &end)
   - void FillCoefficientTiles(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
   * void FillScaler(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end)

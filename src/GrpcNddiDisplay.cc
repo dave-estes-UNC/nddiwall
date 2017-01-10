@@ -17,6 +17,7 @@ using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
+using nddiwall::UpdateInputVectorRequest;
 
 // public
 
@@ -157,6 +158,20 @@ void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsign
 }
 
 void GrpcNddiDisplay::UpdateInputVector(vector<int> &input) {
+    UpdateInputVectorRequest request;
+    for (size_t i = 0; i < input.size(); i++) {
+      request.add_input(input[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->UpdateInputVector(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix,

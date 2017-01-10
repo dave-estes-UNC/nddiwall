@@ -35,6 +35,7 @@
 #include <memory>
 #include <string>
 
+#include <unistd.h>
 #include <grpc++/grpc++.h>
 
 #include "GrpcNddiDisplay.h"
@@ -54,7 +55,8 @@ int main(int argc, char** argv) {
     vector<unsigned int> frameVolumeDimensionalSizes;
     frameVolumeDimensionalSizes.push_back(DISPLAY_WIDTH);
     frameVolumeDimensionalSizes.push_back(DISPLAY_HEIGHT);
-    GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 2,
+    frameVolumeDimensionalSizes.push_back(2);
+    GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3,
             grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 
     std::cout << "Width is " << myDisplay.DisplayWidth() << std::endl;
@@ -63,9 +65,10 @@ int main(int argc, char** argv) {
 
     // Initialize CoefficientPlane to all identity matrices
     vector< vector<int> > coeffs;
-    coeffs.resize(2);
-    coeffs[0].push_back(1); coeffs[0].push_back(0);
-    coeffs[1].push_back(0); coeffs[1].push_back(1);
+    coeffs.resize(3);
+    coeffs[0].push_back(1); coeffs[0].push_back(0); coeffs[0].push_back(0);
+    coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
+    coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(1);
 
     vector<unsigned int> start, end;
     start.clear(); end.clear();
@@ -80,17 +83,30 @@ int main(int argc, char** argv) {
     s.r = s.g = s.b = s.a = myDisplay.GetFullScaler();
     myDisplay.FillScaler(s, start, end);
 
-    // Fill FrameBuffer with white
+    // Fill FrameBuffer with white and then black
     Pixel p;
     p.r = p.g = p.b = 0xff; p.a = 0xff;
-    start.pop_back(); end.pop_back();
+    end[2] = 0;
+    myDisplay.FillPixel(p, start, end);
+    start[2] = end[2] = 1;
+    p.r = p.g = p.b = 0x00;
     myDisplay.FillPixel(p, start, end);
 
     // Update the FrameBuffer with just one blue pixel at (10,10)
     vector<uint32_t> location;
-    location.push_back(10); location.push_back(10);
-    p.r = p.g = 0x00;
+    location.push_back(10); location.push_back(10); location.push_back(0);
+    p.b = 0xff;
     myDisplay.PutPixel(p, location);
+
+    // Sleep for 2s, change to black, then sleep for 2s and change back
+    sleep(2);
+    vector<int> input;
+    input.push_back(0);
+    input[0] = 1;
+    myDisplay.UpdateInputVector(input);
+    sleep(2);
+    input[0] = 0;
+    myDisplay.UpdateInputVector(input);
 
     return 0;
 }

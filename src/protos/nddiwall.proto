@@ -13,6 +13,7 @@ service NddiWall {
   rpc FillScaler (FillScalerRequest) returns (StatusReply) {}
   rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
   rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
+  rpc UpdateInputVector (UpdateInputVectorRequest) returns (StatusReply) {}
 }
 
 //
@@ -63,6 +64,10 @@ message GetFullScalerRequest {
 
 message SetFullScalerRequest {
   uint32 fullScaler = 1;
+}
+
+message UpdateInputVectorRequest {
+  repeated uint32 input = 1;
 }
 
 //

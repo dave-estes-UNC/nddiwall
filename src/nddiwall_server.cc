@@ -68,6 +68,7 @@ using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
+using nddiwall::UpdateInputVectorRequest;
 using nddiwall::NddiWall;
 
 /*
@@ -302,6 +303,27 @@ class NddiServiceImpl final : public NddiWall::Service {
       std::cout << "  - Full Scaler: " <<  request->fullscaler() << std::endl;
       if (myDisplay) {
           myDisplay->SetFullScaler((uint16_t)request->fullscaler());
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status UpdateInputVector(ServerContext* context, const UpdateInputVectorRequest* request,
+                           StatusReply* reply) override {
+      std::cout << "Server got a request to update the Input Vector." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Input: ";
+          vector<int> input;
+          for (int i = 0; i < request->input_size(); i++) {
+              input.push_back(request->input(i));
+              if (i) { std::cout << " "; }
+              std::cout << request->input(i);
+          }
+          std::cout << std::endl;
+
+          myDisplay->UpdateInputVector(input);
           reply->set_status(reply->OK);
       } else {
           reply->set_status(reply->NOT_OK);

@@ -98,6 +98,11 @@ int main(int argc, char** argv) {
     p.b = 0xff;
     myDisplay.PutPixel(p, location);
 
+    // Update coefficient matrix at (20,20) to use pixel at (10,10)
+    coeffs[2][0] = coeffs[2][1] = -10;
+    location[0] = location[1] = 20;
+    myDisplay.PutCoefficientMatrix(coeffs, location);
+
     // Sleep for 2s, change to black, then sleep for 2s and change back
     sleep(2);
     vector<int> input;
@@ -105,8 +110,8 @@ int main(int argc, char** argv) {
     input[0] = 1;
     myDisplay.UpdateInputVector(input);
     sleep(2);
-    input[0] = 0;
-    myDisplay.UpdateInputVector(input);
+    start[2] = end[2] = 0;
+    myDisplay.FillCoefficient(0, 2, 2, start, end);
 
     return 0;
 }

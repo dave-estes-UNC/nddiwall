@@ -9,7 +9,9 @@ service NddiWall {
   rpc NumCoefficientPlanes (NumCoefficientPlanesRequest) returns (NumCoefficientPlanesReply) {}
   rpc PutPixel (PutPixelRequest) returns (StatusReply) {}
   rpc FillPixel (FillPixelRequest) returns (StatusReply) {}
+  rpc PutCoefficientMatrix (PutCoefficientMatrixRequest) returns (StatusReply) {}
   rpc FillCoefficientMatrix (FillCoefficientMatrixRequest) returns (StatusReply) {}
+  rpc FillCoefficient (FillCoefficientRequest) returns (StatusReply) {}
   rpc FillScaler (FillScalerRequest) returns (StatusReply) {}
   rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
   rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
@@ -47,10 +49,23 @@ message FillPixelRequest {
   repeated uint32 end = 3;
 }
 
+message PutCoefficientMatrixRequest {
+  repeated int32 coefficientMatrix = 1;
+  repeated uint32 location = 2;
+}
+
 message FillCoefficientMatrixRequest {
-  repeated uint32 coefficientMatrix = 1;
+  repeated int32 coefficientMatrix = 1;
   repeated uint32 start = 2;
   repeated uint32 end = 3;
+}
+
+message FillCoefficientRequest {
+  int32 coefficient = 1;
+  uint32 row = 2;
+  uint32 col = 3;
+  repeated uint32 start = 4;
+  repeated uint32 end = 5;
 }
 
 message FillScalerRequest {

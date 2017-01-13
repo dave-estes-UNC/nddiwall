@@ -63,7 +63,9 @@ using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
+using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
+using nddiwall::FillCoefficientRequest;
 using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
@@ -207,11 +209,46 @@ class NddiServiceImpl final : public NddiWall::Service {
       return Status::OK;
   }
 
+  Status PutCoefficientMatrix(ServerContext* context, const PutCoefficientMatrixRequest* request,
+                              StatusReply* reply) override {
+      std::cout << "Server got a request to PutCoefficientMatrix." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Coefficient Matrix (row <-> col):" << std::endl;
+          vector< vector<int> > coefficientMatrix;
+          assert(request->coefficientmatrix_size() == inputVectorSize_ * frameVolumeDimensionality_);
+          coefficientMatrix.resize(frameVolumeDimensionality_);
+          for (int j = 0; j < frameVolumeDimensionality_; j++) {
+              std::cout << "    ";
+              for (int i = 0; i < inputVectorSize_; i++) {
+                  coefficientMatrix[j].push_back(request->coefficientmatrix(j * frameVolumeDimensionality_ + i));
+                  std::cout << request->coefficientmatrix(j * frameVolumeDimensionality_ + i) << " ";
+              }
+              std::cout << std::endl;
+          }
+
+          std::cout << "  - Location: (";
+          vector<unsigned int> location;
+          for (int i = 0; i < request->location_size(); i++) {
+              location.push_back(request->location(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->location(i);
+          }
+          std::cout << ")" << std::endl;
+
+          myDisplay->PutCoefficientMatrix(coefficientMatrix, location);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
   Status FillCoefficientMatrix(ServerContext* context, const FillCoefficientMatrixRequest* request,
                                StatusReply* reply) override {
       std::cout << "Server got a request to FillCoefficientMatrix." << std::endl;
       if (myDisplay) {
-          std::cout << "  - Coefficient Matrix:" << std::endl;
+          std::cout << "  - Coefficient Matrix (row <-> col):" << std::endl;
           vector< vector<int> > coefficientMatrix;
           assert(request->coefficientmatrix_size() == inputVectorSize_ * frameVolumeDimensionality_);
           coefficientMatrix.resize(frameVolumeDimensionality_);
@@ -243,6 +280,44 @@ class NddiServiceImpl final : public NddiWall::Service {
           std::cout << ")" << std::endl;
 
           myDisplay->FillCoefficientMatrix(coefficientMatrix, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status FillCoefficient(ServerContext* context, const FillCoefficientRequest* request,
+                         StatusReply* reply) override {
+      std::cout << "Server got a request to FillCoefficient." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Start: (";
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - End: (";
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->end(i);
+          }
+          std::cout << ")" << std::endl;
+
+          int coefficient = request->coefficient();
+          std::cout << "  - Coefficient: " << coefficient << std::endl;
+          int col = request->col();
+          std::cout << "  - Col: " << col << std::endl;
+          int row = request->row();
+          std::cout << "  - Row: " << row << std::endl;
+
+          myDisplay->FillCoefficient(coefficient, row, col, start, end);
 
           reply->set_status(reply->OK);
       } else {

@@ -12,7 +12,9 @@ using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
+using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
+using nddiwall::FillCoefficientRequest;
 using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
@@ -176,6 +178,25 @@ void GrpcNddiDisplay::UpdateInputVector(vector<int> &input) {
 
 void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
                                            vector<unsigned int> &location) {
+    PutCoefficientMatrixRequest request;
+    for (size_t j = 0; j < coefficientMatrix.size(); j++) {
+        for (size_t i = 0; i < coefficientMatrix[j].size(); i++) {
+            request.add_coefficientmatrix(coefficientMatrix[j][i]);
+        }
+    }
+    for (size_t i = 0; i < location.size(); i++) {
+      request.add_location(location[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->PutCoefficientMatrix(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
@@ -209,6 +230,26 @@ void GrpcNddiDisplay::FillCoefficient(int coefficient,
                                       unsigned int row, unsigned int col,
                                       vector<unsigned int> &start,
                                       vector<unsigned int> &end) {
+    FillCoefficientRequest request;
+    request.set_coefficient(coefficient);
+    request.set_row(row);
+    request.set_col(col);
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+    }
+    for (size_t i = 0; i < end.size(); i++) {
+      request.add_end(end[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->FillCoefficient(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,

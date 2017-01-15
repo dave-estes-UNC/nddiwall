@@ -63,6 +63,8 @@ using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
+using nddiwall::CopyPixelStripRequest;
+using nddiwall::CopyPixelsRequest;
 using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
@@ -201,6 +203,86 @@ class NddiServiceImpl final : public NddiWall::Service {
           std::cout << "  - Pixel: " << (uint32_t)p.r << " " << (uint32_t)p.g << " " << (uint32_t)p.b << " " << (uint32_t)p.a << std::endl;
 
           myDisplay->FillPixel(p, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status CopyPixelStrip(ServerContext* context, const CopyPixelStripRequest* request,
+                      StatusReply* reply) override {
+      std::cout << "Server got a request to CopyPixelStrip." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Start: (";
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - End: (";
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->end(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - Pixels: ";
+          Pixel p[request->pixels_size()];
+          for (int i = 0; i < request->pixels_size(); i++) {
+              p[i].packed = request->pixels(i);
+              if (i) { std::cout << " "; }
+              std::cout << "(" << (uint32_t)p[i].r << "," << (uint32_t)p[i].g << "," << (uint32_t)p[i].b << "," << (uint32_t)p[i].a << ")";
+          }
+          std::cout << std::endl;
+
+          myDisplay->CopyPixelStrip(p, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status CopyPixels(ServerContext* context, const CopyPixelsRequest* request,
+                    StatusReply* reply) override {
+      std::cout << "Server got a request to CopyPixels." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Start: (";
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - End: (";
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->end(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - Pixels: ";
+          Pixel p[request->pixels_size()];
+          for (int i = 0; i < request->pixels_size(); i++) {
+              p[i].packed = request->pixels(i);
+              if (i) { std::cout << " "; }
+              std::cout << "(" << (uint32_t)p[i].r << "," << (uint32_t)p[i].g << "," << (uint32_t)p[i].b << "," << (uint32_t)p[i].a << ")";
+          }
+          std::cout << std::endl;
+
+          myDisplay->CopyPixels(p, start, end);
 
           reply->set_status(reply->OK);
       } else {

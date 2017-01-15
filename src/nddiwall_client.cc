@@ -98,6 +98,18 @@ int main(int argc, char** argv) {
     p.b = 0xff;
     myDisplay.PutPixel(p, location);
 
+    // Copy a pixel strip and then a pixel array
+    Pixel ps[32];
+    for (int i = 0; i < 32; i++) {
+        ps[i].r = ps[i].b = 00; ps[i].g = ps[i].a = 0xff;
+    }
+    start[0] = 20; start[1] = 10; start[2] = 0;
+    end[0] = 51; end[1] = 10; end[2] = 0;
+    myDisplay.CopyPixelStrip(ps, start, end);
+    start[0] = 30; start[1] = 30; start[2] = 0;
+    end[0] = 33; end[1] = 33; end[2] = 1;
+    myDisplay.CopyPixels(ps, start, end);
+
     // Update coefficient matrix at (20,20) to use pixel at (10,10)
     coeffs[2][0] = coeffs[2][1] = -10;
     location[0] = location[1] = 20;
@@ -110,6 +122,8 @@ int main(int argc, char** argv) {
     input[0] = 1;
     myDisplay.UpdateInputVector(input);
     sleep(2);
+    start[0] = start[1] = 0;
+    end[0] = DISPLAY_WIDTH - 1; end[1] = DISPLAY_HEIGHT - 1;
     start[2] = end[2] = 0;
     myDisplay.FillCoefficient(0, 2, 2, start, end);
 

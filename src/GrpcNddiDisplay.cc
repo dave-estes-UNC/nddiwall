@@ -12,6 +12,8 @@ using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
+using nddiwall::CopyPixelStripRequest;
+using nddiwall::CopyPixelsRequest;
 using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
@@ -127,21 +129,65 @@ void GrpcNddiDisplay::PutPixel(Pixel p, vector<unsigned int> &location) {
 }
 
 void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
+    assert(start.size() == end.size());
+
+    CopyPixelStripRequest request;
+    size_t count = 1;
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+      request.add_end(end[i]);
+      count *= end[i] - start[i] + 1;
+    }
+    for (size_t i = 0; i < count; i++) {
+      request.add_pixels(p[i].packed);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->CopyPixelStrip(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
+    assert(start.size() == end.size());
+
+    CopyPixelsRequest request;
+    size_t count = 1;
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+      request.add_end(end[i]);
+      count *= end[i] - start[i] + 1;
+    }
+    for (size_t i = 0; i < count; i++) {
+      request.add_pixels(p[i].packed);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->CopyPixels(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
 }
 
 void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {
+    assert(start.size() == end.size());
+
     FillPixelRequest request;
     request.set_pixel(p.packed);
     for (size_t i = 0; i < start.size(); i++) {
       request.add_start(start[i]);
-    }
-    for (size_t i = 0; i < end.size(); i++) {
       request.add_end(end[i]);
     }
 
@@ -202,6 +248,8 @@ void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMat
 void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
                                             vector<unsigned int> &start,
                                             vector<unsigned int> &end) {
+    assert(start.size() == end.size());
+
     FillCoefficientMatrixRequest request;
     for (size_t j = 0; j < coefficientMatrix.size(); j++) {
         for (size_t i = 0; i < coefficientMatrix[j].size(); i++) {
@@ -210,8 +258,6 @@ void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMa
     }
     for (size_t i = 0; i < start.size(); i++) {
       request.add_start(start[i]);
-    }
-    for (size_t i = 0; i < end.size(); i++) {
       request.add_end(end[i]);
     }
 
@@ -230,14 +276,14 @@ void GrpcNddiDisplay::FillCoefficient(int coefficient,
                                       unsigned int row, unsigned int col,
                                       vector<unsigned int> &start,
                                       vector<unsigned int> &end) {
+    assert(start.size() == end.size());
+
     FillCoefficientRequest request;
     request.set_coefficient(coefficient);
     request.set_row(row);
     request.set_col(col);
     for (size_t i = 0; i < start.size(); i++) {
       request.add_start(start[i]);
-    }
-    for (size_t i = 0; i < end.size(); i++) {
       request.add_end(end[i]);
     }
 
@@ -261,12 +307,12 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
 void GrpcNddiDisplay::FillScaler(Scaler scaler,
                                  vector<unsigned int> &start,
                                  vector<unsigned int> &end) {
+    assert(start.size() == end.size());
+
     FillScalerRequest request;
     request.set_scaler(scaler.packed);
     for (size_t i = 0; i < start.size(); i++) {
       request.add_start(start[i]);
-    }
-    for (size_t i = 0; i < end.size(); i++) {
       request.add_end(end[i]);
     }
 

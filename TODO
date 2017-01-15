@@ -10,13 +10,14 @@
 * Change int to uint for NDDI Interface where appropriate.
 * Create a GrpcNddiDisplay for the client to use.
 - Add dependencies to Makefile
+- Add NDDI Wall Pixel Bridge
 + Define additional messages matching the remaining APIs.
   * unsigned int DisplayWidth()
   * unsigned int DisplayHeight()
   * unsigned int NumCoefficientPlanes()
   * void PutPixel(Pixel p, vector<unsigned int> &location)
-  - void CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
-  - void CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
+  * void CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
+  * void CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
   * void FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end)
   - void CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest)

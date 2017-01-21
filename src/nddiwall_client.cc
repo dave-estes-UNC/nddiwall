@@ -56,8 +56,7 @@ int main(int argc, char** argv) {
     frameVolumeDimensionalSizes.push_back(DISPLAY_WIDTH);
     frameVolumeDimensionalSizes.push_back(DISPLAY_HEIGHT);
     frameVolumeDimensionalSizes.push_back(2);
-    GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3,
-            grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
+    GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
 
     std::cout << "Width is " << myDisplay.DisplayWidth() << std::endl;
     std::cout << "Height is " << myDisplay.DisplayHeight() << std::endl;

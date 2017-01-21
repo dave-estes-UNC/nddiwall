@@ -28,16 +28,14 @@ using nddiwall::UpdateInputVectorRequest;
 GrpcNddiDisplay::GrpcNddiDisplay() {}
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
-                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
-                                 shared_ptr<Channel> channel)
-: GrpcNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize, channel) {
+                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
+: GrpcNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
 }
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int displayWidth, unsigned int displayHeight,
-                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
-                                 shared_ptr<Channel> channel)
-: stub_(NddiWall::NewStub(channel)) {
+                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
+: stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
 
     // Data we are sending to the server.
     InitializeRequest request;

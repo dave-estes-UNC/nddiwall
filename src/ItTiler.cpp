@@ -48,7 +48,10 @@ int ItTiler::Ci4T[] = {
 
 ItTiler::ItTiler(size_t display_width, size_t display_height,
                  size_t quality)
-: qp(0)
+
+: qp(0),
+  display_width_(display_width),
+  display_height_(display_height)
 {
     quiet_ = !globalConfiguration.verbose;
 
@@ -284,15 +287,15 @@ void ItTiler::InitializeCoefficientPlanes() {
 
     // Break the display into macroblocks and initialize each 4x4x48 cube of coefficients to pick out the proper block from the frame volume
     for (int k = 0; k < FRAMEVOLUME_DEPTH; k++) {
-        for (int j = 0; j < (display_->DisplayHeight() / BLOCK_HEIGHT); j++) {
-            for (int i = 0; i < (display_->DisplayWidth() / BLOCK_WIDTH); i++) {
+        for (int j = 0; j < (display_height_ / BLOCK_HEIGHT); j++) {
+            for (int i = 0; i < (display_width_ / BLOCK_WIDTH); i++) {
                 coeffs[2][0] = -i * BLOCK_WIDTH;
                 coeffs[2][1] = -j * BLOCK_HEIGHT;
                 coeffs[2][2] = k;
                 start[0] = i * BLOCK_WIDTH; start[1] = j * BLOCK_HEIGHT; start[2] = k;
                 end[0] = (i + 1) * BLOCK_WIDTH - 1; end[1] = (j + 1) * BLOCK_HEIGHT - 1; end[2] = k;
-                if (end[0] >= display_->DisplayWidth()) { end[0] = display_->DisplayWidth() - 1; }
-                if (end[1] >= display_->DisplayHeight()) { end[1] = display_->DisplayHeight() - 1; }
+                if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
+                if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
                 display_->FillCoefficientMatrix(coeffs, start, end);
             }
         }
@@ -300,8 +303,8 @@ void ItTiler::InitializeCoefficientPlanes() {
 
     // Fill each scaler in every plane with 0
     start[0] = 0; start[1] = 0; start[2] = 0;
-    end[0] = display_->DisplayWidth() - 1;
-    end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1;
+    end[1] = display_height_ - 1;
     end[2] = display_->NumCoefficientPlanes() - 1;
     Scaler s;
     s.r = s.g = s.b = 0;
@@ -379,8 +382,8 @@ void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
     static size_t largestNonZeroPlaneSeen = 0;
     Scaler s;
 
-    assert(width >= display_->DisplayWidth());
-    assert(height >= display_->DisplayHeight());
+    assert(width >= display_width_);
+    assert(height >= display_height_);
 
     size[0] = BLOCK_WIDTH;
     size[1] = BLOCK_HEIGHT;
@@ -388,8 +391,8 @@ void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
     /* Clear all scalers */
     // TODO(CDE): Don't do this in the future. Just write enough planes to overwrite the last known non-zero plane.
     start[0] = 0; start[1] = 0; start[2] = 0;
-    end[0] = display_->DisplayWidth() - 1;
-    end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1;
+    end[1] = display_height_ - 1;
     end[2] = FRAMEVOLUME_DEPTH - 1;
     s.packed = 0;
     display_->FillScaler(s, start, end);
@@ -397,8 +400,8 @@ void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
     /*
      * Produces the coefficients for the input buffer using a forward 4x4 integer transform
      */
-    for (size_t j = 0; j < CEIL(display_->DisplayHeight(), BLOCK_HEIGHT); j++) {
-        for (size_t i = 0; i < CEIL(display_->DisplayWidth(), BLOCK_WIDTH); i++) {
+    for (size_t j = 0; j < CEIL(display_height_, BLOCK_HEIGHT); j++) {
+        for (size_t i = 0; i < CEIL(display_width_, BLOCK_WIDTH); i++) {
 
             /* The coefficients are stored in this array in zig-zag order */
             vector<uint64_t> coefficients(BLOCK_WIDTH * BLOCK_HEIGHT, 0);

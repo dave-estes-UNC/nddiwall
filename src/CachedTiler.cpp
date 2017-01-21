@@ -20,7 +20,9 @@
 CachedTiler::CachedTiler (size_t display_width, size_t display_height,
                           size_t tile_width, size_t tile_height,
                           size_t max_tiles, size_t bits)
-: tile_width_(tile_width),
+: display_width_(display_width),
+  display_height_(display_height),
+  tile_width_(tile_width),
   tile_height_(tile_height),
   max_tiles_(max_tiles),
   bits_(bits)
@@ -115,16 +117,16 @@ void CachedTiler::InitializeCoefficientPlanes() {
             coeffs[2][1] = -j * tile_height_;
             start[0] = i * tile_width_; start[1] = j * tile_height_;
             end[0] = (i + 1) * tile_width_ - 1; end[1] = (j + 1) * tile_height_ - 1;
-            if (end[0] >= display_->DisplayWidth()) { end[0] = display_->DisplayWidth() - 1; }
-            if (end[1] >= display_->DisplayHeight()) { end[1] = display_->DisplayHeight() - 1; }
+            if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
+            if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
             display_->FillCoefficientMatrix(coeffs, start, end);
         }
     }
 
     // Turn off all planes and then set the 0 plane to full on.
     start[0] = 0; start[1] = 0; start[2] = 0;
-    end[0] = display_->DisplayWidth() - 1;
-    end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1;
+    end[1] = display_height_ - 1;
     end[2] = display_->NumCoefficientPlanes() - 1;
     Scaler s;
     s.packed = 0;
@@ -151,8 +153,8 @@ void CachedTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     Pixel                         *tile_pixels = NULL;
     Pixel                         *tile_pixels_sig_bits = NULL;
 
-    assert(width >= display_->DisplayWidth());
-    assert(height >= display_->DisplayHeight());
+    assert(width >= display_width_);
+    assert(height >= display_height_);
 
     // Break up the passed in buffer into one tile at a time
     for (size_t j_tile_map = 0; j_tile_map < tile_map_height_; j_tile_map++) {
@@ -183,8 +185,8 @@ void CachedTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
                         Pixel p, psb;
 
                         // Just use a black pixel if our tile is hanging off the edge of the buffer
-                        if ((j_tile_map * tile_height_ + j_tile >= display_->DisplayHeight()) ||
-                            (i_tile_map * tile_width_ + i_tile >= display_->DisplayWidth()) ) {
+                        if ((j_tile_map * tile_height_ + j_tile >= display_height_) ||
+                            (i_tile_map * tile_width_ + i_tile >= display_width_) ) {
                             p.r = p.g = p.b = 0; p.a = 255;
                         } else {
                             p.r = buffer[bufferOffset++];
@@ -476,8 +478,8 @@ void CachedTiler::UpdateCoefficientMatrices(size_t x, size_t y, tile_t *tile) {
     vector<unsigned int> start, end;
     start.push_back(x * tile_width_); start.push_back(y * tile_height_); start.push_back(0);
     end.push_back((x + 1) * tile_width_ - 1); end.push_back((y + 1) * tile_height_ - 1); end.push_back(0);
-    if (end[0] >= display_->DisplayWidth()) { end[0] = display_->DisplayWidth() - 1; }
-    if (end[1] >= display_->DisplayHeight()) { end[1] = display_->DisplayHeight() - 1; }
+    if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
+    if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
 
     display_->FillCoefficient(tile->zIndex, 2, 2, start, end);
 }

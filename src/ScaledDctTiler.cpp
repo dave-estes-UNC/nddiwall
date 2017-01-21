@@ -57,7 +57,10 @@
 #define SQRT_125             0.353553391
 #define SQRT_250             0.5
 
-ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size_t quality) {
+ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size_t quality)
+: display_width_(display_width),
+  display_height_(display_height)
+{
 
     quiet_ = !globalConfiguration.verbose;
 
@@ -132,8 +135,8 @@ void ScaledDctTiler::InitializeCoefficientPlanes() {
 
             size_t scaledBlockWidth = BLOCK_WIDTH * config.scale_multiplier;
             size_t scaledBlockHeight = BLOCK_HEIGHT * config.scale_multiplier;
-            size_t scaledTilesWide = CEIL(display_->DisplayWidth(), scaledBlockWidth);
-            size_t scaledTilesHigh = CEIL(display_->DisplayHeight(), scaledBlockHeight);
+            size_t scaledTilesWide = CEIL(display_width_, scaledBlockWidth);
+            size_t scaledTilesHigh = CEIL(display_height_, scaledBlockHeight);
 
 #ifndef NO_OMP
 #pragma omp parallel for
@@ -141,8 +144,8 @@ void ScaledDctTiler::InitializeCoefficientPlanes() {
             // Break up the display into supermacroblocks at this current scale
             for (int j = 0; j < scaledTilesHigh; j++) {
                 for (int i = 0; i < scaledTilesWide; i++) {
-                    for (int y = 0; y < scaledBlockHeight && j * scaledBlockHeight + y < display_->DisplayHeight(); y++) {
-                        for (int x = 0; x < scaledBlockWidth && i * scaledBlockWidth + x < display_->DisplayWidth(); x++) {
+                    for (int y = 0; y < scaledBlockHeight && j * scaledBlockHeight + y < display_height_; y++) {
+                        for (int x = 0; x < scaledBlockWidth && i * scaledBlockWidth + x < display_width_; x++) {
                             vector<unsigned int> start(3), end(3);
 
                             start[0] = i * scaledBlockWidth + x;
@@ -168,7 +171,7 @@ void ScaledDctTiler::InitializeCoefficientPlanes() {
         // at a time starting with the topmost plane (0) and the first configuration. The
         // k used won't necessarily match the plane, because of the configuration.
         start[0] = 0; start[1] = 0;
-        end[0] = display_->DisplayWidth() - 1; end[1] = display_->DisplayHeight() - 1;
+        end[0] = display_width_ - 1; end[1] = display_height_ - 1;
 #ifdef SIMPLE_TRUNCATION
         for (size_t p = 0; p < config.plane_count; p++) {
             size_t k = config.first_plane_idx + p;
@@ -835,8 +838,8 @@ void ScaledDctTiler::ZeroPlanes(vector< vector< vector<uint64_t> > > &coefficien
     start[0] = start[1] = 0;
     start[2] = scaleFirst;
 
-    end[0] = display_->DisplayWidth() - 1;
-    end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1;
+    end[1] = display_height_ - 1;
     end[2] = first - 1;
 
     if (first > scaleFirst) {
@@ -863,8 +866,8 @@ void ScaledDctTiler::ZeroPlanes(vector< vector< vector<uint64_t> > > &coefficien
     start[0] = start[1] = 0;
     start[2] = last + 1;
 
-    end[0] = display_->DisplayWidth() - 1;
-    end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1;
+    end[1] = display_height_ - 1;
     end[2] = scaleLast;
 
     if (last < scaleLast) {
@@ -1057,8 +1060,8 @@ GrpcNddiDisplay* ScaledDctTiler::GetDisplay() {
  * @param height The height of the RGB buffer
  */
 void ScaledDctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
-    assert(width >= display_->DisplayWidth());
-    assert(height >= display_->DisplayHeight());
+    assert(width >= display_width_);
+    assert(height >= display_height_);
 
     /* Set the initial delta and planes for snapping and trimming below. */
     size_t delta = 0, planes = 0;

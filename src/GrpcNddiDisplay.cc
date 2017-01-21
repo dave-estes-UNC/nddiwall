@@ -177,6 +177,7 @@ void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<u
 }
 
 void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
+    assert(false && "CopyPixelTiles Not Implemented.");
 }
 
 void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {
@@ -201,6 +202,7 @@ void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<uns
 }
 
 void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {
+    assert(false && "CopyFrameVolume Not Implemented.");
 }
 
 void GrpcNddiDisplay::UpdateInputVector(vector<int> &input) {
@@ -300,6 +302,7 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
                                            vector<vector<unsigned int> > &positions,
                                            vector<vector<unsigned int> > &starts,
                                            vector<unsigned int> &size) {
+    assert(false && "FillCoefficientTiles Not Implemented.");
 }
 
 void GrpcNddiDisplay::FillScaler(Scaler scaler,
@@ -328,14 +331,17 @@ void GrpcNddiDisplay::FillScaler(Scaler scaler,
 void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
                                       vector<vector<unsigned int> > &starts,
                                       vector<unsigned int> &size) {
+    assert(false && "FillScalerTiles Not Implemented.");
 }
 
 void GrpcNddiDisplay::FillScalerTileStack(vector<uint64_t> &scalers,
                                           vector<unsigned int> &start,
                                           vector<unsigned int> &size) {
+    assert(false && "FillScalerTileStack Not Implemented.");
 }
 
 void GrpcNddiDisplay::SetPixelByteSignMode(SignMode mode) {
+    assert(false && "SetPixelByteSignMode Not Implemented.");
 }
 
 void GrpcNddiDisplay::SetFullScaler(uint16_t fullScaler) {

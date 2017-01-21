@@ -82,6 +82,7 @@ private:
     uint32_t qp6;
 
     GrpcNddiDisplay  *display_;
+    size_t            display_width_, display_height_;
     bool              quiet_;
     int               zigZag_[BLOCK_SIZE];
 };

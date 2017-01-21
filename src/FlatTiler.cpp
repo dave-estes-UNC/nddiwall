@@ -22,7 +22,9 @@
 FlatTiler::FlatTiler (size_t display_width, size_t display_height,
                       size_t tile_width, size_t tile_height,
                       size_t bits)
-: tile_width_(tile_width),
+: display_width_(display_width),
+  display_height_(display_height),
+  tile_width_(tile_width),
   tile_height_(tile_height),
   bits_(bits)
 {
@@ -39,12 +41,12 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
                                    2);                             // input vector size (x and y only)
 
     // Compute tile_map width
-    tile_map_width_ = display_->DisplayWidth() / tile_width;
-    if ((tile_map_width_ * tile_width) < display_->DisplayWidth()) { tile_map_width_++; }
+    tile_map_width_ = display_width_ / tile_width;
+    if ((tile_map_width_ * tile_width) < display_width_) { tile_map_width_++; }
 
     // Compute tile_map height
-    tile_map_height_ = display_->DisplayHeight() / tile_height;
-    if ((tile_map_height_ * tile_height) < display_->DisplayHeight()) { tile_map_height_++; }
+    tile_map_height_ = display_height_ / tile_height;
+    if ((tile_map_height_ * tile_height) < display_height_) { tile_map_height_++; }
 
     // Set up the tile map, one column at a time with a checksum of zero.
     tile_map_.resize(tile_map_width_);
@@ -90,7 +92,7 @@ void FlatTiler::InitializeCoefficientPlanes() {
 
     vector<unsigned int> start, end;
     start.push_back(0); start.push_back(0); start.push_back(0);
-    end.push_back(display_->DisplayWidth() - 1); end.push_back(display_->DisplayHeight() - 1); end.push_back(0);
+    end.push_back(display_width_ - 1); end.push_back(display_height_ - 1); end.push_back(0);
 
     display_->FillCoefficientMatrix(coeffs, start, end);
 
@@ -124,8 +126,8 @@ void FlatTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     vector<vector<unsigned int> >  starts;
 #endif
 
-    assert(width >= display_->DisplayWidth());
-    assert(height >= display_->DisplayHeight());
+    assert(width >= display_width_);
+    assert(height >= display_height_);
 
     // Break up the passed in buffer into one tile at a time
     for (int j_tile_map = 0; j_tile_map < tile_map_height_; j_tile_map++) {
@@ -136,10 +138,10 @@ void FlatTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
             // Use locals for this tile's width and height in case they need to be adjust at the edges
             int tw = tile_width_, th = tile_height_;
             if (i_tile_map == (tile_map_width_ - 1)) {
-                tw -= tile_map_width_ * tile_width_ - display_->DisplayWidth();
+                tw -= tile_map_width_ * tile_width_ - display_width_;
             }
             if (j_tile_map == (tile_map_height_ - 1)) {
-                th -= tile_map_height_ * tile_height_ - display_->DisplayHeight();
+                th -= tile_map_height_ * tile_height_ - display_height_;
             }
 
             // Allocate tiles is necessary. Sometimes they're re-used.
@@ -256,8 +258,8 @@ void FlatTiler::UpdateFrameVolume(Pixel* pixels, int i_map, int j_map) {
     vector<unsigned int> start, end;
     start.push_back(i_map * tile_width_); start.push_back(j_map * tile_height_);
     end.push_back(i_map * tile_width_ + tile_width_ - 1); end.push_back(j_map * tile_height_ + tile_height_ - 1);
-    if (end[0] >= display_->DisplayWidth()) { end[0] = display_->DisplayWidth() - 1; }
-    if (end[1] >= display_->DisplayHeight()) { end[1] = display_->DisplayHeight() - 1; }
+    if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
+    if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
 
     display_->CopyPixels(pixels, start, end);
 }

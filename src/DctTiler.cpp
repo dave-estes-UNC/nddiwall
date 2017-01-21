@@ -64,6 +64,8 @@
  */
 DctTiler::DctTiler (size_t display_width, size_t display_height,
                     size_t quality)
+: display_width_(display_width),
+  display_height_(display_height)
 {
     quiet_ = !globalConfiguration.verbose;
 
@@ -228,14 +230,14 @@ void DctTiler::InitializeCoefficientPlanes() {
             coeffs[2][1] = -j * BLOCK_HEIGHT;
             start[0] = i * BLOCK_WIDTH; start[1] = j * BLOCK_HEIGHT; start[2] = 0;
             end[0] = (i + 1) * BLOCK_WIDTH - 1; end[1] = (j + 1) * BLOCK_HEIGHT - 1; end[2] = FRAMEVOLUME_DEPTH - 1;
-            if (end[0] >= display_->DisplayWidth()) { end[0] = display_->DisplayWidth() - 1; }
-            if (end[1] >= display_->DisplayHeight()) { end[1] = display_->DisplayHeight() - 1; }
+            if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
+            if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
             display_->FillCoefficientMatrix(coeffs, start, end);
         }
     }
     // Finish up by setting the proper k for every plane
     start[0] = 0; start[1] = 0;
-    end[0] = display_->DisplayWidth() - 1; end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1; end[1] = display_height_ - 1;
     for (int k = 0; k < FRAMEVOLUME_DEPTH; k++) {
         start[2] = k; end[2] = k;
         display_->FillCoefficient(k, 2, 2, start, end);
@@ -243,8 +245,8 @@ void DctTiler::InitializeCoefficientPlanes() {
 
     // Fill each scaler in every plane with 0
     start[0] = 0; start[1] = 0; start[2] = 0;
-    end[0] = display_->DisplayWidth() - 1;
-    end[1] = display_->DisplayHeight() - 1;
+    end[0] = display_width_ - 1;
+    end[1] = display_height_ - 1;
     end[2] = display_->NumCoefficientPlanes() - 1;
     s.packed = 0;
     display_->FillScaler(s, start, end);
@@ -354,8 +356,8 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     vector<unsigned int> size(2, 0);
     Scaler s;
 
-    assert(width >= display_->DisplayWidth());
-    assert(height >= display_->DisplayHeight());
+    assert(width >= display_width_);
+    assert(height >= display_height_);
 
     start[0] = 0; start[1] = 0; start[2] = 0;
     size[0] = BLOCK_WIDTH;
@@ -395,8 +397,8 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
                             p *= cos(PI_8 * ((double)x + 0.5) * (double)u);                      // cos with x, u
                             p *= cos(PI_8 * ((double)y + 0.5) * (double)v);                      // cos with y, v
                             /* Fetch each channel, multiply by product p and then shift */
-                            if ( ((i * BLOCK_WIDTH + x) < display_->DisplayWidth())
-                                    && ((j * BLOCK_HEIGHT + y) < display_->DisplayHeight()) ) {
+                            if ( ((i * BLOCK_WIDTH + x) < display_width_)
+                                    && ((j * BLOCK_HEIGHT + y) < display_height_) ) {
                                 c_r += p * ((double)buffer[bufPos] - 128.0); bufPos++;           // red: g(x,y) - 128
                                 c_g += p * ((double)buffer[bufPos] - 128.0); bufPos++;           // green: g(x,y) - 128
                                 c_b += p * ((double)buffer[bufPos] - 128.0); bufPos++;           // blue: g(x,y) - 128

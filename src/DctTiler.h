@@ -70,6 +70,7 @@ protected:
     static const size_t  MAX_DCT_COEFF = 256;
 
     GrpcNddiDisplay     *display_;
+    size_t               display_width_, display_height_;
     bool                 quiet_;
     uint32_t             displayTilesWide_, displayTilesHigh_;
     uint8_t             *tileStackHeights_;

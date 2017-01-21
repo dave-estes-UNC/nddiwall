@@ -88,6 +88,7 @@ private:
 #endif
 
     GrpcNddiDisplay*               display_;
+    size_t                         display_width_, display_height_;
     size_t                         tile_width_, tile_height_, max_tiles_;
     size_t                         tile_map_width_, tile_map_height_;
     size_t                         bits_;

@@ -73,6 +73,7 @@ protected:
 
 
 private:
+    size_t                                          display_width_, display_height_;
     vector< vector< vector< vector<uint64_t> > > >  cachedCoefficients_;
 };
 #endif // SCALED_DCT_TILER_H

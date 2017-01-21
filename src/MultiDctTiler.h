@@ -56,6 +56,7 @@ private:
     void PrerenderCoefficients(vector<uint64_t> &coefficients, size_t i, size_t j, size_t c, int16_t* renderedBuffer, size_t width, size_t height, bool shift);
 
 private:
+    size_t                                          display_width_, display_height_;
     vector< vector< vector< vector<uint64_t> > > >  cachedCoefficients_;
     vector< vector<uint8_t> >                       quantizationMatrix_;
     size_t                                          fvWidth_, fvHeight_;

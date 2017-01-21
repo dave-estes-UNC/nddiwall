@@ -60,7 +60,8 @@ private:
     void UpdateFrameVolume(Pixel* pixels, int i_map, int j_map);
 #endif
 
-    GrpcNddiDisplay*    display_;
+    GrpcNddiDisplay*  display_;
+    size_t            display_width_, display_height_;
     size_t            tile_width_, tile_height_;
     size_t            tile_map_width_, tile_map_height_;
     size_t            bits_;

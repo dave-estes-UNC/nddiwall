@@ -10,7 +10,6 @@
 #include "PixelBridgeFeatures.h"
 #include "Configuration.h"
 
-#include "nddi/CostModel.h"
 #include "GrpcNddiDisplay.h"
 
 #include "CachedTiler.h"
@@ -45,7 +44,6 @@ Rewinder* myRewinder = NULL;
 pthread_t           decoderThread;
 
 // Statistical Instrumentation
-CostModel* costModel;
 int totalUpdates = 0;
 timeval startTime, endTime; // Used for timing data
 
@@ -75,7 +73,6 @@ void setupDisplay() {
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
-        costModel = myDisplay->GetCostModel();
 
     // DCT-Tiled
     } else if (globalConfiguration.tiler == DCT) {
@@ -97,7 +94,6 @@ void setupDisplay() {
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
-        costModel = myDisplay->GetCostModel();
 
     // IT-Tiled
     } else if (globalConfiguration.tiler == IT) {
@@ -108,7 +104,6 @@ void setupDisplay() {
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
-        costModel = myDisplay->GetCostModel();
 
     // Flat-Tiled
     } else if (globalConfiguration.tiler == FLAT) {
@@ -121,7 +116,6 @@ void setupDisplay() {
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
-        costModel = myDisplay->GetCostModel();
 
     // Simple Framebuffer
     } else {
@@ -135,9 +129,6 @@ void setupDisplay() {
                                         displayWidth, displayHeight, // display size
                                         1,                           // number of coefficient planes on the display
                                         2);                          // input vector size (x and y only)
-
-        // Grab the cost model
-        costModel = myDisplay->GetCostModel();
 
         // Initialize Frame Volume
         nddi::Pixel p;
@@ -169,10 +160,6 @@ void setupDisplay() {
         myDisplay->FillScaler(s, start, end);
 
     }
-
-#ifdef CLEAR_COST_MODEL_AFTER_SETUP
-    costModel->clearCosts();
-#endif
 }
 
 
@@ -236,173 +223,11 @@ long calculateSE(uint8_t* videoIn, Pixel* frameOut) {
 }
 
 
-void outputStats(bool exitNow) {
-
-    //
-    // Print a detailed, readable report if we're not running configHeadless
-    //
-    cout << endl;
-
-    // General
-    //
-    cout << "General Information" << endl;
-    cout << "  File: " << fileName << endl;
-    cout << "  Dimensions: " << displayWidth << " x " << displayHeight << endl;
-    cout << "  Coefficient Planes: " << (myDisplay ? myDisplay->NumCoefficientPlanes() : 0) << endl;
-    cout << "  Frames Rendered: " << totalUpdates << endl;
-    cout << endl;
-
-    // Configuration
-    //
-    cout << "Configuration Information:" << endl;
-
-    switch (globalConfiguration.tiler) {
-        case SIMPLE:
-            cout << "  Configuring NDDI as a simple Framebuffer." << endl;
-            break;
-        case FLAT:
-            cout << "  Configuring NDDI as Flat Tiled." << endl;
-            cout << "  Tile Dimensions: " << globalConfiguration.tileWidth << "x" << globalConfiguration.tileHeight << endl;
-            break;
-        case CACHE:
-            cout << "  Configuring NDDI as Cached Tiled." << endl;
-            cout << "  Tile Dimensions: " << globalConfiguration.tileWidth << "x" << globalConfiguration.tileHeight << endl;
-            cout << "  Significant Bits: " << globalConfiguration.sigBits << endl;
-            break;
-        case DCT:
-            cout << "  Configuring NDDI as DCT Tiled." << endl;
-            cout << "  Quality: " << globalConfiguration.quality << endl;
-            break;
-        case IT:
-            cout << "  Configuring NDDI as IT Tiled." << endl;
-            cout << "  Quality: " << globalConfiguration.quality << endl;
-            break;
-        case COUNT:
-            cout << "  Configuring NDDI to just count." << endl;
-            break;
-        case FLOW:
-            cout << "  Configuring NDDI to compute optical flow." << endl;
-            break;
-        default:
-            break;
-    }
-    cout << endl;
-
-    // Transmission
-    //
-    cout << "Transmission Statistics:" << endl;
-    // Get total transmission cost
-    long totalCost = costModel->getLinkBytesTransmitted();
-    cout << "  Total Pixel Data Updated (bytes): " << totalUpdates * displayWidth * displayHeight * BYTES_PER_PIXEL <<
-    " Total NDDI Cost (bytes): " << totalCost <<
-    " Ratio: " << (double)totalCost / (double)totalUpdates / (double)displayWidth / (double)displayHeight / BYTES_PER_PIXEL << endl;
-    cout << endl;
-
-
-    // Memory
-    //
-    cout << "Memory Statistics:" << endl;
-    cout << "  Input Vector" << endl;
-    cout << "    - Num Reads: " << costModel->getReadAccessCount(INPUT_VECTOR_COMPONENT) <<  " - Bytes Read: " << costModel->getBytesRead(INPUT_VECTOR_COMPONENT) << endl;
-    cout << "    - Num Writes: " << costModel->getWriteAccessCount(INPUT_VECTOR_COMPONENT) << " - Bytes Written: " << costModel->getBytesWritten(INPUT_VECTOR_COMPONENT) << endl;
-    cout << "  Coefficient Plane" << endl;
-    cout << "    - Num Reads: " << costModel->getReadAccessCount(COEFFICIENT_PLANE_COMPONENT) <<  " - Bytes Read: " << costModel->getBytesRead(COEFFICIENT_PLANE_COMPONENT) << endl;
-    cout << "    - Num Writes: " << costModel->getWriteAccessCount(COEFFICIENT_PLANE_COMPONENT) << " - Bytes Written: " << costModel->getBytesWritten(COEFFICIENT_PLANE_COMPONENT) << endl;
-    cout << "  Frame Volume" << endl;
-    cout << "    - Num Reads: " << costModel->getReadAccessCount(FRAME_VOLUME_COMPONENT) <<  " - Bytes Read: " << costModel->getBytesRead(FRAME_VOLUME_COMPONENT) << endl;
-    cout << "    - Num Writes: " << costModel->getWriteAccessCount(FRAME_VOLUME_COMPONENT) << " - Bytes Written: " << costModel->getBytesWritten(FRAME_VOLUME_COMPONENT) << endl;
-    cout << endl;
-
-
-    // Pixel
-    //
-    cout << "Pixel Statistics:" << endl;
-    cout << "  Pixel Mappings: " << costModel->getPixelsMapped() << endl;
-    cout << "  Pixel Blends: " << costModel->getPixelsBlended() << endl;
-    cout << endl;
-
-    // Performance
-    //
-    gettimeofday(&endTime, NULL);
-    cout << "Performance Statistics:" << endl;
-    cout << "  Average FPS: " << (double)totalUpdates / ((double)(endTime.tv_sec * 1000000
-                                                                  + endTime.tv_usec
-                                                                  - startTime.tv_sec * 1000000
-                                                                  - startTime.tv_usec) / 1000000.0f) << endl;
-    cout << endl;
-
-    // CSV
-    //
-
-    if (globalConfiguration.csv) {
-        // Pretty print a heading to stdout
-        cout << "CSV Headings:" << endl;
-        cout << "Frames,Commands Sent,Bytes Transmitted,IV Num Reads,IV Bytes Read,IV Num Writes,IV Bytes Written,CP Num Reads,CP Bytes Read,CP Num Writes,CP Bytes Written,FV Num Reads,FV Bytes Read,FV Num Writes,FV Bytes Written,FV Time,Pixels Mapped,Pixels Blended,File Name" << endl;
-
-        cout
-        << totalUpdates << " , "
-        << costModel->getLinkCommandsSent() << " , "
-        << costModel->getLinkBytesTransmitted() << " , "
-        << costModel->getReadAccessCount(INPUT_VECTOR_COMPONENT) << " , "
-        << costModel->getBytesRead(INPUT_VECTOR_COMPONENT) << " , "
-        << costModel->getWriteAccessCount(INPUT_VECTOR_COMPONENT) << " , "
-        << costModel->getBytesWritten(INPUT_VECTOR_COMPONENT) << " , "
-        << costModel->getReadAccessCount(COEFFICIENT_PLANE_COMPONENT) << " , "
-        << costModel->getBytesRead(COEFFICIENT_PLANE_COMPONENT) << " , "
-        << costModel->getWriteAccessCount(COEFFICIENT_PLANE_COMPONENT) << " , "
-        << costModel->getBytesWritten(COEFFICIENT_PLANE_COMPONENT) << " , "
-        << costModel->getReadAccessCount(FRAME_VOLUME_COMPONENT) << " , "
-        << costModel->getBytesRead(FRAME_VOLUME_COMPONENT) << " , "
-        << costModel->getWriteAccessCount(FRAME_VOLUME_COMPONENT) << " , "
-        << costModel->getBytesWritten(FRAME_VOLUME_COMPONENT) << " , "
-        << costModel->getTime(FRAME_VOLUME_COMPONENT) << " , "
-        << costModel->getPixelsMapped() << " , "
-        << costModel->getPixelsBlended() << " , "
-        << fileName << endl;
-    }
-
-    cerr << endl;
-
-    // Warnings about Configuration
-#if defined(SUPRESS_EXCESS_RENDERING) || defined(SKIP_COMPUTE_WHEN_SCALER_ZERO) || defined(NO_CL) || defined(NO_GL) || defined(CLEAR_COST_MODEL_AFTER_SETUP)
-    cerr << endl << "CONFIGURATION WARNINGS:" << endl;
-#ifdef SUPRESS_EXCESS_RENDERING
-    cerr << "  - Was compiled with SUPRESS_EXCESS_RENDERING, and so the numbers may be off. Recompile with \"make NO_HACKS=1\"." << endl;
-#endif
-#ifdef SKIP_COMPUTE_WHEN_SCALER_ZERO
-    cerr << "  - Was compiled with SKIP_COMPUTE_WHEN_SCALER_ZERO, and so the numbers may be off when running with NO_OMP." << endl <<
-            "    When using OpenMP, the number will be fine regardless because they're register in bulk later. Recompile" << endl <<
-            "    with \"make NO_HACKS=1\"." << endl;
-#endif
-#ifdef NO_CL
-    cerr << "  - Was compiled without OpenCL." << endl;
-#endif
-#ifdef NO_GL
-    cerr << "  - Was compiled without OpenGL." << endl;
-#endif
-#ifdef CLEAR_COST_MODEL_AFTER_SETUP
-    cerr << "  - Was compiled with CLEAR_COST_MODEL_AFTER_SETUP, affecting the true cost." << endl;
-#endif
-#endif
-
-    // Clean up
-    if (exitNow) {
-        delete myDisplay;
-        // TODO(CDE): Commenting out ot avoid a warning. Figure out the warning.
-        // if (myPlayer) { delete(myPlayer); }
-        if (lastBuffer) { free(lastBuffer); }
-
-        exit(0);
-    }
-}
-
-
 void renderFrame() {
 
     static int framesDecoded = 0;
     static int framesRendered = 0;
     static int currentFrame = 0;
-    long transCost = costModel->getLinkBytesTransmitted();
     long SE = 0;
 
     static rewind_play_t rewindState = NOT_REWINDING;
@@ -449,9 +274,6 @@ void renderFrame() {
                         currentFrame++;
                     }
                 }
-            } else {
-                // Output stats and exit
-                outputStats(true);
             }
 
         // Else if we're in the rewind placy backwards state...
@@ -488,18 +310,6 @@ void renderFrame() {
 
         }
 
-        if (globalConfiguration.verbose) {
-            cout << "PixelBidge Statistics:" << endl;
-            cout << "  Decoded Frames: " << framesDecoded << " - Rendered Frames: " << framesRendered << endl;
-            cout << "  Transmission: " << costModel->getLinkBytesTransmitted() - transCost << endl;
-        }
-
-        if (globalConfiguration.csv && framesRendered > 0)
-            cout << "RenderCSV," << framesRendered << "," << costModel->getLinkBytesTransmitted() - transCost << endl;
-
-    } else {
-        // Output stats and exit
-        outputStats(true);
     }
 
 }
@@ -545,8 +355,6 @@ void countChangedPixels() {
 
                 // If we haven't previously decoded a frame
                 if (lastBuffer == NULL) {
-                    costModel->registerTransmissionCharge(CALC_BYTES_FOR_PIXELS(inc * pixel_count), 0);
-
                     // Allocate the lastBuffer and copy the decode frame into it.
                     lastBuffer = (uint8_t*)malloc(VIDEO_PIXEL_SIZE * pixel_count);
                     memcpy(lastBuffer, videoBuffer, VIDEO_PIXEL_SIZE * pixel_count);
@@ -577,9 +385,6 @@ void countChangedPixels() {
                         offset++;
                     }
 
-                    // Update the cost
-                    costModel->registerTransmissionCharge(CALC_BYTES_FOR_PIXELS(diffs), 0);
-
                     // Then copy to the lastBuffer
                     memcpy(lastBuffer, videoBuffer, VIDEO_PIXEL_SIZE * pixel_count);
                 }
@@ -588,18 +393,11 @@ void countChangedPixels() {
                 totalUpdates += inc;
                 framesCounted += inc;
             }
-        } else {
-            // Output stats and exit
-            outputStats(true);
         }
 
         if (globalConfiguration.verbose) {
             cout << "PixelBidge Statistics:" << endl << "  Decoded Frames: " << framesDecoded << " - Counted Frames: " << framesCounted << endl;
         }
-
-    } else {
-        // Output stats and exit
-        outputStats(true);
     }
 }
 
@@ -715,14 +513,7 @@ void computeFlow() {
                 // Update the totalUpdates
                 totalUpdates += inc;
             }
-        } else {
-            // Output stats and exit
-            outputStats(true);
         }
-
-    } else {
-        // Output stats and exit
-        outputStats(true);
     }
 }
 
@@ -1011,8 +802,6 @@ int main(int argc, char *argv[]) {
 
         // Setup the GlNddiDisplay and Tiler if required
         setupDisplay();
-    } else {
-        costModel = new CostModel(false);
     }
 
     // Take the start time stamp

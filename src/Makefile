@@ -67,7 +67,10 @@ else
 	CPPFLAGS+= -O3 -ffast-math
 endif
 
-all: system-check nddiwall_client nddiwall_server
+all: system-check nddiwall_client nddiwall_server pixelbridge
+
+pixelbridge: CachedTiler.o DctTiler.o FfmpegPlayer.o FlatTiler.o nddiwall.pb.o nddiwall.grpc.pb.o GrpcNddiDisplay.o ItTiler.o MultiDctTiler.o PixelBridgeMain.o RandomPlayer.o Rewinder.o ScaledDctTiler.o
+	$(CXX) $^ $(CPPFLAGS) $(LDFLAGS) -o $@
 
 nddiwall_client: nddiwall.pb.o nddiwall.grpc.pb.o GrpcNddiDisplay.o nddiwall_client.o
 	$(CXX) $^ $(CPPFLAGS) $(LDFLAGS) -o $@
@@ -84,7 +87,7 @@ nddiwall_server: nddi/BaseNddiDisplay.o nddi/ClNddiDisplay.o nddi/GlNddiDisplay.
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o nddi/*.o *.pb.cc *.pb.h nddiwall_client nddiwall_server
+	rm -f *.o nddi/*.o *.pb.cc *.pb.h nddiwall_client nddiwall_server pixelbridge
 
 
 # The following is to test your system and ensure a smoother experience.

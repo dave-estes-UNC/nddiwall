@@ -71,6 +71,8 @@ using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
 using nddiwall::FillCoefficientTilesRequest;
 using nddiwall::FillScalerRequest;
+using nddiwall::FillScalerTileStackRequest;
+using nddiwall::SetPixelByteSignModeRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
@@ -524,6 +526,56 @@ class NddiServiceImpl final : public NddiWall::Service {
 
           myDisplay->FillScaler(s, start, end);
 
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status FillScalerTileStack(ServerContext* context, const FillScalerTileStackRequest* request,
+                             StatusReply* reply) override {
+      std::cout << "Server got a request to FillScalerTileStack." << std::endl;
+      if (myDisplay) {
+          vector<uint64_t> scalers;
+          std::cout << "  - Scalers: " << request->scalers_size() << std::endl;
+          for (int i = 0; i < request->scalers_size(); i++) {
+              scalers.push_back(request->scalers(i));
+          }
+
+          std::cout << "  - Start: (";
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->start(i);
+          }
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - Size: (";
+          vector<unsigned int> size;
+          for (int i = 0; i < request->size_size(); i++) {
+              size.push_back(request->size(i));
+              if (i) { std::cout << ","; }
+              std::cout << request->size(i);
+          }
+          std::cout << ")" << std::endl;
+
+          myDisplay->FillScalerTileStack(scalers, start, size);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status SetPixelByteSignMode(ServerContext* context, const SetPixelByteSignModeRequest* request,
+                              StatusReply* reply) override {
+      std::cout << "Server got a request to set the sign mode." << std::endl;
+      std::cout << "  - Sign Mode: " <<  request->mode() << std::endl;
+      if (myDisplay) {
+          myDisplay->SetPixelByteSignMode((SignMode)request->mode());
           reply->set_status(reply->OK);
       } else {
           reply->set_status(reply->NOT_OK);

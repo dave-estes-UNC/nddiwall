@@ -17,6 +17,8 @@ service NddiWall {
   rpc FillCoefficient (FillCoefficientRequest) returns (StatusReply) {}
   rpc FillCoefficientTiles (FillCoefficientTilesRequest) returns (StatusReply) {}
   rpc FillScaler (FillScalerRequest) returns (StatusReply) {}
+  rpc FillScalerTileStack (FillScalerTileStackRequest) returns (StatusReply) {}
+  rpc SetPixelByteSignMode (SetPixelByteSignModeRequest) returns (StatusReply) {}
   rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
   rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
   rpc UpdateInputVector (UpdateInputVectorRequest) returns (StatusReply) {}
@@ -101,6 +103,16 @@ message FillScalerRequest {
   uint64 scaler = 1;
   repeated uint32 start = 2;
   repeated uint32 end = 3;
+}
+
+message FillScalerTileStackRequest {
+  repeated uint64 scalers = 1;
+  repeated uint32 start = 2;
+  repeated uint32 size = 3;
+}
+
+message SetPixelByteSignModeRequest {
+  int32 mode = 1;
 }
 
 message GetFullScalerRequest {

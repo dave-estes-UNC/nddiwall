@@ -10,7 +10,7 @@
 * Change int to uint for NDDI Interface where appropriate.
 * Create a GrpcNddiDisplay for the client to use.
 - Add dependencies to Makefile
-- Add NDDI Wall Pixel Bridge
+* Add NDDI Wall Pixel Bridge
 + Define additional messages matching the remaining APIs.
   * unsigned int DisplayWidth()
   * unsigned int DisplayHeight()
@@ -28,8 +28,8 @@
   * void FillCoefficientTiles(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
   * void FillScaler(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end)
   - void FillScalerTiles(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
-  - void FillScalerTileStack(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size)
-  - void SetPixelByteSignMode(SignMode mode)
+  * void FillScalerTileStack(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size)
+  * void SetPixelByteSignMode(SignMode mode)
   * void SetFullScaler(uint16_t scaler)
   * uint16_t GetFullScaler()
 - Find out if there's a way to memcpy into and out of GRPC request buffers. Look into "bytes" type.

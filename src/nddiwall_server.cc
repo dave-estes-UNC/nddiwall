@@ -65,6 +65,7 @@ using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
 using nddiwall::CopyPixelStripRequest;
 using nddiwall::CopyPixelsRequest;
+using nddiwall::CopyPixelTilesRequest;
 using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
@@ -233,14 +234,11 @@ class NddiServiceImpl final : public NddiWall::Service {
           }
           std::cout << ")" << std::endl;
 
-          std::cout << "  - Pixels: ";
+          std::cout << "  - Pixels: " << request->pixels_size() << std::endl;
           Pixel p[request->pixels_size()];
           for (int i = 0; i < request->pixels_size(); i++) {
               p[i].packed = request->pixels(i);
-              if (i) { std::cout << " "; }
-              std::cout << "(" << (uint32_t)p[i].r << "," << (uint32_t)p[i].g << "," << (uint32_t)p[i].b << "," << (uint32_t)p[i].a << ")";
           }
-          std::cout << std::endl;
 
           myDisplay->CopyPixelStrip(p, start, end);
 
@@ -273,16 +271,57 @@ class NddiServiceImpl final : public NddiWall::Service {
           }
           std::cout << ")" << std::endl;
 
-          std::cout << "  - Pixels: ";
+          std::cout << "  - Pixels: " << request->pixels_size() << std::endl;
           Pixel p[request->pixels_size()];
           for (int i = 0; i < request->pixels_size(); i++) {
               p[i].packed = request->pixels(i);
-              if (i) { std::cout << " "; }
-              std::cout << "(" << (uint32_t)p[i].r << "," << (uint32_t)p[i].g << "," << (uint32_t)p[i].b << "," << (uint32_t)p[i].a << ")";
           }
-          std::cout << std::endl;
 
           myDisplay->CopyPixels(p, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status CopyPixelTiles(ServerContext* context, const CopyPixelTilesRequest* request,
+                        StatusReply* reply) override {
+      std::cout << "Server got a request to CopyPixelTiles." << std::endl;
+      if (myDisplay) {
+          std::cout << "  - Starts: " << request->starts_size() << std::endl;
+          vector< vector<unsigned int> > starts;
+          size_t tile_count = request->starts_size() / frameVolumeDimensionality_;
+          for (int i = 0; i < tile_count; i++) {
+              vector<unsigned int> start;
+              for (int j = 0; j < frameVolumeDimensionality_; j++) {
+                  start.push_back(request->starts(i * frameVolumeDimensionality_ + j));
+              }
+              starts.push_back(start);
+          }
+
+          std::cout << "  - Size: (";
+          vector<unsigned int> size;
+          size.push_back(request->size(0));
+          size.push_back(request->size(1));
+          std::cout << request->size(0);
+          std::cout << "," ;
+          std::cout << request->size(1);
+          std::cout << ")" << std::endl;
+
+          std::cout << "  - Pixels: " << request->pixels_size() << std::endl;
+          Pixel p[request->pixels_size()];
+          for (int i = 0; i < request->pixels_size(); i++) {
+              p[i].packed = request->pixels(i);
+          }
+          vector<Pixel*> ps(tile_count, 0);
+          size_t tile_size = size[0] * size[1];
+          for (int i = 0; i < tile_count; i++) {
+              ps[i] = p + (i * tile_size);
+          }
+
+          myDisplay->CopyPixelTiles(ps, starts, size);
 
           reply->set_status(reply->OK);
       } else {

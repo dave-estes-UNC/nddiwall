@@ -14,6 +14,7 @@ using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
 using nddiwall::CopyPixelStripRequest;
 using nddiwall::CopyPixelsRequest;
+using nddiwall::CopyPixelTilesRequest;
 using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
@@ -177,7 +178,33 @@ void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<u
 }
 
 void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
-    assert(false && "CopyPixelTiles Not Implemented.");
+    assert(size.size() == 2);
+
+    CopyPixelTilesRequest request;
+    for (size_t i = 0; i < starts.size(); i++) {
+        for (size_t j = 0; j < starts[i].size(); j++) {
+            request.add_starts(starts[i][j]);
+        }
+    }
+    request.add_size(size[0]);
+    request.add_size(size[1]);
+    size_t tile_count = starts.size();
+    size_t tile_size = size[0] * size[1];
+    for (size_t i = 0; i < tile_count; i++) {
+        for (size_t j = 0; j < tile_size; j++) {
+            request.add_pixels(p[i][j].packed);
+        }
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->CopyPixelTiles(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {

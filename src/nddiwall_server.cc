@@ -69,6 +69,7 @@ using nddiwall::CopyPixelTilesRequest;
 using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
+using nddiwall::FillCoefficientTilesRequest;
 using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
@@ -439,6 +440,54 @@ class NddiServiceImpl final : public NddiWall::Service {
           std::cout << "  - Row: " << row << std::endl;
 
           myDisplay->FillCoefficient(coefficient, row, col, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status FillCoefficientTiles(ServerContext* context, const FillCoefficientTilesRequest* request,
+                        StatusReply* reply) override {
+      std::cout << "Server got a request to FillCoefficientTiles." << std::endl;
+      if (myDisplay) {
+          size_t tile_count = request->coefficients_size();
+          std::cout << "  - Coefficients: " << request->coefficients_size() << std::endl;
+          vector<int> coeffs;
+          for (int i = 0; i < request->coefficients_size(); i++) {
+              coeffs.push_back(request->coefficients(i));
+          }
+
+          std::cout << "  - Positions: " << request->positions_size() << std::endl;
+          vector< vector<unsigned int> > positions;
+          for (int i = 0; i < tile_count; i++) {
+              vector<unsigned int> pos;
+              pos.push_back(request->positions(2 * i + 0));
+              pos.push_back(request->positions(2 * i + 0));
+              positions.push_back(pos);
+          }
+
+          std::cout << "  - Starts: " << request->starts_size() << std::endl;
+          vector< vector<unsigned int> > starts;
+          for (int i = 0; i < tile_count; i++) {
+              vector<unsigned int> start;
+              for (int j = 0; j < frameVolumeDimensionality_; j++) {
+                  start.push_back(request->starts(i * frameVolumeDimensionality_ + j));
+              }
+              starts.push_back(start);
+          }
+
+          std::cout << "  - Size: (";
+          vector<unsigned int> size;
+          size.push_back(request->size(0));
+          size.push_back(request->size(1));
+          std::cout << request->size(0);
+          std::cout << "," ;
+          std::cout << request->size(1);
+          std::cout << ")" << std::endl;
+
+          myDisplay->FillCoefficientTiles(coeffs, positions, starts, size);
 
           reply->set_status(reply->OK);
       } else {

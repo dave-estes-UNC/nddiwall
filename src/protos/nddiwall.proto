@@ -15,6 +15,7 @@ service NddiWall {
   rpc PutCoefficientMatrix (PutCoefficientMatrixRequest) returns (StatusReply) {}
   rpc FillCoefficientMatrix (FillCoefficientMatrixRequest) returns (StatusReply) {}
   rpc FillCoefficient (FillCoefficientRequest) returns (StatusReply) {}
+  rpc FillCoefficientTiles (FillCoefficientTilesRequest) returns (StatusReply) {}
   rpc FillScaler (FillScalerRequest) returns (StatusReply) {}
   rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
   rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
@@ -87,6 +88,13 @@ message FillCoefficientRequest {
   uint32 col = 3;
   repeated uint32 start = 4;
   repeated uint32 end = 5;
+}
+
+message FillCoefficientTilesRequest {
+  repeated int32 coefficients = 1;
+  repeated uint32 positions = 2;
+  repeated uint32 starts = 3;
+  repeated uint32 size = 4;
 }
 
 message FillScalerRequest {

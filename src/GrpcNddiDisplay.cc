@@ -18,6 +18,7 @@ using nddiwall::CopyPixelTilesRequest;
 using nddiwall::PutCoefficientMatrixRequest;
 using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
+using nddiwall::FillCoefficientTilesRequest;
 using nddiwall::FillScalerRequest;
 using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
@@ -329,7 +330,36 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
                                            vector<vector<unsigned int> > &positions,
                                            vector<vector<unsigned int> > &starts,
                                            vector<unsigned int> &size) {
-    assert(false && "FillCoefficientTiles Not Implemented.");
+    assert(coefficients.size() == positions.size());
+    assert(coefficients.size() == starts.size());
+    assert(size.size() == 2);
+
+    FillCoefficientTilesRequest request;
+    for (size_t i = 0; i < coefficients.size(); i++) {
+        request.add_coefficients(coefficients[i]);
+    }
+    for (size_t i = 0; i < positions.size(); i++) {
+        for (size_t j = 0; j < positions[i].size(); j++) {
+            request.add_positions(positions[i][j]);
+        }
+    }
+    for (size_t i = 0; i < starts.size(); i++) {
+        for (size_t j = 0; j < starts[i].size(); j++) {
+            request.add_starts(starts[i][j]);
+        }
+    }
+    request.add_size(size[0]);
+    request.add_size(size[1]);
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->FillCoefficientTiles(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillScaler(Scaler scaler,

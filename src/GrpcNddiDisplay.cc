@@ -140,9 +140,7 @@ void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vect
       request.add_end(end[i]);
       count *= end[i] - start[i] + 1;
     }
-    for (size_t i = 0; i < count; i++) {
-      request.add_pixels(p[i].packed);
-    }
+    request.set_pixels((void*)p, sizeof(Pixel) * count);
 
     StatusReply reply;
 
@@ -165,9 +163,7 @@ void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<u
       request.add_end(end[i]);
       count *= end[i] - start[i] + 1;
     }
-    for (size_t i = 0; i < count; i++) {
-      request.add_pixels(p[i].packed);
-    }
+    request.set_pixels((void*)p, sizeof(Pixel) * count);
 
     StatusReply reply;
 

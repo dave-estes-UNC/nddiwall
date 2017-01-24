@@ -225,6 +225,11 @@ class NddiServiceImpl final : public NddiWall::Service {
                       StatusReply* reply) override {
       DEBUG_MSG("Server got a request to CopyPixelStrip." << std::endl);
       if (myDisplay) {
+          size_t count = request->pixels().length() / sizeof(Pixel);
+          DEBUG_MSG("  - Pixels: " << count << std::endl);
+          Pixel p[count];
+          memcpy(p, request->pixels().data(), count * sizeof(Pixel));
+
           DEBUG_MSG("  - Start: (");
           vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
@@ -242,12 +247,6 @@ class NddiServiceImpl final : public NddiWall::Service {
               DEBUG_MSG(request->end(i));
           }
           DEBUG_MSG(")" << std::endl);
-
-          DEBUG_MSG("  - Pixels: " << request->pixels_size() << std::endl);
-          Pixel p[request->pixels_size()];
-          for (int i = 0; i < request->pixels_size(); i++) {
-              p[i].packed = request->pixels(i);
-          }
 
           myDisplay->CopyPixelStrip(p, start, end);
 
@@ -262,6 +261,11 @@ class NddiServiceImpl final : public NddiWall::Service {
                     StatusReply* reply) override {
       DEBUG_MSG("Server got a request to CopyPixels." << std::endl);
       if (myDisplay) {
+          size_t count = request->pixels().length() / sizeof(Pixel);
+          DEBUG_MSG("  - Pixels: " << count << std::endl);
+          Pixel p[count];
+          memcpy(p, request->pixels().data(), count * sizeof(Pixel));
+
           DEBUG_MSG("  - Start: (");
           vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
@@ -279,12 +283,6 @@ class NddiServiceImpl final : public NddiWall::Service {
               DEBUG_MSG(request->end(i));
           }
           DEBUG_MSG(")" << std::endl);
-
-          DEBUG_MSG("  - Pixels: " << request->pixels_size() << std::endl);
-          Pixel p[request->pixels_size()];
-          for (int i = 0; i < request->pixels_size(); i++) {
-              p[i].packed = request->pixels(i);
-          }
 
           myDisplay->CopyPixels(p, start, end);
 

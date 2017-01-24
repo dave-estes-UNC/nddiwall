@@ -45,13 +45,13 @@ message NumCoefficientPlanesRequest {
 }
 
 message CopyPixelStripRequest {
-  repeated uint32 pixels = 1;
+  bytes pixels = 1;
   repeated uint32 start = 2;
   repeated uint32 end = 3;
 }
 
 message CopyPixelsRequest {
-  repeated uint32 pixels = 1;
+  bytes pixels = 1;
   repeated uint32 start = 2;
   repeated uint32 end = 3;
 }

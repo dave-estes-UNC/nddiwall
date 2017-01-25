@@ -177,6 +177,7 @@ void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<u
 }
 
 void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
+    assert(p.size() == starts.size());
     assert(size.size() == 2);
 
     CopyPixelTilesRequest request;
@@ -189,11 +190,11 @@ void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned i
     request.add_size(size[1]);
     size_t tile_count = starts.size();
     size_t tile_size = size[0] * size[1];
+    Pixel p_arr[tile_count * tile_size];
     for (size_t i = 0; i < tile_count; i++) {
-        for (size_t j = 0; j < tile_size; j++) {
-            request.add_pixels(p[i][j].packed);
-        }
+        memcpy(&p_arr[i * tile_size], p[i], sizeof(Pixel) * tile_size);
     }
+    request.set_pixels((void*)p_arr, sizeof(Pixel) * tile_count * tile_size);
 
     StatusReply reply;
 

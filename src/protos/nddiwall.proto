@@ -57,7 +57,7 @@ message CopyPixelsRequest {
 }
 
 message CopyPixelTilesRequest {
-  repeated uint32 pixels = 1;
+  bytes pixels = 1;
   repeated uint32 starts = 2;
   repeated uint32 size = 3;
 }

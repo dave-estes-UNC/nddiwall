@@ -297,9 +297,19 @@ class NddiServiceImpl final : public NddiWall::Service {
                         StatusReply* reply) override {
       DEBUG_MSG("Server got a request to CopyPixelTiles." << std::endl);
       if (myDisplay) {
+          size_t count = request->pixels().length() / sizeof(Pixel);
+          DEBUG_MSG("  - Pixels: " << count << std::endl);
+          Pixel p[count];
+          memcpy(p, request->pixels().data(), count * sizeof(Pixel));
+          size_t tile_size = request->size(0) * request->size(1);
+          size_t tile_count = request->starts_size() / frameVolumeDimensionality_;
+          vector<Pixel*> ps(tile_count, 0);
+          for (int i = 0; i < tile_count; i++) {
+              ps[i] = p + (i * tile_size);
+          }
+
           DEBUG_MSG("  - Starts: " << request->starts_size() << std::endl);
           vector< vector<unsigned int> > starts;
-          size_t tile_count = request->starts_size() / frameVolumeDimensionality_;
           for (int i = 0; i < tile_count; i++) {
               vector<unsigned int> start;
               for (int j = 0; j < frameVolumeDimensionality_; j++) {
@@ -313,17 +323,6 @@ class NddiServiceImpl final : public NddiWall::Service {
           size.push_back(request->size(0));
           size.push_back(request->size(1));
           DEBUG_MSG(request->size(0) << "," << request->size(1) << ")" << std::endl);
-
-          DEBUG_MSG("  - Pixels: " << request->pixels_size() << std::endl);
-          Pixel p[request->pixels_size()];
-          for (int i = 0; i < request->pixels_size(); i++) {
-              p[i].packed = request->pixels(i);
-          }
-          vector<Pixel*> ps(tile_count, 0);
-          size_t tile_size = size[0] * size[1];
-          for (int i = 0; i < tile_count; i++) {
-              ps[i] = p + (i * tile_size);
-          }
 
           myDisplay->CopyPixelTiles(ps, starts, size);
 

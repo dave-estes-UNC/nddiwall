@@ -32,6 +32,6 @@
   * void SetPixelByteSignMode(SignMode mode)
   * void SetFullScaler(uint16_t scaler)
   * uint16_t GetFullScaler()
-- Find out if there's a way to memcpy into and out of GRPC request buffers. Look into "bytes" type.
+* Find out if there's a way to memcpy into and out of GRPC request buffers. Look into "bytes" type.
 - Investigate changing vectors to straight arrays throughout the NDDI interface.
 - Add a sync mechanism. 

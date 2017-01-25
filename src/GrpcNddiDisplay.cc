@@ -12,6 +12,7 @@ using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
+using nddiwall::CopyFrameVolumeRequest;
 using nddiwall::CopyPixelStripRequest;
 using nddiwall::CopyPixelsRequest;
 using nddiwall::CopyPixelTilesRequest;
@@ -229,7 +230,25 @@ void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<uns
 }
 
 void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {
-    assert(false && "CopyFrameVolume Not Implemented.");
+    assert(start.size() == end.size());
+    assert(start.size() == dest.size());
+
+    CopyFrameVolumeRequest request;
+    for (size_t i = 0; i < start.size(); i++) {
+      request.add_start(start[i]);
+      request.add_end(end[i]);
+      request.add_dest(dest[i]);
+    }
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->CopyFrameVolume(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::UpdateInputVector(vector<int> &input) {

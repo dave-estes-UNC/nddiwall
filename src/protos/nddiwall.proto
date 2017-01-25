@@ -9,6 +9,7 @@ service NddiWall {
   rpc NumCoefficientPlanes (NumCoefficientPlanesRequest) returns (NumCoefficientPlanesReply) {}
   rpc PutPixel (PutPixelRequest) returns (StatusReply) {}
   rpc FillPixel (FillPixelRequest) returns (StatusReply) {}
+  rpc CopyFrameVolume (CopyFrameVolumeRequest) returns (StatusReply) {}
   rpc CopyPixelStrip (CopyPixelStripRequest) returns (StatusReply) {}
   rpc CopyPixels (CopyPixelsRequest) returns (StatusReply) {}
   rpc CopyPixelTiles (CopyPixelTilesRequest) returns (StatusReply) {}
@@ -71,6 +72,12 @@ message FillPixelRequest {
   uint32 pixel = 1;
   repeated uint32 start = 2;
   repeated uint32 end = 3;
+}
+
+message CopyFrameVolumeRequest {
+  repeated uint32 start = 1;
+  repeated uint32 end = 2;
+  repeated uint32 dest = 3;
 }
 
 message PutCoefficientMatrixRequest {

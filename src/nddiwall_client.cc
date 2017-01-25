@@ -97,6 +97,12 @@ int main(int argc, char** argv) {
     p.b = 0xff;
     myDisplay.PutPixel(p, location);
 
+    // Copy that section of the Frame Volume to another location
+    start[0] = 0; start[1] = 0; start[2] = 0;
+    end[0] = 10; end[1] = 10; end[2] = 0;
+    location[0] = 30; location[1] = 30;
+    myDisplay.CopyFrameVolume(start, end, location);
+
     // Copy a pixel strip and then a pixel array
     Pixel ps[32];
     for (int i = 0; i < 32; i++) {

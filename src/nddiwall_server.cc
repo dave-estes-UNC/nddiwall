@@ -69,6 +69,7 @@ using nddiwall::NumCoefficientPlanesRequest;
 using nddiwall::NumCoefficientPlanesReply;
 using nddiwall::PutPixelRequest;
 using nddiwall::FillPixelRequest;
+using nddiwall::CopyFrameVolumeRequest;
 using nddiwall::CopyPixelStripRequest;
 using nddiwall::CopyPixelsRequest;
 using nddiwall::CopyPixelTilesRequest;
@@ -213,6 +214,46 @@ class NddiServiceImpl final : public NddiWall::Service {
           DEBUG_MSG("  - Pixel: " << (uint32_t)p.r << " " << (uint32_t)p.g << " " << (uint32_t)p.b << " " << (uint32_t)p.a << std::endl);
 
           myDisplay->FillPixel(p, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status CopyFrameVolume(ServerContext* context, const CopyFrameVolumeRequest* request,
+                         StatusReply* reply) override {
+      DEBUG_MSG("Server got a request to CopyFrameVolume." << std::endl);
+      if (myDisplay) {
+          DEBUG_MSG("  - Start: (");
+          vector<unsigned int> start;
+          for (int i = 0; i < request->start_size(); i++) {
+              start.push_back(request->start(i));
+              if (i) { DEBUG_MSG(","); }
+              DEBUG_MSG(request->start(i));
+          }
+          DEBUG_MSG(")" << std::endl);
+
+          DEBUG_MSG("  - End: (");
+          vector<unsigned int> end;
+          for (int i = 0; i < request->end_size(); i++) {
+              end.push_back(request->end(i));
+              if (i) { DEBUG_MSG(","); }
+              DEBUG_MSG(request->end(i));
+          }
+          DEBUG_MSG(")" << std::endl);
+
+          DEBUG_MSG("  - Dest: (");
+          vector<unsigned int> dest;
+          for (int i = 0; i < request->dest_size(); i++) {
+              dest.push_back(request->dest(i));
+              if (i) { DEBUG_MSG(","); }
+              DEBUG_MSG(request->dest(i));
+          }
+          DEBUG_MSG(")" << std::endl);
+
+          myDisplay->CopyFrameVolume(start, end, dest);
 
           reply->set_status(reply->OK);
       } else {

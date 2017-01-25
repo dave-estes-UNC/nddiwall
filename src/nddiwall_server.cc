@@ -78,6 +78,7 @@ using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
 using nddiwall::FillCoefficientTilesRequest;
 using nddiwall::FillScalerRequest;
+using nddiwall::FillScalerTilesRequest;
 using nddiwall::FillScalerTileStackRequest;
 using nddiwall::SetPixelByteSignModeRequest;
 using nddiwall::GetFullScalerRequest;
@@ -563,6 +564,45 @@ class NddiServiceImpl final : public NddiWall::Service {
           DEBUG_MSG("  - Scaler: " << s.r << " " << s.g << " " << s.r << " " << s.a << std::endl);
 
           myDisplay->FillScaler(s, start, end);
+
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
+  Status FillScalerTiles(ServerContext* context, const FillScalerTilesRequest* request,
+                         StatusReply* reply) override {
+      DEBUG_MSG("Server got a request to FillScalerTiles." << std::endl);
+      if (myDisplay) {
+          size_t tile_count = request->scalers_size();
+          DEBUG_MSG("  - Scalers: " << request->scalers_size() << std::endl);
+          vector<uint64_t> scalers;
+          for (int i = 0; i < request->scalers_size(); i++) {
+              scalers.push_back(request->scalers(i));
+          }
+
+          DEBUG_MSG("  - Starts: " << request->starts_size() << std::endl);
+          vector < vector<unsigned int> > starts;
+          for (int i = 0; i < tile_count; i++) {
+              vector<unsigned int> start;
+              for (int j = 0; j < frameVolumeDimensionality_; j++) {
+                  start.push_back(
+                          request->starts(
+                                  i * frameVolumeDimensionality_ + j));
+              }
+              starts.push_back(start);
+          }
+
+          DEBUG_MSG("  - Size: (");
+          vector<unsigned int> size;
+          size.push_back(request->size(0));
+          size.push_back(request->size(1));
+          DEBUG_MSG(
+                  request->size(0) << "," << request->size(1) << ")" << std::endl);
+
+          myDisplay->FillScalerTiles(scalers, starts, size);
 
           reply->set_status(reply->OK);
       } else {

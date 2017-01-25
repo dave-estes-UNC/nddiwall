@@ -132,5 +132,20 @@ int main(int argc, char** argv) {
     start[2] = end[2] = 0;
     myDisplay.FillCoefficient(0, 2, 2, start, end);
 
+    // Sleep again and then do the checkerboard blending
+    sleep(2);
+    s.r = s.g = s.b = s.a = myDisplay.GetFullScaler() >> 1;
+    vector<uint64_t> scalers;
+    scalers.push_back(s.packed); scalers.push_back(s.packed);
+    vector<unsigned int> start1;
+    start1.push_back(40); start1.push_back(40); start1.push_back(0);
+    vector<unsigned int> start2;
+    start2.push_back(60); start2.push_back(60); start2.push_back(0);
+    vector<vector<unsigned int> > starts;
+    starts.push_back(start1); starts.push_back(start2);
+    vector<unsigned int> size;
+    size.push_back(10); size.push_back(10);
+    myDisplay.FillScalerTiles(scalers, starts, size);
+
     return 0;
 }

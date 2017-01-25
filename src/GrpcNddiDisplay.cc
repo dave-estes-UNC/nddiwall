@@ -21,6 +21,7 @@ using nddiwall::FillCoefficientMatrixRequest;
 using nddiwall::FillCoefficientRequest;
 using nddiwall::FillCoefficientTilesRequest;
 using nddiwall::FillScalerRequest;
+using nddiwall::FillScalerTilesRequest;
 using nddiwall::FillScalerTileStackRequest;
 using nddiwall::SetPixelByteSignModeRequest;
 using nddiwall::GetFullScalerRequest;
@@ -406,7 +407,30 @@ void GrpcNddiDisplay::FillScaler(Scaler scaler,
 void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
                                       vector<vector<unsigned int> > &starts,
                                       vector<unsigned int> &size) {
-    assert(false && "FillScalerTiles Not Implemented.");
+    assert(scalers.size() == starts.size());
+    assert(size.size() == 2);
+
+    FillScalerTilesRequest request;
+    for (size_t i = 0; i < scalers.size(); i++) {
+        request.add_scalers(scalers[i]);
+    }
+    for (size_t i = 0; i < starts.size(); i++) {
+        for (size_t j = 0; j < starts[i].size(); j++) {
+            request.add_starts(starts[i][j]);
+        }
+    }
+    request.add_size(size[0]);
+    request.add_size(size[1]);
+
+    StatusReply reply;
+
+    ClientContext context;
+    Status status = stub_->FillScalerTiles(&context, request, &reply);
+
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::FillScalerTileStack(vector<uint64_t> &scalers,

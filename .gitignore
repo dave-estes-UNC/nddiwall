@@ -6,3 +6,4 @@ nddiwall_client
 nddiwall_server
 pixelbridge
 *.pb.*
+build/

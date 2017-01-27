@@ -9,7 +9,7 @@
 * Add GL window support to the server so we can start seeing progress.
 * Change int to uint for NDDI Interface where appropriate.
 * Create a GrpcNddiDisplay for the client to use.
-- Add dependencies to Makefile
+* Add dependencies to Makefile...er...just use cmake.
 * Add NDDI Wall Pixel Bridge
 * Define additional messages matching the remaining APIs.
   * unsigned int DisplayWidth()

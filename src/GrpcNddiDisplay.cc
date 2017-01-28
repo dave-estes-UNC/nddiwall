@@ -28,6 +28,7 @@ using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
 using nddiwall::UpdateInputVectorRequest;
+using nddiwall::LatchRequest;
 
 // public
 
@@ -509,4 +510,15 @@ uint16_t GrpcNddiDisplay::GetFullScaler() {
 
 CostModel* GrpcNddiDisplay::GetCostModel() {
     return 0;
+}
+
+void GrpcNddiDisplay::Latch() {
+    LatchRequest request;
+    StatusReply reply;
+    ClientContext context;
+    Status status = stub_->Latch(&context, request, &reply);
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }

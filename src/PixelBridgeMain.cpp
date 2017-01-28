@@ -202,6 +202,7 @@ void updateDisplay(uint8_t* buffer, size_t width, size_t height) {
         // Free the temporary frame buffer
         free(frameBuffer);
     }
+    myDisplay->Latch();
     totalUpdates++;
 
 }

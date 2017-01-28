@@ -85,6 +85,7 @@ using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
 using nddiwall::UpdateInputVectorRequest;
+using nddiwall::LatchRequest;
 using nddiwall::NddiWall;
 
 /*
@@ -92,6 +93,9 @@ using nddiwall::NddiWall;
  */
 GlNddiDisplay* myDisplay;
 pthread_t serverThread;
+pthread_mutex_t renderMutex;
+pthread_cond_t renderCondition;
+
 
 // Logic and data behind the server's behavior.
 class NddiServiceImpl final : public NddiWall::Service {
@@ -706,6 +710,16 @@ class NddiServiceImpl final : public NddiWall::Service {
       return Status::OK;
   }
 
+  Status Latch(ServerContext* context, const LatchRequest* request,
+               StatusReply* reply) override {
+      DEBUG_MSG("Server got a request to latch." << std::endl);
+      pthread_mutex_lock(&renderMutex);
+      pthread_cond_signal(&renderCondition);
+      pthread_mutex_unlock(&renderMutex);
+      reply->set_status(reply->OK);
+      return Status::OK;
+  }
+
   unsigned int inputVectorSize_, frameVolumeDimensionality_;
 
 };
@@ -730,8 +744,10 @@ void* runServer(void *) {
 }
 
 void renderFrame() {
-    // Draw
+    pthread_mutex_lock(&renderMutex);
+    pthread_cond_wait(&renderCondition, &renderMutex);
     glutPostRedisplay();
+    pthread_mutex_unlock(&renderMutex);
 }
 
 void draw( void ) {

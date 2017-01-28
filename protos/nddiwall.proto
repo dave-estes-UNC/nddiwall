@@ -24,6 +24,7 @@ service NddiWall {
   rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
   rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
   rpc UpdateInputVector (UpdateInputVectorRequest) returns (StatusReply) {}
+  rpc Latch (LatchRequest) returns (StatusReply) {}
 }
 
 //
@@ -165,4 +166,7 @@ message NumCoefficientPlanesReply {
 
 message GetFullScalerReply {
   uint32 fullScaler = 1;
+}
+
+message LatchRequest {
 }

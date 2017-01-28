@@ -7,6 +7,7 @@ find_package(GLUT REQUIRED)
 find_package(OpenCV REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DGL_GLEXT_PROTOTYPES")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG")
 
 include_directories(/usr/local/include ${OPENGL_INCLUDE_DIR} ${GLUT_INCLUDE_DIRS} /opt/AMDAPP/include/ ${OpenCV_INCLUDE_DIRS})
 link_directories(/usr/local/lib ${OPENGL_LIBRARIES} /opt/AMDAPP/lib/x86_64 /opt/AMDAPP/lib/x86)

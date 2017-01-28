@@ -66,8 +66,10 @@ public:
     size_t rewindStartFrame;
     size_t rewindFrames;
     size_t temporalFlipCountPerFrame;
+    bool PSNR;
     bool verbose;
     bool csv;
+    bool headless;
     vector<scale_config_t> dctScales;
     int dctDelta;
     int dctPlanes;
@@ -90,7 +92,9 @@ public:
         rewindStartFrame = 0;
         rewindFrames = 0;
         temporalFlipCountPerFrame = 4;
+        PSNR = false;
         verbose = false;
+        headless = false;
 
         scale_config_t simple = {1, 8, 0, 63};
         dctScales.push_back(simple);

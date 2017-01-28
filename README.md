@@ -1,11 +1,18 @@
 README
 ======
 
-From this directory.
+From this directory, you can build Release:
 
-  mkdir build
-  cd build
-  cmake ..
+  mkdir release
+  cd release
+  cmake -DCMAKE_BUILD_TYPE=Release ..
+  make -j8
+
+or Debug:
+
+  mkdir debug
+  cd debug
+  cmake -DCMAKE_BUILD_TYPE=Debug ..
   make -j8
 
 Then to run.

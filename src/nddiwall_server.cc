@@ -713,9 +713,9 @@ class NddiServiceImpl final : public NddiWall::Service {
   Status Latch(ServerContext* context, const LatchRequest* request,
                StatusReply* reply) override {
       DEBUG_MSG("Server got a request to latch." << std::endl);
-      pthread_mutex_lock(&renderMutex);
+      //pthread_mutex_lock(&renderMutex);
       pthread_cond_signal(&renderCondition);
-      pthread_mutex_unlock(&renderMutex);
+      //pthread_mutex_unlock(&renderMutex);
       reply->set_status(reply->OK);
       return Status::OK;
   }
@@ -744,10 +744,10 @@ void* runServer(void *) {
 }
 
 void renderFrame() {
-    pthread_mutex_lock(&renderMutex);
+    //pthread_mutex_lock(&renderMutex);
     pthread_cond_wait(&renderCondition, &renderMutex);
     glutPostRedisplay();
-    pthread_mutex_unlock(&renderMutex);
+    //pthread_mutex_unlock(&renderMutex);
 }
 
 void draw( void ) {

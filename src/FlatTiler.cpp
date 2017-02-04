@@ -31,11 +31,12 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
     quiet_ = !globalConfiguration.verbose;
 
     // 2 dimensional matching the Video Width x Height
-    vector<unsigned int> fvDimensions;
-    fvDimensions.push_back(display_width);
-    fvDimensions.push_back(display_height);
+    unsigned int fvDimensions[2];
+    fvDimensions[0] = display_width;
+    fvDimensions[1] = display_height;
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                   // framevolume dimensional sizes
+    display_ = new GrpcNddiDisplay(2,                              // frame volume dimensionality
+                                   fvDimensions,                   // frame volume dimensional sizes
                                    display_width, display_height,  // display size
                                    1,                              // number of coefficient planes in display
                                    2);                             // input vector size (x and y only)

@@ -71,11 +71,11 @@ MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t
     size_t  block_size = block_width * block_height;
 
     /* 3 dimensional matching the Macroblock Width x Height x 64 */
-    vector<unsigned int> fvDimensions;
+    unsigned int fvDimensions[3];
     fvWidth_ = block_width; fvHeight_ = block_height;
-    fvDimensions.push_back(fvWidth_);
-    fvDimensions.push_back(fvHeight_);
-    fvDimensions.push_back(FRAMEVOLUME_DEPTH);
+    fvDimensions[0] = fvWidth_;
+    fvDimensions[1] = fvHeight_;
+    fvDimensions[2] = FRAMEVOLUME_DEPTH;
 
     /*
      * Pre-calculate the maximum number of unscaled tiles used for the display. tileStackHeights_
@@ -85,7 +85,8 @@ MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t
     displayTilesHigh_ = CEIL(display_height, UNSCALED_BASIC_BLOCK_HEIGHT);
     tileStackHeights_ = NULL;
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
+    display_ = new GrpcNddiDisplay(3,                             // frame volume dimensionality
+                                   fvDimensions,                  // frame volume dimensional sizes
                                    display_width, display_height, // display size
                                    FRAMEVOLUME_DEPTH,             // Number of coefficient planes
                                    3);                            // Input vector size (x, y, 1)

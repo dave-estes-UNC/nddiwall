@@ -108,9 +108,9 @@ class NddiServiceImpl final : public NddiWall::Service {
         frameVolumeDimensionality_ = request->framevolumedimensionalsizes_size();
 
         DEBUG_MSG("  - Frame Volume: ");
-        vector<unsigned int> fvDimensions;
-        for (int i = 0; i < request->framevolumedimensionalsizes_size(); i++) {
-            fvDimensions.push_back(request->framevolumedimensionalsizes(i));
+        unsigned int fvDimensions[frameVolumeDimensionality_];
+        for (int i = 0; i < frameVolumeDimensionality_; i++) {
+            fvDimensions[i] = request->framevolumedimensionalsizes(i);
             if (i) { DEBUG_MSG("x"); }
             DEBUG_MSG(request->framevolumedimensionalsizes(i));
         }
@@ -120,7 +120,8 @@ class NddiServiceImpl final : public NddiWall::Service {
         DEBUG_MSG("  - Input Vector Size: " << request->inputvectorsize() << std::endl);
 
         // Initialize the NDDI display
-        myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
+        myDisplay = new GlNddiDisplay(frameVolumeDimensionality_,      // frame volume dimensionality
+                                      fvDimensions,                    // frame volume dimensional sizes
                                       request->displaywidth(),         // display size
                                       request->displayheight(),
                                       request->numcoefficientplanes(), // number of coefficient planes on the display

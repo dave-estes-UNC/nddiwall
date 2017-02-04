@@ -52,11 +52,11 @@ int main(int argc, char** argv) {
     // are created. This channel models a connection to an endpoint (in this case,
     // localhost at port 50051). We indicate that the channel isn't authenticated
     // (use of InsecureChannelCredentials()).
-    vector<unsigned int> frameVolumeDimensionalSizes;
-    frameVolumeDimensionalSizes.push_back(DISPLAY_WIDTH);
-    frameVolumeDimensionalSizes.push_back(DISPLAY_HEIGHT);
-    frameVolumeDimensionalSizes.push_back(2);
-    GrpcNddiDisplay myDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+    unsigned int frameVolumeDimensionalSizes[3];
+    frameVolumeDimensionalSizes[0] = DISPLAY_WIDTH;
+    frameVolumeDimensionalSizes[1] = DISPLAY_HEIGHT;
+    frameVolumeDimensionalSizes[2] = 2;
+    GrpcNddiDisplay myDisplay(3, frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
 
     std::cout << "Width is " << myDisplay.DisplayWidth() << std::endl;
     std::cout << "Height is " << myDisplay.DisplayHeight() << std::endl;

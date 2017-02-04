@@ -70,10 +70,10 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     quiet_ = !globalConfiguration.verbose;
 
     /* 3 dimensional matching the Macroblock Width x Height x 64 */
-    vector<unsigned int> fvDimensions;
-    fvDimensions.push_back(BLOCK_WIDTH);
-    fvDimensions.push_back(BLOCK_HEIGHT);
-    fvDimensions.push_back(FRAMEVOLUME_DEPTH);
+    unsigned int fvDimensions[3];
+    fvDimensions[0] = BLOCK_WIDTH;
+    fvDimensions[1] = BLOCK_HEIGHT;
+    fvDimensions[2] = FRAMEVOLUME_DEPTH;
 
     /*
      * Pre-calculate the number of tiles used for the display and initialize
@@ -84,7 +84,8 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     displayTilesHigh_ = CEIL(display_height, BLOCK_HEIGHT);
     tileStackHeights_ = (uint8_t*)calloc(displayTilesWide_ * displayTilesHigh_, sizeof(uint8_t));
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
+    display_ = new GrpcNddiDisplay(3,                             // frame volume dimensionality
+                                   fvDimensions,                  // frame volume dimensional sizes
                                    display_width, display_height, // display size
                                    FRAMEVOLUME_DEPTH,             // Number of coefficient planes
                                    3);                            // Input vector size (x, y, 1)

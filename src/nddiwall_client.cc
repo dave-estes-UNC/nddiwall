@@ -129,9 +129,7 @@ int main(int argc, char** argv) {
 
     // Sleep for 2s, change to black, then sleep for 2s and change back
     sleep(2);
-    vector<int> input;
-    input.push_back(0);
-    input[0] = 1;
+    int input[] = {1};
     myDisplay.UpdateInputVector(input);
     sleep(2);
     start[0] = start[1] = 0;

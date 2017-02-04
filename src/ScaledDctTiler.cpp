@@ -96,8 +96,7 @@ ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size
     initQuantizationMatrix(quality);
 
     /* Initialize Input Vector */
-    vector<int> iv;
-    iv.push_back(1);
+    int iv[] = {1};
     display_->UpdateInputVector(iv);
 
     /* Initialize Coefficient Planes */

@@ -75,8 +75,7 @@ ItTiler::ItTiler(size_t display_width, size_t display_height,
     display_->SetPixelByteSignMode(SIGNED_MODE);
 
     // Initialize Input Vector
-    vector<int> iv;
-    iv.push_back(1);
+    int iv[] = {1};
     display_->UpdateInputVector(iv);
 
     // Initialize Coefficient Planes

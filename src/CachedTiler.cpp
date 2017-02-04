@@ -61,8 +61,7 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
     }
 
     // Initialize Input Vector
-    vector<int> iv;
-    iv.push_back(1);
+    int iv[] = {1};
     display_->UpdateInputVector(iv);
 
     // Initialize Frame Volume

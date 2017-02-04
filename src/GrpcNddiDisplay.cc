@@ -44,7 +44,10 @@ GrpcNddiDisplay::GrpcNddiDisplay(unsigned int frameVolumeDimensionality,
                                  unsigned int* frameVolumeDimensionalSizes,
                                  unsigned int displayWidth, unsigned int displayHeight,
                                  unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
-: stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
+: frameVolumeDimensionality_(frameVolumeDimensionality),
+  inputVectorSize_(inputVectorSize),
+  numCoefficientPlanes_(numCoefficientPlanes),
+  stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
 
     // Data we are sending to the server.
     InitializeRequest request;
@@ -255,9 +258,9 @@ void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsign
     }
 }
 
-void GrpcNddiDisplay::UpdateInputVector(vector<int> &input) {
+void GrpcNddiDisplay::UpdateInputVector(int* input) {
     UpdateInputVectorRequest request;
-    for (size_t i = 0; i < input.size(); i++) {
+    for (size_t i = 0; i < inputVectorSize_; i++) {
       request.add_input(input[i]);
     }
 

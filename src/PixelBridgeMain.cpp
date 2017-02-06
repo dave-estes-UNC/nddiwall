@@ -134,9 +134,8 @@ void setupDisplay() {
         // Initialize Frame Volume
         nddi::Pixel p;
         p.r = p.g = p.b = p.a = 0xff;
-        vector<unsigned int> start, end;
-        start.push_back(0); start.push_back(0);
-        end.push_back(displayWidth - 1); end.push_back(displayHeight - 1);
+        unsigned int start[] = {0, 0};
+        unsigned int end[] = {(unsigned int)displayWidth - 1, (unsigned int)displayHeight - 1};
         myDisplay->FillPixel(p, start, end);
 
         // Initialize Coefficient Plane
@@ -145,20 +144,19 @@ void setupDisplay() {
         coeffs[0].push_back(1); coeffs[0].push_back(0);
         coeffs[1].push_back(0); coeffs[1].push_back(1);
 
-        start.clear(); end.clear();
+        vector<unsigned int> vstart, vend;
+        vstart.push_back(0); vstart.push_back(0); vstart.push_back(0);
+        vend.push_back(displayWidth - 1); vend.push_back(displayHeight - 1); vend.push_back(0);
 
-        start.push_back(0); start.push_back(0); start.push_back(0);
-        end.push_back(displayWidth - 1); end.push_back(displayHeight - 1); end.push_back(0);
-
-        myDisplay->FillCoefficientMatrix(coeffs, start, end);
+        myDisplay->FillCoefficientMatrix(coeffs, vstart, vend);
 
         // Turn off all planes and then set the 0 plane to full on.
         end[2] = myDisplay->NumCoefficientPlanes() - 1;
         s.packed = 0;
-        myDisplay->FillScaler(s, start, end);
+        myDisplay->FillScaler(s, vstart, vend);
         end[2] = 0;
         s.r = s.g = s.b = myDisplay->GetFullScaler();
-        myDisplay->FillScaler(s, start, end);
+        myDisplay->FillScaler(s, vstart, vend);
 
     }
 }
@@ -193,11 +191,10 @@ void updateDisplay(uint8_t* buffer, size_t width, size_t height) {
         }
 
         // Update the frame volume
-        vector<unsigned int> start, end, dest;
+        unsigned int start[] = {0, 0};
+        unsigned int end[] = {(unsigned int)displayWidth - 1, (unsigned int)displayHeight - 1};
 
         // Just send the pixels to the single plane
-        start.push_back(0); start.push_back(0);
-        end.push_back(displayWidth - 1); end.push_back(displayHeight - 1);
         myDisplay->CopyPixels(frameBuffer, start, end);
 
         // Free the temporary frame buffer

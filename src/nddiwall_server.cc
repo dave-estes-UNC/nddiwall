@@ -172,9 +172,9 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to PutPixel." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Location: (");
-          vector<unsigned int> location;
+          unsigned int location[frameVolumeDimensionality_];
           for (int i = 0; i < request->location_size(); i++) {
-              location.push_back(request->location(i));
+              location[i] = request->location(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->location(i));
           }
@@ -198,18 +198,18 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to FillPixel." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Start: (");
-          vector<unsigned int> start;
+          unsigned int start[frameVolumeDimensionality_];
           for (int i = 0; i < request->start_size(); i++) {
-              start.push_back(request->start(i));
+              start[i] = request->start(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          vector<unsigned int> end;
+          unsigned int end[frameVolumeDimensionality_];
           for (int i = 0; i < request->end_size(); i++) {
-              end.push_back(request->end(i));
+              end[i] = request->end(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }
@@ -233,27 +233,27 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to CopyFrameVolume." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Start: (");
-          vector<unsigned int> start;
+          unsigned int start[frameVolumeDimensionality_];
           for (int i = 0; i < request->start_size(); i++) {
-              start.push_back(request->start(i));
+              start[i] = request->start(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          vector<unsigned int> end;
+          unsigned int end[frameVolumeDimensionality_];
           for (int i = 0; i < request->end_size(); i++) {
-              end.push_back(request->end(i));
+              end[i] = request->end(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - Dest: (");
-          vector<unsigned int> dest;
+          unsigned int dest[frameVolumeDimensionality_];
           for (int i = 0; i < request->dest_size(); i++) {
-              dest.push_back(request->dest(i));
+              dest[i] = request->dest(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->dest(i));
           }
@@ -278,18 +278,18 @@ class NddiServiceImpl final : public NddiWall::Service {
           memcpy(p, request->pixels().data(), count * sizeof(Pixel));
 
           DEBUG_MSG("  - Start: (");
-          vector<unsigned int> start;
+          unsigned int start[frameVolumeDimensionality_];
           for (int i = 0; i < request->start_size(); i++) {
-              start.push_back(request->start(i));
+              start[i] = request->start(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          vector<unsigned int> end;
+          unsigned int end[frameVolumeDimensionality_];
           for (int i = 0; i < request->end_size(); i++) {
-              end.push_back(request->end(i));
+              end[i] = request->end(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }
@@ -314,18 +314,18 @@ class NddiServiceImpl final : public NddiWall::Service {
           memcpy(p, request->pixels().data(), count * sizeof(Pixel));
 
           DEBUG_MSG("  - Start: (");
-          vector<unsigned int> start;
+          unsigned int start[frameVolumeDimensionality_];
           for (int i = 0; i < request->start_size(); i++) {
-              start.push_back(request->start(i));
+              start[i] = request->start(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          vector<unsigned int> end;
+          unsigned int end[frameVolumeDimensionality_];
           for (int i = 0; i < request->end_size(); i++) {
-              end.push_back(request->end(i));
+              end[i] = request->end(i);
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }

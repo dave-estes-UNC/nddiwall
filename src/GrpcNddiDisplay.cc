@@ -120,10 +120,10 @@ unsigned int GrpcNddiDisplay::NumCoefficientPlanes() {
     }
 }
 
-void GrpcNddiDisplay::PutPixel(Pixel p, vector<unsigned int> &location) {
+void GrpcNddiDisplay::PutPixel(Pixel p, unsigned int* location) {
     PutPixelRequest request;
     request.set_pixel(p.packed);
-    for (size_t i = 0; i < location.size(); i++) {
+    for (size_t i = 0; i < frameVolumeDimensionality_; i++) {
       request.add_location(location[i]);
     }
 
@@ -138,12 +138,10 @@ void GrpcNddiDisplay::PutPixel(Pixel p, vector<unsigned int> &location) {
     }
 }
 
-void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
-    assert(start.size() == end.size());
-
+void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, unsigned int* start, unsigned int* end) {
     CopyPixelStripRequest request;
     size_t count = 1;
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < frameVolumeDimensionality_; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
       count *= end[i] - start[i] + 1;
@@ -161,12 +159,10 @@ void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vect
     }
 }
 
-void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
-    assert(start.size() == end.size());
-
+void GrpcNddiDisplay::CopyPixels(Pixel* p, unsigned int* start, unsigned int* end) {
     CopyPixelsRequest request;
     size_t count = 1;
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < frameVolumeDimensionality_; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
       count *= end[i] - start[i] + 1;
@@ -215,12 +211,10 @@ void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned i
     }
 }
 
-void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {
-    assert(start.size() == end.size());
-
+void GrpcNddiDisplay::FillPixel(Pixel p, unsigned int* start, unsigned int* end) {
     FillPixelRequest request;
     request.set_pixel(p.packed);
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < frameVolumeDimensionality_; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
     }
@@ -236,12 +230,9 @@ void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<uns
     }
 }
 
-void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {
-    assert(start.size() == end.size());
-    assert(start.size() == dest.size());
-
+void GrpcNddiDisplay::CopyFrameVolume(unsigned int* start, unsigned int* end, unsigned int* dest) {
     CopyFrameVolumeRequest request;
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < frameVolumeDimensionality_; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
       request.add_dest(dest[i]);

@@ -336,9 +336,8 @@ void DctTiler::InitializeFrameVolume() {
     }
 
     // Update the frame volume with the basis function renderings and gray block in bulk.
-    vector<unsigned int> start, end;
-    start.push_back(0); start.push_back(0); start.push_back(0);
-    end.push_back(BLOCK_WIDTH - 1); end.push_back(BLOCK_HEIGHT - 1); end.push_back(FRAMEVOLUME_DEPTH - 1);
+    unsigned int start[] = {0, 0, 0};
+    unsigned int end[] = {BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1, FRAMEVOLUME_DEPTH - 1};
     display_->CopyPixels(basisFunctions_, start, end);
 }
 

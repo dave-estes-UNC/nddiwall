@@ -69,39 +69,47 @@ int main(int argc, char** argv) {
     coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
     coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(1);
 
-    vector<unsigned int> start, end;
-    start.clear(); end.clear();
+    vector<unsigned int> vstart, vend;
+    vstart.clear(); vend.clear();
+    unsigned int start[] = {0, 0, 0};
+    unsigned int end[] = {DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, 0};
 
-    start.push_back(0); start.push_back(0); start.push_back(0);
-    end.push_back(DISPLAY_WIDTH - 1); end.push_back(DISPLAY_HEIGHT - 1); end.push_back(0);
+    vstart.push_back(0); vstart.push_back(0); vstart.push_back(0);
+    vend.push_back(DISPLAY_WIDTH - 1); vend.push_back(DISPLAY_HEIGHT - 1); vend.push_back(0);
 
-    myDisplay.FillCoefficientMatrix(coeffs, start, end);
+    myDisplay.FillCoefficientMatrix(coeffs, vstart, vend);
     myDisplay.Latch();
 
     // Set the only plane to full on.
     Scaler s;
     s.r = s.g = s.b = s.a = myDisplay.GetFullScaler();
-    myDisplay.FillScaler(s, start, end);
+    myDisplay.FillScaler(s, vstart, vend);
     myDisplay.Latch();
 
     // Fill FrameBuffer with white and then black
     Pixel p;
     p.r = p.g = p.b = 0xff; p.a = 0xff;
+    vend[2] = 0;
     end[2] = 0;
     myDisplay.FillPixel(p, start, end);
+    vstart[2] = vend[2] = 1;
     start[2] = end[2] = 1;
     p.r = p.g = p.b = 0x00;
     myDisplay.FillPixel(p, start, end);
     myDisplay.Latch();
 
     // Update the FrameBuffer with just one blue pixel at (10,10)
-    vector<uint32_t> location;
-    location.push_back(10); location.push_back(10); location.push_back(0);
+    vector<uint32_t> vlocation;
+    vlocation.push_back(10); vlocation.push_back(10); vlocation.push_back(0);
+    unsigned int location[] = {10, 10, 0};
     p.b = 0xff;
     myDisplay.PutPixel(p, location);
     myDisplay.Latch();
 
     // Copy that section of the Frame Volume to another location
+    vstart[0] = 0; vstart[1] = 0; vstart[2] = 0;
+    vend[0] = 10; vend[1] = 10; vend[2] = 0;
+    vlocation[0] = 30; vlocation[1] = 30;
     start[0] = 0; start[1] = 0; start[2] = 0;
     end[0] = 10; end[1] = 10; end[2] = 0;
     location[0] = 30; location[1] = 30;
@@ -113,9 +121,13 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 32; i++) {
         ps[i].r = ps[i].b = 00; ps[i].g = ps[i].a = 0xff;
     }
+    vstart[0] = 20; vstart[1] = 10; vstart[2] = 0;
+    vend[0] = 51; vend[1] = 10; vend[2] = 0;
     start[0] = 20; start[1] = 10; start[2] = 0;
     end[0] = 51; end[1] = 10; end[2] = 0;
     myDisplay.CopyPixelStrip(ps, start, end);
+    vstart[0] = 30; vstart[1] = 30; vstart[2] = 0;
+    vend[0] = 33; vend[1] = 33; vend[2] = 1;
     start[0] = 30; start[1] = 30; start[2] = 0;
     end[0] = 33; end[1] = 33; end[2] = 1;
     myDisplay.CopyPixels(ps, start, end);
@@ -123,8 +135,8 @@ int main(int argc, char** argv) {
 
     // Update coefficient matrix at (20,20) to use pixel at (10,10)
     coeffs[2][0] = coeffs[2][1] = -10;
-    location[0] = location[1] = 20;
-    myDisplay.PutCoefficientMatrix(coeffs, location);
+    vlocation[0] = vlocation[1] = 20;
+    myDisplay.PutCoefficientMatrix(coeffs, vlocation);
     myDisplay.Latch();
 
     // Sleep for 2s, change to black, then sleep for 2s and change back
@@ -132,10 +144,10 @@ int main(int argc, char** argv) {
     int input[] = {1};
     myDisplay.UpdateInputVector(input);
     sleep(2);
-    start[0] = start[1] = 0;
-    end[0] = DISPLAY_WIDTH - 1; end[1] = DISPLAY_HEIGHT - 1;
-    start[2] = end[2] = 0;
-    myDisplay.FillCoefficient(0, 2, 2, start, end);
+    vstart[0] = vstart[1] = 0;
+    vend[0] = DISPLAY_WIDTH - 1; vend[1] = DISPLAY_HEIGHT - 1;
+    vstart[2] = vend[2] = 0;
+    myDisplay.FillCoefficient(0, 2, 2, vstart, vend);
     myDisplay.Latch();
 
     // Sleep again and then do the checkerboard blending

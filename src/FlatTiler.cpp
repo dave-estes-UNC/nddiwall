@@ -122,8 +122,9 @@ void FlatTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     Pixel                         *tile_pixels = NULL;
     Pixel                         *tile_pixels_sig_bits = NULL;
 #ifdef USE_COPY_PIXEL_TILES
-    vector<Pixel *>                tiles;
-    vector<vector<unsigned int> >  starts;
+    Pixel*                         tiles[tile_map_width_ * tile_map_height_];
+    unsigned int                   starts[tile_map_width_ * tile_map_height_ * 2];
+    size_t                         tile_count = 0;
 #endif
 
     assert(width >= display_width_);
@@ -193,17 +194,14 @@ void FlatTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
 
                 tile_map_[i_tile_map][j_tile_map] = tile_checksum;
 #ifdef USE_COPY_PIXEL_TILES
-                // Push the tile
-                tiles.push_back(tile_pixels);
+                // Push the tile and start coordinates
+                tiles[tile_count] = tile_pixels;
+                starts[tile_count * 2 + 0] = i_tile_map * tile_width_;
+                starts[tile_count * 2 + 1] = j_tile_map * tile_height_;
+                tile_count++;
 
                 // Force new tile to be allocated. This one will be freed after it's copied
                 tile_pixels = NULL;
-
-                // Create and push the start coordinates
-                vector<unsigned int> start;
-                start.push_back(i_tile_map * tile_width_); start.push_back(j_tile_map * tile_height_);
-                starts.push_back(start);
-
 #else
                 UpdateFrameVolume(tile_pixels, i_tile_map, j_tile_map);
 #endif
@@ -220,13 +218,13 @@ void FlatTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     if (updates > 0) {
 
         // Update the Frame Volume by copying the tiles over
-        vector<unsigned int> size;
-        size.push_back(tile_width_); size.push_back(tile_height_);
-        display_->CopyPixelTiles(tiles, starts, size);
+        unsigned int size[] = {(unsigned int)tile_width_, (unsigned int)tile_height_};
+        display_->CopyPixelTiles(tiles, starts, size, tile_count);
 
-        while (!tiles.empty()) {
-            free(tiles.back());
-            tiles.pop_back();
+        // Free the tile pixel memory
+        while (tile_count > 0) {
+            free(tiles[tile_count - 1]);
+            tile_count--;
         }
     }
 #endif

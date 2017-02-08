@@ -114,8 +114,9 @@ private:
     int                            unchanged_tiles_, cache_hits_, cache_misses_;
 
 #ifdef USE_COPY_PIXEL_TILES
-    vector<Pixel *>                tile_pixels_list;
-    vector<vector<unsigned int> >  tile_starts_list;
+    Pixel **                       tile_pixels_list;
+    unsigned int*                  tile_starts_list;
+    size_t                         tile_count;
 
     vector<int>                    coefficients_list;
     vector<vector<unsigned int> >  coefficient_positions_list;

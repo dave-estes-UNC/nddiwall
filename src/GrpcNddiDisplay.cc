@@ -180,25 +180,21 @@ void GrpcNddiDisplay::CopyPixels(Pixel* p, unsigned int* start, unsigned int* en
     }
 }
 
-void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
-    assert(p.size() == starts.size());
-    assert(size.size() == 2);
-
+void GrpcNddiDisplay::CopyPixelTiles(Pixel** p, unsigned int* starts, unsigned int* size, size_t count) {
     CopyPixelTilesRequest request;
-    for (size_t i = 0; i < starts.size(); i++) {
-        for (size_t j = 0; j < starts[i].size(); j++) {
-            request.add_starts(starts[i][j]);
+    for (size_t i = 0; i < count; i++) {
+        for (size_t j = 0; j < frameVolumeDimensionality_; j++) {
+            request.add_starts(starts[i * frameVolumeDimensionality_ + j]);
         }
     }
     request.add_size(size[0]);
     request.add_size(size[1]);
-    size_t tile_count = starts.size();
     size_t tile_size = size[0] * size[1];
-    Pixel p_arr[tile_count * tile_size];
-    for (size_t i = 0; i < tile_count; i++) {
+    Pixel p_arr[count * tile_size];
+    for (size_t i = 0; i < count; i++) {
         memcpy(&p_arr[i * tile_size], p[i], sizeof(Pixel) * tile_size);
     }
-    request.set_pixels((void*)p_arr, sizeof(Pixel) * tile_count * tile_size);
+    request.set_pixels((void*)p_arr, sizeof(Pixel) * count * tile_size);
 
     StatusReply reply;
 

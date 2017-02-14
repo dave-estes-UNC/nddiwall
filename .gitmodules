@@ -4,3 +4,6 @@
 [submodule "nddi"]
 	path = src/nddi
 	url = ./nddi
+[submodule "src/cereal"]
+	path = src/cereal
+	url = https://github.com/USCiLab/cereal.git

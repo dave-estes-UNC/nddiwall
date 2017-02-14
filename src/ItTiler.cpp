@@ -273,25 +273,20 @@ void ItTiler::inverseIntegerTransform(int *Z, int *Y) {
  */
 void ItTiler::InitializeCoefficientPlanes() {
 
-    // Setup the coefficient matrix to complete 3x3 identity initially
-    vector< vector<int> > coeffs;
-    coeffs.resize(3);
-    coeffs[0].push_back(1); coeffs[0].push_back(0); coeffs[0].push_back(0);
-    coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
-    coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(0);
+    // Setup the coefficient matrix to a near complete 3x3 identity initially
+    int coeffs[] = {1, 0, 0, 0, 1, 0, 0, 0, 0};
 
     // Setup start and end points to (0,0,0) initially
-    vector<unsigned int> start, end;
-    start.push_back(0); start.push_back(0); start.push_back(0);
-    end.push_back(0); end.push_back(0); end.push_back(0);
+    unsigned int start[3] = {0};
+    unsigned int end[3] = {0};
 
     // Break the display into macroblocks and initialize each 4x4x48 cube of coefficients to pick out the proper block from the frame volume
     for (int k = 0; k < FRAMEVOLUME_DEPTH; k++) {
         for (int j = 0; j < (display_height_ / BLOCK_HEIGHT); j++) {
             for (int i = 0; i < (display_width_ / BLOCK_WIDTH); i++) {
-                coeffs[2][0] = -i * BLOCK_WIDTH;
-                coeffs[2][1] = -j * BLOCK_HEIGHT;
-                coeffs[2][2] = k;
+                coeffs[0 * 3 + 2] = -i * BLOCK_WIDTH;
+                coeffs[1 * 3 + 2] = -j * BLOCK_HEIGHT;
+                coeffs[2 * 3 + 2] = k;
                 start[0] = i * BLOCK_WIDTH; start[1] = j * BLOCK_HEIGHT; start[2] = k;
                 end[0] = (i + 1) * BLOCK_WIDTH - 1; end[1] = (j + 1) * BLOCK_HEIGHT - 1; end[2] = k;
                 if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
@@ -375,8 +370,9 @@ void ItTiler::InitializeFrameVolume() {
 }
 
 void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
-    vector<unsigned int> start(3, 0), end(3, 0);
-    vector<unsigned int> size(2, 0);
+    unsigned int start[3] = {0};
+    unsigned int end[3] = {0};
+    unsigned int size[2] = {0};
     size_t lastNonZeroPlane;
     static size_t largestNonZeroPlaneSeen = 0;
     Scaler s;
@@ -403,7 +399,7 @@ void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
         for (size_t i = 0; i < CEIL(display_width_, BLOCK_WIDTH); i++) {
 
             /* The coefficients are stored in this array in zig-zag order */
-            vector<uint64_t> coefficients(BLOCK_WIDTH * BLOCK_HEIGHT, 0);
+            Scaler scalers[BLOCK_WIDTH * BLOCK_HEIGHT] = {0};
             lastNonZeroPlane = 0;
 
             /* Scratch blocks used for forwardIntegerTransform() */
@@ -441,16 +437,15 @@ void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
             for (int v = 0; v < BLOCK_HEIGHT; v++) {
                 for (int u = 0; u < BLOCK_WIDTH; u++) {
                     size_t p = zigZag_[v * BLOCK_WIDTH + u];
-                    s.r = redCoeffsBlock[v * BLOCK_WIDTH + u];
-                    s.g = greenCoeffsBlock[v * BLOCK_WIDTH + u];
-                    s.b = blueCoeffsBlock[v * BLOCK_WIDTH + u];
-                    coefficients[p] = s.packed;
-                    if (s.packed != 0) lastNonZeroPlane = MAX(lastNonZeroPlane, p);
+                    scalers[p].r = redCoeffsBlock[v * BLOCK_WIDTH + u];
+                    scalers[p].g = greenCoeffsBlock[v * BLOCK_WIDTH + u];
+                    scalers[p].b = blueCoeffsBlock[v * BLOCK_WIDTH + u];
+                    if (scalers[p].packed != 0) lastNonZeroPlane = MAX(lastNonZeroPlane, p);
                 }
             }
 
             /* Resize the coefficients vector */
-            coefficients.resize(lastNonZeroPlane + 1);
+            size_t count = lastNonZeroPlane + 1;
             if (lastNonZeroPlane > largestNonZeroPlaneSeen) {
                 largestNonZeroPlaneSeen = lastNonZeroPlane;
             }
@@ -458,7 +453,7 @@ void ItTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height) {
             /* Send the NDDI command to update this macroblock's coefficients, one plane at a time. */
             start[0] = i * BLOCK_WIDTH;
             start[1] = j * BLOCK_HEIGHT;
-            display_->FillScalerTileStack(coefficients, start, size);
+            display_->FillScalerTileStack(scalers, start, size, count);
         }
     }
 }

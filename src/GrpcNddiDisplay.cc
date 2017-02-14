@@ -262,15 +262,14 @@ void GrpcNddiDisplay::UpdateInputVector(int* input) {
     }
 }
 
-void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
-                                           vector<unsigned int> &location) {
+void GrpcNddiDisplay::PutCoefficientMatrix(int* coefficientMatrix, unsigned int* location) {
     PutCoefficientMatrixRequest request;
-    for (size_t j = 0; j < coefficientMatrix.size(); j++) {
-        for (size_t i = 0; i < coefficientMatrix[j].size(); i++) {
-            request.add_coefficientmatrix(coefficientMatrix[j][i]);
+    for (size_t j = 0; j < frameVolumeDimensionality_; j++) {
+        for (size_t i = 0; i < inputVectorSize_; i++) {
+            request.add_coefficientmatrix(coefficientMatrix[j * frameVolumeDimensionality_ + i]);
         }
     }
-    for (size_t i = 0; i < location.size(); i++) {
+    for (size_t i = 0; i < 3; i++) {
       request.add_location(location[i]);
     }
 
@@ -285,18 +284,14 @@ void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMat
     }
 }
 
-void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix,
-                                            vector<unsigned int> &start,
-                                            vector<unsigned int> &end) {
-    assert(start.size() == end.size());
-
+void GrpcNddiDisplay::FillCoefficientMatrix(int* coefficientMatrix, unsigned int* start, unsigned int* end) {
     FillCoefficientMatrixRequest request;
-    for (size_t j = 0; j < coefficientMatrix.size(); j++) {
-        for (size_t i = 0; i < coefficientMatrix[j].size(); i++) {
-            request.add_coefficientmatrix(coefficientMatrix[j][i]);
+    for (size_t j = 0; j < frameVolumeDimensionality_; j++) {
+        for (size_t i = 0; i < inputVectorSize_; i++) {
+            request.add_coefficientmatrix(coefficientMatrix[j * frameVolumeDimensionality_ + i]);
         }
     }
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < 3; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
     }
@@ -312,17 +307,12 @@ void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMa
     }
 }
 
-void GrpcNddiDisplay::FillCoefficient(int coefficient,
-                                      unsigned int row, unsigned int col,
-                                      vector<unsigned int> &start,
-                                      vector<unsigned int> &end) {
-    assert(start.size() == end.size());
-
+void GrpcNddiDisplay::FillCoefficient(int coefficient, unsigned int row, unsigned int col, unsigned int* start, unsigned int* end) {
     FillCoefficientRequest request;
     request.set_coefficient(coefficient);
     request.set_row(row);
     request.set_col(col);
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < 3; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
     }
@@ -338,26 +328,15 @@ void GrpcNddiDisplay::FillCoefficient(int coefficient,
     }
 }
 
-void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
-                                           vector<vector<unsigned int> > &positions,
-                                           vector<vector<unsigned int> > &starts,
-                                           vector<unsigned int> &size) {
-    assert(coefficients.size() == positions.size());
-    assert(coefficients.size() == starts.size());
-    assert(size.size() == 2);
-
+void GrpcNddiDisplay::FillCoefficientTiles(int* coefficients, unsigned int* positions, unsigned int* starts, unsigned int* size, size_t count) {
     FillCoefficientTilesRequest request;
-    for (size_t i = 0; i < coefficients.size(); i++) {
+    for (size_t i = 0; i < count; i++) {
         request.add_coefficients(coefficients[i]);
-    }
-    for (size_t i = 0; i < positions.size(); i++) {
-        for (size_t j = 0; j < positions[i].size(); j++) {
-            request.add_positions(positions[i][j]);
+        for (size_t j = 0; j < 2; j++) {
+            request.add_positions(positions[i * 2 + j]);
         }
-    }
-    for (size_t i = 0; i < starts.size(); i++) {
-        for (size_t j = 0; j < starts[i].size(); j++) {
-            request.add_starts(starts[i][j]);
+        for (size_t j = 0; j < 3; j++) {
+            request.add_starts(starts[i * 3 + j]);
         }
     }
     request.add_size(size[0]);
@@ -374,14 +353,10 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
     }
 }
 
-void GrpcNddiDisplay::FillScaler(Scaler scaler,
-                                 vector<unsigned int> &start,
-                                 vector<unsigned int> &end) {
-    assert(start.size() == end.size());
-
+void GrpcNddiDisplay::FillScaler(Scaler scaler, unsigned int* start, unsigned int* end) {
     FillScalerRequest request;
     request.set_scaler(scaler.packed);
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < 3; i++) {
       request.add_start(start[i]);
       request.add_end(end[i]);
     }
@@ -397,19 +372,12 @@ void GrpcNddiDisplay::FillScaler(Scaler scaler,
     }
 }
 
-void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
-                                      vector<vector<unsigned int> > &starts,
-                                      vector<unsigned int> &size) {
-    assert(scalers.size() == starts.size());
-    assert(size.size() == 2);
-
+void GrpcNddiDisplay::FillScalerTiles(Scaler* scalers, unsigned int* starts, unsigned int* size, size_t count) {
     FillScalerTilesRequest request;
-    for (size_t i = 0; i < scalers.size(); i++) {
-        request.add_scalers(scalers[i]);
-    }
-    for (size_t i = 0; i < starts.size(); i++) {
-        for (size_t j = 0; j < starts[i].size(); j++) {
-            request.add_starts(starts[i][j]);
+    for (size_t i = 0; i < count; i++) {
+        request.add_scalers(scalers[i].packed);
+        for (size_t j = 0; j < 3; j++) {
+            request.add_starts(starts[i * 3 + j]);
         }
     }
     request.add_size(size[0]);
@@ -426,20 +394,15 @@ void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
     }
 }
 
-void GrpcNddiDisplay::FillScalerTileStack(vector<uint64_t> &scalers,
-                                          vector<unsigned int> &start,
-                                          vector<unsigned int> &size) {
-    assert(start.size() == 3);
-    assert(size.size() == 2);
-
+void GrpcNddiDisplay::FillScalerTileStack(Scaler* scalers, unsigned int* start, unsigned int* size, size_t count) {
     FillScalerTileStackRequest request;
-    for (size_t i = 0; i < scalers.size(); i++) {
-      request.add_scalers(scalers[i]);
+    for (size_t i = 0; i < count; i++) {
+      request.add_scalers(scalers[i].packed);
     }
-    for (size_t i = 0; i < start.size(); i++) {
+    for (size_t i = 0; i < 3; i++) {
       request.add_start(start[i]);
     }
-    for (size_t i = 0; i < size.size(); i++) {
+    for (size_t i = 0; i < 2; i++) {
       request.add_size(size[i]);
     }
 

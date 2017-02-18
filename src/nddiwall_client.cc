@@ -39,6 +39,7 @@
 #include <grpc++/grpc++.h>
 
 #include "GrpcNddiDisplay.h"
+#include "RecorderNddiDisplay.h"
 
 using namespace nddi;
 
@@ -56,11 +57,20 @@ int main(int argc, char** argv) {
     frameVolumeDimensionalSizes[0] = DISPLAY_WIDTH;
     frameVolumeDimensionalSizes[1] = DISPLAY_HEIGHT;
     frameVolumeDimensionalSizes[2] = 2;
-    GrpcNddiDisplay myDisplay(3, frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+    NDimensionalDisplayInterface* myDisplay = NULL;
+    RecorderNddiDisplay* myRecorder = NULL;
+    GrpcNddiDisplay* myDisplayWall = NULL;
+    if (argc == 1) {
+        myDisplay = myDisplayWall = new GrpcNddiDisplay(3, frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+    } else if (strcmp(argv[1], "-r") == 0) {
+        myDisplay = myRecorder = new RecorderNddiDisplay(3, frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+    } else {
+        assert(false && "Unsupported option.");
+    }
 
-    std::cout << "Width is " << myDisplay.DisplayWidth() << std::endl;
-    std::cout << "Height is " << myDisplay.DisplayHeight() << std::endl;
-    std::cout << "Number of Coefficient Planes is " << myDisplay.NumCoefficientPlanes() << std::endl;
+    std::cout << "Width is " << myDisplay->DisplayWidth() << std::endl;
+    std::cout << "Height is " << myDisplay->DisplayHeight() << std::endl;
+    std::cout << "Number of Coefficient Planes is " << myDisplay->NumCoefficientPlanes() << std::endl;
 
     // Initialize CoefficientPlane to all identity matrices
     int coeffs[] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
@@ -68,37 +78,37 @@ int main(int argc, char** argv) {
     unsigned int start[] = {0, 0, 0};
     unsigned int end[] = {DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, 0};
 
-    myDisplay.FillCoefficientMatrix(coeffs, start, end);
-    myDisplay.Latch();
+    myDisplay->FillCoefficientMatrix(coeffs, start, end);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Set the only plane to full on.
     Scaler s;
-    s.r = s.g = s.b = s.a = myDisplay.GetFullScaler();
-    myDisplay.FillScaler(s, start, end);
-    myDisplay.Latch();
+    s.r = s.g = s.b = s.a = myDisplay->GetFullScaler();
+    myDisplay->FillScaler(s, start, end);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Fill FrameBuffer with white and then black
     Pixel p;
     p.r = p.g = p.b = 0xff; p.a = 0xff;
     end[2] = 0;
-    myDisplay.FillPixel(p, start, end);
+    myDisplay->FillPixel(p, start, end);
     start[2] = end[2] = 1;
     p.r = p.g = p.b = 0x00;
-    myDisplay.FillPixel(p, start, end);
-    myDisplay.Latch();
+    myDisplay->FillPixel(p, start, end);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Update the FrameBuffer with just one blue pixel at (10,10)
     unsigned int location[] = {10, 10, 0};
     p.b = 0xff;
-    myDisplay.PutPixel(p, location);
-    myDisplay.Latch();
+    myDisplay->PutPixel(p, location);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Copy that section of the Frame Volume to another location
     start[0] = 0; start[1] = 0; start[2] = 0;
     end[0] = 10; end[1] = 10; end[2] = 0;
     location[0] = 30; location[1] = 30;
-    myDisplay.CopyFrameVolume(start, end, location);
-    myDisplay.Latch();
+    myDisplay->CopyFrameVolume(start, end, location);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Copy a pixel strip and then a pixel array
     Pixel ps[32];
@@ -107,41 +117,41 @@ int main(int argc, char** argv) {
     }
     start[0] = 20; start[1] = 10; start[2] = 0;
     end[0] = 51; end[1] = 10; end[2] = 0;
-    myDisplay.CopyPixelStrip(ps, start, end);
+    myDisplay->CopyPixelStrip(ps, start, end);
     start[0] = 30; start[1] = 30; start[2] = 0;
     end[0] = 33; end[1] = 33; end[2] = 1;
-    myDisplay.CopyPixels(ps, start, end);
-    myDisplay.Latch();
+    myDisplay->CopyPixels(ps, start, end);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Update coefficient matrix at (20,20) to use pixel at (10,10)
     coeffs[0 * 3 + 2] = coeffs[1 * 3 + 2] = -10;
-    myDisplay.PutCoefficientMatrix(coeffs, location);
-    myDisplay.Latch();
+    myDisplay->PutCoefficientMatrix(coeffs, location);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Sleep for 2s, change to black, then sleep for 2s and change back
-    sleep(2);
+    if (myDisplayWall) { sleep(2); }
     int input[] = {1};
-    myDisplay.UpdateInputVector(input);
-    sleep(2);
+    myDisplay->UpdateInputVector(input);
+    if (myDisplayWall) { sleep(2); }
     start[0] = start[1] = 0;
     end[0] = DISPLAY_WIDTH - 1; end[1] = DISPLAY_HEIGHT - 1;
     start[2] = end[2] = 0;
-    myDisplay.FillCoefficient(0, 2, 2, start, end);
-    myDisplay.Latch();
+    myDisplay->FillCoefficient(0, 2, 2, start, end);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
     // Sleep again and then do the checkerboard blending
-    sleep(2);
-    s.r = s.g = s.b = s.a = myDisplay.GetFullScaler() >> 1;
+    if (myDisplayWall) { sleep(2); }
+    s.r = s.g = s.b = s.a = myDisplay->GetFullScaler() >> 1;
     Scaler scalers[2];
     scalers[0].packed = scalers[1].packed = s.packed;
     unsigned int starts[] {40, 40, 0, 60, 60, 0};
     unsigned int size[] = {10, 10};
-    myDisplay.FillScalerTiles(scalers, starts, size, 2);
-    myDisplay.Latch();
+    myDisplay->FillScalerTiles(scalers, starts, size, 2);
+    if (myDisplayWall) { myDisplayWall->Latch(); }
 
-    while (true) {
+    while (myDisplayWall) {
         usleep(1000);
-        myDisplay.Latch();
+        if (myDisplayWall) { myDisplayWall->Latch(); }
     }
 
     return 0;

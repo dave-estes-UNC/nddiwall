@@ -10,7 +10,7 @@ find_package(OpenMP REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -ffast-math -std=c++11 -DGL_GLEXT_PROTOTYPES -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO")
 
-include_directories(/usr/local/include ${OPENGL_INCLUDE_DIR} ${GLUT_INCLUDE_DIRS} /opt/AMDAPP/include/ ${OpenCV_INCLUDE_DIRS})
+include_directories(/usr/local/include ${OPENGL_INCLUDE_DIR} ${GLUT_INCLUDE_DIRS} /opt/AMDAPP/include/ ${OpenCV_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/cereal/include)
 link_directories(/usr/local/lib ${OPENGL_LIBRARIES} /opt/AMDAPP/lib/x86_64 /opt/AMDAPP/lib/x86)
 
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/protos")

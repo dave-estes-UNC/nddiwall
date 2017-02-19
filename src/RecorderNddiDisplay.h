@@ -90,10 +90,48 @@ namespace nddi {
         unsigned int  inputVectorSize;
     };
 
-    class DisplayWidthCommandMessage : public NddiCommandMessage {};
-    class DisplayHeightCommandMessage : public NddiCommandMessage {};
-    class NumCoefficientPlanesCommandMessage : public NddiCommandMessage {};
-    class PutPixelCommandMessage : public NddiCommandMessage {};
+    class DisplayWidthCommandMessage : public NddiCommandMessage {
+    public:
+        DisplayWidthCommandMessage() : NddiCommandMessage(idDisplayWidth) {}
+    };
+
+    class DisplayHeightCommandMessage : public NddiCommandMessage {
+    public:
+        DisplayHeightCommandMessage() : NddiCommandMessage(idDisplayHeight) {}
+    };
+
+    class NumCoefficientPlanesCommandMessage : public NddiCommandMessage {
+    public:
+        NumCoefficientPlanesCommandMessage() : NddiCommandMessage(idNumCoefficientPlanes) {}
+    };
+
+    class PutPixelCommandMessage : public NddiCommandMessage {
+    public:
+        PutPixelCommandMessage(Pixel p, unsigned int* location,
+                               unsigned int frameVolumeDimensionality)
+        : NddiCommandMessage(idPutPixel),
+          p(p),
+          frameVolumeDimensionality(frameVolumeDimensionality) {
+            this->location = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
+            memcpy(this->location, location, sizeof(unsigned int) * frameVolumeDimensionality);
+        }
+
+        ~PutPixelCommandMessage() {
+            if (location) { free((void*)location); }
+        }
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+          ar(CEREAL_NVP(id));
+          ar.saveBinaryValue(&p, sizeof(Pixel), "p");
+          ar.saveBinaryValue(location, sizeof(unsigned int) * frameVolumeDimensionality, "location");
+        }
+
+    private:
+        Pixel         p;
+        unsigned int* location;
+        unsigned int  frameVolumeDimensionality;
+    };
 
     class CopyPixelStripCommandMessage : public NddiCommandMessage {
     public:
@@ -120,9 +158,9 @@ namespace nddi {
         template <class Archive>
         void serialize(Archive& ar) {
           ar(CEREAL_NVP(id));
-          ar.saveBinaryValue(p, sizeof(Pixel) * count, "p" );
-          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start" );
-          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end" );
+          ar.saveBinaryValue(p, sizeof(Pixel) * count, "p");
+          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
+          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
         }
 
     private:
@@ -147,7 +185,10 @@ namespace nddi {
     class FillScalerTileStackCommandMessage : public NddiCommandMessage {};
     class SetPixelByteSignModeCommandMessage : public NddiCommandMessage {};
     class SetFullScalerCommandMessage : public NddiCommandMessage {};
-    class GetFullScalerCommandMessage : public NddiCommandMessage {};
+    class GetFullScalerCommandMessage : public NddiCommandMessage {
+    public:
+        GetFullScalerCommandMessage() : NddiCommandMessage(idGetFullScaler) {}
+    };
 
     class Recorder {
     public:
@@ -170,7 +211,6 @@ namespace nddi {
             cereal::XMLOutputArchive oarchive(os);
             while (!finished || !streamQueue.empty()) {
                 if (!streamQueue.empty()) {
-                    std::cout << std::endl << streamQueue.size() << std::endl;
                     // TODO(CDE): Protect access to streamQueue.
                     NddiCommandMessage* msg = streamQueue.front();
                     streamQueue.pop();
@@ -290,10 +330,26 @@ namespace nddi {
 
         ~RecorderNddiDisplay() {}
 
-        unsigned int DisplayWidth() {}
-        unsigned int DisplayHeight() {}
-        unsigned int NumCoefficientPlanes() {}
-        void PutPixel(Pixel p, unsigned int* location) {}
+        unsigned int DisplayWidth() {
+            NddiCommandMessage* msg = new DisplayWidthCommandMessage();
+            recorder.record(msg);
+        }
+
+        unsigned int DisplayHeight() {
+            NddiCommandMessage* msg = new DisplayHeightCommandMessage();
+            recorder.record(msg);
+        }
+
+        unsigned int NumCoefficientPlanes() {
+            NddiCommandMessage* msg = new NumCoefficientPlanesCommandMessage();
+            recorder.record(msg);
+        }
+
+        void PutPixel(Pixel p, unsigned int* location) {
+            NddiCommandMessage* msg = new PutPixelCommandMessage(p, location, frameVolumeDimensionality_);
+            recorder.record(msg);
+        }
+
         void CopyPixelStrip(Pixel* p, unsigned int* start, unsigned int* end) {
             int dimensionToCopyAlong;
             bool dimensionFound = false;
@@ -311,6 +367,7 @@ namespace nddi {
                                                                        start, end, frameVolumeDimensionality_);
             recorder.record(msg);
         }
+
         void CopyPixels(Pixel* p, unsigned int* , unsigned int* ) {}
         void CopyPixelTiles(Pixel** p, unsigned int* starts, unsigned int* size, size_t count) {}
         void FillPixel(Pixel p, unsigned int* start, unsigned int* end) {}
@@ -325,7 +382,12 @@ namespace nddi {
         void FillScalerTileStack(Scaler* scalers, unsigned int* start, unsigned int* size, size_t count) {}
         void SetPixelByteSignMode(SignMode mode) {}
         void SetFullScaler(uint16_t scaler) {}
-        uint16_t GetFullScaler() {}
+
+        uint16_t GetFullScaler() {
+            NddiCommandMessage* msg = new GetFullScalerCommandMessage();
+            recorder.record(msg);
+        }
+
         CostModel* GetCostModel() {}
         void Latch() {}
 

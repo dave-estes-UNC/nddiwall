@@ -35,7 +35,11 @@
 * Find out if there's a way to memcpy into and out of GRPC request buffers. Look into "bytes" type.
 * Add a simple latch
 - Look into the rendering artifacts for fb and cache modes.
-- Investigate changing vectors to straight arrays throughout the NDDI interface.
-  - Then move the biggest arrays to "bytes" in the protobuffers.
-  - Write a NDDI recorder/player that serializes and parses these new memcpy'able arrays to and from files. Perhaps JSON?
+* Investigate changing vectors to straight arrays throughout the NDDI interface.
+  * Then move the biggest arrays to "bytes" in the protobuffers.
+- Write a NDDI recorder/player that serializes and parses these new memcpy'able arrays to and from files. Perhaps JSON?
+  - Add thread safety to command queue.
+  - Move to vectors instead of malloc'd arrays.
+  - Implement remaining recorders serializers
+  - Add playback.
 - Add a proper sync mechanism. 

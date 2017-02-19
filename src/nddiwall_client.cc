@@ -154,5 +154,8 @@ int main(int argc, char** argv) {
         if (myDisplayWall) { myDisplayWall->Latch(); }
     }
 
+    if (myRecorder) { delete(myRecorder); }
+    if (myDisplayWall) { delete(myDisplayWall); }
+
     return 0;
 }

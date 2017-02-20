@@ -114,14 +114,13 @@ private:
     int                            unchanged_tiles_, cache_hits_, cache_misses_;
 
 #ifdef USE_COPY_PIXEL_TILES
-    Pixel **       tile_pixels_list;
-    unsigned int*  tile_starts_list;
-    size_t         tile_count;
+    Pixel **                       tile_pixels_list;
+    unsigned int*                  tile_starts_list;
+    size_t                         tile_count;
 
-    int*           coefficients_list;
-    unsigned int*  coefficient_positions_list;
-    unsigned int*  coefficient_plane_starts_list;
-    size_t         coefficient_count;
+    vector<int>                    coefficients_list;
+    vector<vector<unsigned int> >  coefficient_positions_list;
+    vector<vector<unsigned int> >  coefficient_plane_starts_list;
 #endif
 };
 #endif // CACHED_TILER_H

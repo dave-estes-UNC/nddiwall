@@ -211,18 +211,23 @@ void DctTiler::InitializeCoefficientPlanes() {
 
     Scaler s;
 
-    // Setup the coefficient matrix to a near 3x3 identity initially
-    int coeffs[] = {1, 0, 0, 0, 1, 0, 0, 0, 0};
+    // Setup the coefficient matrix to complete 3x3 identity initially
+    vector< vector<int> > coeffs;
+    coeffs.resize(3);
+    coeffs[0].push_back(1); coeffs[0].push_back(0); coeffs[0].push_back(0);
+    coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
+    coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(0);
 
     // Setup start and end points to (0,0,0) initially
-    unsigned int start[] = {0, 0, 0};
-    unsigned int end[] = {0, 0, 0};
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(0); end.push_back(0); end.push_back(0);
 
     // Break the display into macroblocks and initialize each cube of coefficients to pick out the proper block from the frame volume
     for (int j = 0; j < displayTilesHigh_; j++) {
         for (int i = 0; i < displayTilesWide_; i++) {
-            coeffs[0 * 3 + 2] = -i * BLOCK_WIDTH;
-            coeffs[1 * 3 + 2] = -j * BLOCK_HEIGHT;
+            coeffs[2][0] = -i * BLOCK_WIDTH;
+            coeffs[2][1] = -j * BLOCK_HEIGHT;
             start[0] = i * BLOCK_WIDTH; start[1] = j * BLOCK_HEIGHT; start[2] = 0;
             end[0] = (i + 1) * BLOCK_WIDTH - 1; end[1] = (j + 1) * BLOCK_HEIGHT - 1; end[2] = FRAMEVOLUME_DEPTH - 1;
             if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
@@ -346,12 +351,16 @@ void DctTiler::InitializeFrameVolume() {
  */
 void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
 {
+    vector<unsigned int> start(3, 0);
+    vector<unsigned int> size(2, 0);
+    Scaler s;
+
     assert(width >= display_width_);
     assert(height >= display_height_);
 
-    unsigned int start[3] = {0};
-    unsigned int end[3] = {0};
-    unsigned int size[] = {BLOCK_WIDTH, BLOCK_HEIGHT};
+    start[0] = 0; start[1] = 0; start[2] = 0;
+    size[0] = BLOCK_WIDTH;
+    size[1] = BLOCK_HEIGHT;
 
     /*
      * Produces the de-quantized coefficients for the input buffer using the following steps:
@@ -365,7 +374,7 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
         for (size_t i = 0; i < displayTilesWide_; i++) {
 
             /* The coefficients are stored in this array in zig-zag order */
-            Scaler scalers[BLOCK_SIZE] = {0};
+            vector<uint64_t> coefficients(BLOCK_SIZE, 0);
 
             for (size_t v = 0; v < BLOCK_HEIGHT; v++) {
 #ifndef NO_OMP
@@ -418,9 +427,11 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
                     if (p == BLOCK_SIZE - 1) continue;
 
                     /* Build the scaler from the three coefficients */
-                    scalers[p].r = g_r;
-                    scalers[p].g = g_g;
-                    scalers[p].b = g_b;
+                    s.packed = 0;
+                    s.r = g_r;
+                    s.g = g_g;
+                    s.b = g_b;
+                    coefficients[p] = s.packed;
                 }
             }
 
@@ -433,15 +444,18 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
              * and the current stack height.
              */
             size_t h = BLOCK_SIZE - 2;
-            while (h >= 0 && scalers[h].packed == 0) { h--; }
-
-            size_t count = MAX(h, tileStackHeights_[j * displayTilesWide_ + i]) + 1;
+            while (h >= 0 && coefficients[h] == 0)
+                 h--;
+            if (h < tileStackHeights_[j * displayTilesWide_ + i])
+                coefficients.resize(tileStackHeights_[j * displayTilesWide_ + i] + 1);
+            else
+                coefficients.resize(h + 1);
             tileStackHeights_[j * displayTilesWide_ + i] = h;
 
             /* Send the NDDI command to update this macroblock's coefficients, one plane at a time. */
             start[0] = i * BLOCK_WIDTH;
             start[1] = j * BLOCK_HEIGHT;
-            display_->FillScalerTileStack(scalers, start, size, count);
+            display_->FillScalerTileStack(coefficients, start, size);
         }
     }
 }

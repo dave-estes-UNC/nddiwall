@@ -147,6 +147,11 @@ void MultiDctTiler::InitializeCoefficientPlanes() {
     // multiscale initialization
     DctTiler::InitializeCoefficientPlanes();
 
+    // Setup start and end points to (0,0,0) initially
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(0); end.push_back(0); end.push_back(0);
+
     //
     // Now go through the multiscale configuration and adjust the coefficients.
     //
@@ -173,8 +178,7 @@ void MultiDctTiler::InitializeCoefficientPlanes() {
                 for (int i = 0; i < scaledTilesWide; i++) {
                     for (int y = 0; y < scaledBlockHeight && j * scaledBlockHeight + y < display_height_; y++) {
                         for (int x = 0; x < scaledBlockWidth && i * scaledBlockWidth + x < display_width_; x++) {
-                            unsigned int start[3] = {0};
-                            unsigned int end[3] = {0};
+                            vector<unsigned int> start(3), end(3);
 
                             start[0] = i * scaledBlockWidth + x;
                             start[1] = j * scaledBlockHeight + y;
@@ -198,8 +202,8 @@ void MultiDctTiler::InitializeCoefficientPlanes() {
         // Adjust the k coefficient for each supermacroblock. This will be done one plane
         // at a time starting with the topmost plane (0) and the first configuration. The
         // k used won't necessarily match the plane, because of the configuration.
-        unsigned int start[] = {0, 0, 0};
-        unsigned int end[] = {(unsigned int)(display_width_ - 1), (unsigned int)(display_height_ - 1), 0};
+        start[0] = 0; start[1] = 0;
+        end[0] = display_width_ - 1; end[1] = display_height_ - 1;
 #ifdef SIMPLE_TRUNCATION
         for (size_t p = 0; p < config.plane_count; p++) {
             size_t k = config.first_plane_idx + p;
@@ -492,16 +496,23 @@ void MultiDctTiler::SelectCoefficientsForScale(vector<uint64_t> &coefficients, s
  */
 void MultiDctTiler::FillCoefficients(vector<uint64_t> &coefficients, size_t i, size_t j, size_t c, size_t first) {
 
+    vector<unsigned int> start(3, 0);
+    vector<unsigned int> size(2, 0);
+
     scale_config_t  config = globalConfiguration.dctScales[c];
     size_t          block_width = config.scale_multiplier * UNSCALED_BASIC_BLOCK_WIDTH;
     size_t          block_height = config.scale_multiplier * UNSCALED_BASIC_BLOCK_HEIGHT;
 
-    unsigned int start[] = {(unsigned int)(i * block_width), (unsigned int)(j * block_height), (unsigned int)first};
-    unsigned int size[] = {(unsigned int)block_width, (unsigned int)block_height};
+    start[0] = i * block_width;
+    start[1] = j * block_height;
+    start[2] = first;
+
+    size[0] = block_width;
+    size[1] = block_height;
 
     /* If any any coefficients have changed, send the NDDI command to update them */
     if (start[2] < display_->NumCoefficientPlanes()) {
-        display_->FillScalerTileStack((Scaler*)coefficients.data(), start, size, coefficients.size());
+        display_->FillScalerTileStack(coefficients, start, size);
     }
 }
 

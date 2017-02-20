@@ -85,9 +85,14 @@ GrpcNddiDisplay* FlatTiler::GetDisplay() {
  */
 void FlatTiler::InitializeCoefficientPlanes() {
 
-    int coeffs[] = {1, 0, 0, 1};
-    unsigned int start[] = {0, 0, 0};
-    unsigned int end[] = {(unsigned int)(display_width_ - 1), (unsigned int)(display_height_ - 1), 0};
+    vector< vector<int> > coeffs;
+    coeffs.resize(2);
+    coeffs[0].push_back(1); coeffs[0].push_back(0);
+    coeffs[1].push_back(0); coeffs[1].push_back(1);
+
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(display_width_ - 1); end.push_back(display_height_ - 1); end.push_back(0);
 
     display_->FillCoefficientMatrix(coeffs, start, end);
 

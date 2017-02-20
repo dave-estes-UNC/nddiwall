@@ -381,22 +381,22 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to PutCoefficientMatrix." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Coefficient Matrix (row <-> col):" << std::endl);
-          int coefficientMatrix[inputVectorSize_ * frameVolumeDimensionality_];
+          vector< vector<int> > coefficientMatrix;
           assert(request->coefficientmatrix_size() == inputVectorSize_ * frameVolumeDimensionality_);
+          coefficientMatrix.resize(frameVolumeDimensionality_);
           for (int j = 0; j < frameVolumeDimensionality_; j++) {
               DEBUG_MSG("    ");
               for (int i = 0; i < inputVectorSize_; i++) {
-                  coefficientMatrix[j * frameVolumeDimensionality_ + i] = request->coefficientmatrix(j * frameVolumeDimensionality_ + i);
+                  coefficientMatrix[j].push_back(request->coefficientmatrix(j * frameVolumeDimensionality_ + i));
                   DEBUG_MSG(request->coefficientmatrix(j * frameVolumeDimensionality_ + i) << " ");
               }
               DEBUG_MSG(std::endl);
           }
 
           DEBUG_MSG("  - Location: (");
-          unsigned int location[3];
-          assert(request->location_size() == 3);
+          vector<unsigned int> location;
           for (int i = 0; i < request->location_size(); i++) {
-              location[i] = request->location(i);
+              location.push_back(request->location(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->location(i));
           }
@@ -416,32 +416,31 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to FillCoefficientMatrix." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Coefficient Matrix (row <-> col):" << std::endl);
-          int coefficientMatrix[inputVectorSize_ * frameVolumeDimensionality_];
+          vector< vector<int> > coefficientMatrix;
           assert(request->coefficientmatrix_size() == inputVectorSize_ * frameVolumeDimensionality_);
+          coefficientMatrix.resize(frameVolumeDimensionality_);
           for (int j = 0; j < frameVolumeDimensionality_; j++) {
               DEBUG_MSG("    ");
               for (int i = 0; i < inputVectorSize_; i++) {
-                  coefficientMatrix[j * frameVolumeDimensionality_ + i] = request->coefficientmatrix(j * frameVolumeDimensionality_ + i);
+                  coefficientMatrix[j].push_back(request->coefficientmatrix(j * frameVolumeDimensionality_ + i));
                   DEBUG_MSG(request->coefficientmatrix(j * frameVolumeDimensionality_ + i) << " ");
               }
               DEBUG_MSG(std::endl);
           }
 
           DEBUG_MSG("  - Start: (");
-          unsigned int start[3];
-          assert(request->start_size() == 3);
+          vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
-              start[i] = request->start(i);
+              start.push_back(request->start(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          unsigned int end[3];
-          assert(request->end_size() == 3);
+          vector<unsigned int> end;
           for (int i = 0; i < request->end_size(); i++) {
-              end[i] = request->end(i);
+              end.push_back(request->end(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }
@@ -461,20 +460,18 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to FillCoefficient." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Start: (");
-          unsigned int start[3];
-          assert(request->start_size() == 3);
+          vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
-              start[i] = request->start(i);
+              start.push_back(request->start(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          unsigned int end[3];
-          assert(request->end_size() == 3);
+          vector<unsigned int> end;
           for (int i = 0; i < request->end_size(); i++) {
-              end[i] = request->end(i);
+              end.push_back(request->end(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }
@@ -497,36 +494,42 @@ class NddiServiceImpl final : public NddiWall::Service {
   }
 
   Status FillCoefficientTiles(ServerContext* context, const FillCoefficientTilesRequest* request,
-                              StatusReply* reply) override {
+                        StatusReply* reply) override {
       DEBUG_MSG("Server got a request to FillCoefficientTiles." << std::endl);
       if (myDisplay) {
           size_t tile_count = request->coefficients_size();
           DEBUG_MSG("  - Coefficients: " << request->coefficients_size() << std::endl);
-          int coeffs[tile_count];
-          for (int i = 0; i < tile_count; i++) {
-              coeffs[i] = request->coefficients(i);
+          vector<int> coeffs;
+          for (int i = 0; i < request->coefficients_size(); i++) {
+              coeffs.push_back(request->coefficients(i));
           }
 
           DEBUG_MSG("  - Positions: " << request->positions_size() << std::endl);
-          unsigned int positions[tile_count * 2];
+          vector< vector<unsigned int> > positions;
           for (int i = 0; i < tile_count; i++) {
-              positions[2 * i + 0] = request->positions(2 * i + 0);
-              positions[2 * i + 1] = request->positions(2 * i + 1);
+              vector<unsigned int> pos;
+              pos.push_back(request->positions(2 * i + 0));
+              pos.push_back(request->positions(2 * i + 0));
+              positions.push_back(pos);
           }
 
           DEBUG_MSG("  - Starts: " << request->starts_size() << std::endl);
-          unsigned int starts[tile_count * 3];
+          vector< vector<unsigned int> > starts;
           for (int i = 0; i < tile_count; i++) {
-              for (int j = 0; j < 3; j++) {
-                  starts[i * 3 + j] = request->starts(i * 3 + j);
+              vector<unsigned int> start;
+              for (int j = 0; j < frameVolumeDimensionality_; j++) {
+                  start.push_back(request->starts(i * frameVolumeDimensionality_ + j));
               }
+              starts.push_back(start);
           }
 
           DEBUG_MSG("  - Size: (");
-          unsigned int size[] = {request->size(0), request->size(1)};
+          vector<unsigned int> size;
+          size.push_back(request->size(0));
+          size.push_back(request->size(1));
           DEBUG_MSG(request->size(0) << "," << request->size(1) << ")" << std::endl);
 
-          myDisplay->FillCoefficientTiles(coeffs, positions, starts, size, tile_count);
+          myDisplay->FillCoefficientTiles(coeffs, positions, starts, size);
 
           reply->set_status(reply->OK);
       } else {
@@ -540,20 +543,18 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to FillScaler." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Start: (");
-          unsigned int start[3];
-          assert(request->start_size() == 3);
+          vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
-              start[i] = request->start(i);
+              start.push_back(request->start(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - End: (");
-          unsigned int end[3];
-          assert(request->end_size() == 3);
+          vector<unsigned int> end;
           for (int i = 0; i < request->end_size(); i++) {
-              end[i] = request->end(i);
+              end.push_back(request->end(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->end(i));
           }
@@ -578,24 +579,31 @@ class NddiServiceImpl final : public NddiWall::Service {
       if (myDisplay) {
           size_t tile_count = request->scalers_size();
           DEBUG_MSG("  - Scalers: " << request->scalers_size() << std::endl);
-          Scaler scalers[tile_count];
-          for (int i = 0; i < tile_count; i++) {
-              scalers[i].packed = request->scalers(i);
+          vector<uint64_t> scalers;
+          for (int i = 0; i < request->scalers_size(); i++) {
+              scalers.push_back(request->scalers(i));
           }
 
           DEBUG_MSG("  - Starts: " << request->starts_size() << std::endl);
-          unsigned int starts[tile_count * 3];
+          vector < vector<unsigned int> > starts;
           for (int i = 0; i < tile_count; i++) {
-              for (int j = 0; j < 3; j++) {
-                  starts[i * 3 + j] = request->starts(i * 3 + j);
+              vector<unsigned int> start;
+              for (int j = 0; j < frameVolumeDimensionality_; j++) {
+                  start.push_back(
+                          request->starts(
+                                  i * frameVolumeDimensionality_ + j));
               }
+              starts.push_back(start);
           }
 
           DEBUG_MSG("  - Size: (");
-          unsigned int size[] = {request->size(0), request->size(1)};
-          DEBUG_MSG(request->size(0) << "," << request->size(1) << ")" << std::endl);
+          vector<unsigned int> size;
+          size.push_back(request->size(0));
+          size.push_back(request->size(1));
+          DEBUG_MSG(
+                  request->size(0) << "," << request->size(1) << ")" << std::endl);
 
-          myDisplay->FillScalerTiles(scalers, starts, size, tile_count);
+          myDisplay->FillScalerTiles(scalers, starts, size);
 
           reply->set_status(reply->OK);
       } else {
@@ -608,28 +616,31 @@ class NddiServiceImpl final : public NddiWall::Service {
                              StatusReply* reply) override {
       DEBUG_MSG("Server got a request to FillScalerTileStack." << std::endl);
       if (myDisplay) {
-          size_t tile_count = request->scalers_size();
+          vector<uint64_t> scalers;
           DEBUG_MSG("  - Scalers: " << request->scalers_size() << std::endl);
-          Scaler scalers[tile_count];
-          for (int i = 0; i < tile_count; i++) {
-              scalers[i].packed = request->scalers(i);
+          for (int i = 0; i < request->scalers_size(); i++) {
+              scalers.push_back(request->scalers(i));
           }
 
           DEBUG_MSG("  - Start: (");
-          unsigned int start[3];
-          assert(request->start_size() == 3);
+          vector<unsigned int> start;
           for (int i = 0; i < request->start_size(); i++) {
-              start[i] = request->start(i);
+              start.push_back(request->start(i));
               if (i) { DEBUG_MSG(","); }
               DEBUG_MSG(request->start(i));
           }
           DEBUG_MSG(")" << std::endl);
 
           DEBUG_MSG("  - Size: (");
-          unsigned int size[] = {request->size(0), request->size(1)};
-          DEBUG_MSG(request->size(0) << "," << request->size(1) << ")" << std::endl);
+          vector<unsigned int> size;
+          for (int i = 0; i < request->size_size(); i++) {
+              size.push_back(request->size(i));
+              if (i) { DEBUG_MSG(","); }
+              DEBUG_MSG(request->size(i));
+          }
+          DEBUG_MSG(")" << std::endl);
 
-          myDisplay->FillScalerTileStack(scalers, start, size, tile_count);
+          myDisplay->FillScalerTileStack(scalers, start, size);
 
           reply->set_status(reply->OK);
       } else {

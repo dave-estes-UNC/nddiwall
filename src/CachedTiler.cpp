@@ -55,12 +55,6 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
     memset(tile_starts_list, 0x00, sizeof(unsigned int) * tile_map_width_ * tile_map_height_ * 3);
     tile_count = 0;
 
-    // Pre-allocate the arrays for the fill coefficient tile command
-    coefficients_list = (int*)malloc(sizeof(int) * tile_map_width_ * tile_map_height_);
-    coefficient_positions_list = (unsigned int*)malloc(sizeof(unsigned int) * 2 * tile_map_width_ * tile_map_height_);
-    coefficient_plane_starts_list = (unsigned int*)malloc(sizeof(unsigned int) * 3 * tile_map_width_ * tile_map_height_);
-    coefficient_count = 0;
-
     // Set up tile cache counters
     unchanged_tiles_ = cache_hits_ = cache_misses_ = age_counter_ = 0;
 
@@ -91,9 +85,6 @@ CachedTiler::~CachedTiler()
 {
     if (tile_pixels_list) { free(tile_pixels_list); }
     if (tile_starts_list) { free(tile_starts_list); }
-    if (coefficients_list) { free(coefficients_list); }
-    if (coefficient_positions_list) { free(coefficient_positions_list); }
-    if (coefficient_plane_starts_list) { free(coefficient_plane_starts_list); }
 
     // Free all of the allocated tile_t structs
     map<unsigned long, tile_t*>::iterator it;
@@ -116,17 +107,22 @@ GrpcNddiDisplay* CachedTiler::GetDisplay() {
  */
 void CachedTiler::InitializeCoefficientPlanes() {
 
-    // Setup the coefficient matrix to a near 3x3 identity initially
-    int coeffs[] {1, 0, 0, 0, 1, 0, 0, 0, 0};
+    // Setup the coefficient matrix to complete 3x3 identity initially
+    vector< vector<int> > coeffs;
+    coeffs.resize(3);
+    coeffs[0].push_back(1); coeffs[0].push_back(0); coeffs[0].push_back(0);
+    coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
+    coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(0);
 
     // Setup start and end points to (0,0) initially
-    unsigned int start[] = {0, 0, 0};
-    unsigned int end[] = {0, 0, 0};
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(0); end.push_back(0); end.push_back(0);
 
     for (int j = 0; j < tile_map_height_; j++) {
         for (int i = 0; i < tile_map_width_; i++) {
-            coeffs[0 * 3 + 2] = -i * tile_width_;
-            coeffs[1 * 3 + 2] = -j * tile_height_;
+            coeffs[2][0] = -i * tile_width_;
+            coeffs[2][1] = -j * tile_height_;
             start[0] = i * tile_width_; start[1] = j * tile_height_;
             end[0] = (i + 1) * tile_width_ - 1; end[1] = (j + 1) * tile_height_ - 1;
             if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
@@ -363,6 +359,8 @@ void CachedTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     if (misses > 0) {
 
         // Set the tile size parameter
+        vector<unsigned int> vsize;
+        vsize.push_back(tile_width_); vsize.push_back(tile_height_);
         unsigned int size[] = {(unsigned int)tile_width_, (unsigned int)tile_height_};
 
         // Update the Frame Volume by copying the tiles over
@@ -377,14 +375,17 @@ void CachedTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
         }
 
         // Update the coefficient plane
-        if (coefficient_count > 0) {
+        if (coefficients_list.size() > 0) {
             display_->FillCoefficientTiles(coefficients_list,
                                            coefficient_positions_list,
                                            coefficient_plane_starts_list,
-                                           size,
-                                           coefficient_count);
-            coefficient_count = 0;
+                                           vsize);
         }
+
+        // Free the coefficient memory and empty the vector
+        coefficients_list.clear();
+        coefficient_positions_list.clear();
+        coefficient_plane_starts_list.clear();
     }
 #endif
 
@@ -535,18 +536,21 @@ void CachedTiler::PushTile(tile_t* tile, Pixel* pixels) {
  * @param j The Y coordinate of the tile in the tile map.
  */
 void CachedTiler::PushTile(tile_t* tile, size_t i, size_t j) {
+    // Create and push the position and start coordinates
+    vector<unsigned int> position;
+    position.push_back(2); position.push_back(2);
+
+    vector<unsigned int> start;
+    start.push_back(i * tile_width_); start.push_back(j * tile_height_); start.push_back(0);
+
 #ifndef NO_OMP
 #pragma omp critical
 #endif
     {
         // Push the tile and starts
-        coefficients_list[coefficient_count] = tile->zIndex;
-        coefficient_positions_list[coefficient_count * 2 + 0] = 2;
-        coefficient_positions_list[coefficient_count * 2 + 1] = 2;
-        coefficient_plane_starts_list[coefficient_count * 3 + 0] = i * tile_width_;
-        coefficient_plane_starts_list[coefficient_count * 3 + 1] = j * tile_height_;
-        coefficient_plane_starts_list[coefficient_count * 3 + 2] = 0;
-        coefficient_count++;
+        coefficients_list.push_back(tile->zIndex);
+        coefficient_positions_list.push_back(position);
+        coefficient_plane_starts_list.push_back(start);
     }
 }
 

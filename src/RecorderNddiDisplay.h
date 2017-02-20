@@ -171,9 +171,79 @@ namespace nddi {
         unsigned int  frameVolumeDimensionality;
     };
 
-    class CopyPixelsCommandMessage : public NddiCommandMessage {};
+    class CopyPixelsCommandMessage : public NddiCommandMessage {
+    public:
+        CopyPixelsCommandMessage(Pixel* p, unsigned int count,
+                                 unsigned int* start, unsigned int* end,
+                                 unsigned int frameVolumeDimensionality)
+        : NddiCommandMessage(idCopyPixels),
+          count(count),
+          frameVolumeDimensionality(frameVolumeDimensionality) {
+            this->p = (Pixel*)malloc(sizeof(Pixel) * count);
+            memcpy(this->p, p, sizeof(Pixel) * count);
+            this->start = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
+            memcpy(this->start, start, sizeof(unsigned int) * frameVolumeDimensionality);
+            this->end = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
+            memcpy(this->end, end, sizeof(unsigned int) * frameVolumeDimensionality);
+        }
+
+        ~CopyPixelsCommandMessage() {
+            if (p) { free((void*)p); }
+            if (start) { free((void*)start); }
+            if (end) { free((void*)end); }
+        }
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+          ar(CEREAL_NVP(id));
+          ar.saveBinaryValue(p, sizeof(Pixel) * count, "p");
+          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
+          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
+        }
+
+    private:
+        Pixel*        p;
+        unsigned int  count;
+        unsigned int* start;
+        unsigned int* end;
+        unsigned int  frameVolumeDimensionality;
+    };
     class CopyPixelTilesCommandMessage : public NddiCommandMessage {};
-    class FillPixelCommandMessage : public NddiCommandMessage {};
+
+    class FillPixelCommandMessage : public NddiCommandMessage {
+    public:
+        FillPixelCommandMessage(Pixel p,
+                                unsigned int* start, unsigned int* end,
+                                unsigned int frameVolumeDimensionality)
+        : NddiCommandMessage(idFillPixel),
+          p(p),
+          frameVolumeDimensionality(frameVolumeDimensionality) {
+            this->start = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
+            memcpy(this->start, start, sizeof(unsigned int) * frameVolumeDimensionality);
+            this->end = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
+            memcpy(this->end, end, sizeof(unsigned int) * frameVolumeDimensionality);
+        }
+
+        ~FillPixelCommandMessage() {
+            if (start) { free((void*)start); }
+            if (end) { free((void*)end); }
+        }
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+          ar(CEREAL_NVP(id));
+          ar.saveBinaryValue(&p, sizeof(Pixel), "p");
+          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
+          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
+        }
+
+    private:
+        Pixel         p;
+        unsigned int* start;
+        unsigned int* end;
+        unsigned int  frameVolumeDimensionality;
+    };
+
     class CopyFrameVolumeCommandMessage : public NddiCommandMessage {};
     class UpdateInputVectorCommandMessage : public NddiCommandMessage {};
     class PutCoefficientMatrixCommandMessage : public NddiCommandMessage {};
@@ -368,9 +438,23 @@ namespace nddi {
             recorder.record(msg);
         }
 
-        void CopyPixels(Pixel* p, unsigned int* , unsigned int* ) {}
+        void CopyPixels(Pixel* p, unsigned int* start, unsigned int* end) {
+            int pixelsToCopy = 1;
+            for (int i = 0; i < frameVolumeDimensionality_; i++) {
+                pixelsToCopy *= end[i] - start[i] + 1;
+            }
+            NddiCommandMessage* msg = new CopyPixelsCommandMessage(p, pixelsToCopy,
+                                                                   start, end, frameVolumeDimensionality_);
+            recorder.record(msg);
+        }
+
         void CopyPixelTiles(Pixel** p, unsigned int* starts, unsigned int* size, size_t count) {}
-        void FillPixel(Pixel p, unsigned int* start, unsigned int* end) {}
+
+        void FillPixel(Pixel p, unsigned int* start, unsigned int* end) {
+            NddiCommandMessage* msg = new FillPixelCommandMessage(p, start, end, frameVolumeDimensionality_);
+            recorder.record(msg);
+        }
+
         void CopyFrameVolume(unsigned int* start, unsigned int* end, unsigned int* dest) {}
         void UpdateInputVector(int* input) {}
         void PutCoefficientMatrix(int* coefficientMatrix, unsigned int* location) {}

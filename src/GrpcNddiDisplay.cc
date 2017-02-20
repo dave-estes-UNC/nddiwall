@@ -34,21 +34,19 @@ using nddiwall::LatchRequest;
 
 GrpcNddiDisplay::GrpcNddiDisplay() {}
 
-GrpcNddiDisplay::GrpcNddiDisplay(unsigned int frameVolumeDimensionality,
-                                 unsigned int* frameVolumeDimensionalSizes,
+GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
-: GrpcNddiDisplay(frameVolumeDimensionality, frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
+: GrpcNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
 }
 
-GrpcNddiDisplay::GrpcNddiDisplay(unsigned int frameVolumeDimensionality,
-                                 unsigned int* frameVolumeDimensionalSizes,
+GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int displayWidth, unsigned int displayHeight,
                                  unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
 : stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
 
     // Data we are sending to the server.
     InitializeRequest request;
-    for (size_t i = 0; i < frameVolumeDimensionality; i++) {
+    for (size_t i = 0; i < frameVolumeDimensionalSizes.size(); i++) {
         request.add_framevolumedimensionalsizes(frameVolumeDimensionalSizes[i]);
     }
     request.set_displaywidth(displayWidth);

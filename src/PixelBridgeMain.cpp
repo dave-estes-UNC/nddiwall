@@ -121,12 +121,11 @@ void setupDisplay() {
     } else {
 
         // 2 dimensional matching the Video Width x Height
-        unsigned int fvDimensions[2];
-        fvDimensions[0] = displayWidth;
-        fvDimensions[1] = displayHeight;
+        vector<unsigned int> fvDimensions;
+        fvDimensions.push_back(displayWidth);
+        fvDimensions.push_back(displayHeight);
 
-        myDisplay = new GrpcNddiDisplay(2,                           // frame volume dimensionality
-                                        fvDimensions,                // frame volume dimensional sizes
+        myDisplay = new GrpcNddiDisplay(fvDimensions,                // framevolume dimensional sizes
                                         displayWidth, displayHeight, // display size
                                         1,                           // number of coefficient planes on the display
                                         2);                          // input vector size (x and y only)

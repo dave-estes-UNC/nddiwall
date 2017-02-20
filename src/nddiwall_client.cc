@@ -53,17 +53,17 @@ int main(int argc, char** argv) {
     // are created. This channel models a connection to an endpoint (in this case,
     // localhost at port 50051). We indicate that the channel isn't authenticated
     // (use of InsecureChannelCredentials()).
-    unsigned int frameVolumeDimensionalSizes[3];
-    frameVolumeDimensionalSizes[0] = DISPLAY_WIDTH;
-    frameVolumeDimensionalSizes[1] = DISPLAY_HEIGHT;
-    frameVolumeDimensionalSizes[2] = 2;
+    vector<unsigned int> frameVolumeDimensionalSizes;
+    frameVolumeDimensionalSizes.push_back(DISPLAY_WIDTH);
+    frameVolumeDimensionalSizes.push_back(DISPLAY_HEIGHT);
+    frameVolumeDimensionalSizes.push_back(2);
     NDimensionalDisplayInterface* myDisplay = NULL;
     RecorderNddiDisplay* myRecorder = NULL;
     GrpcNddiDisplay* myDisplayWall = NULL;
     if (argc == 1) {
-        myDisplay = myDisplayWall = new GrpcNddiDisplay(3, frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+        myDisplay = myDisplayWall = new GrpcNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
     } else if (argc == 2 && strcmp(argv[1], "-r") == 0) {
-        myDisplay = myRecorder = new RecorderNddiDisplay(3, frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+        myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
     } else if (argc == 3 && strcmp(argv[1], "-p") == 0) {
         myRecorder = new RecorderNddiDisplay(argv[2]);
     } else {
@@ -76,10 +76,17 @@ int main(int argc, char** argv) {
         std::cout << "Number of Coefficient Planes is " << myDisplay->NumCoefficientPlanes() << std::endl;
 
         // Initialize CoefficientPlane to all identity matrices
-        int coeffs[] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+        vector< vector<int> > coeffs;
+        coeffs.resize(3);
+        coeffs[0].push_back(1); coeffs[0].push_back(0); coeffs[0].push_back(0);
+        coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
+        coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(1);
 
-        unsigned int start[] = {0, 0, 0};
-        unsigned int end[] = {DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, 0};
+        vector<unsigned int> start, end;
+        start.clear(); end.clear();
+
+        start.push_back(0); start.push_back(0); start.push_back(0);
+        end.push_back(DISPLAY_WIDTH - 1); end.push_back(DISPLAY_HEIGHT - 1); end.push_back(0);
 
         myDisplay->FillCoefficientMatrix(coeffs, start, end);
         if (myDisplayWall) { myDisplayWall->Latch(); }
@@ -101,7 +108,9 @@ int main(int argc, char** argv) {
         if (myDisplayWall) { myDisplayWall->Latch(); }
 
         // Update the FrameBuffer with just one blue pixel at (10,10)
-        unsigned int location[] = {10, 10, 0};
+        // Update the FrameBuffer with just one blue pixel at (10,10)
+        vector<uint32_t> location;
+        location.push_back(10); location.push_back(10); location.push_back(0);
         p.b = 0xff;
         myDisplay->PutPixel(p, location);
         if (myDisplayWall) { myDisplayWall->Latch(); }

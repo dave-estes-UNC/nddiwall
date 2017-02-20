@@ -24,11 +24,9 @@ namespace nddi {
 
     public:
         GrpcNddiDisplay();
-        GrpcNddiDisplay(unsigned int frameVolumeDimensionality,
-                        unsigned int* frameVolumeDimensionalSizes,
+        GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                         unsigned int numCoefficientPlanes, unsigned int inputVectorSize);
-        GrpcNddiDisplay(unsigned int frameVolumeDimensionality,
-                        unsigned int* frameVolumeDimensionalSizes,
+        GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                         unsigned int displayWidth, unsigned int displayHeight,
                         unsigned int numCoefficientPlanes, unsigned int inputVectorSize);
         ~GrpcNddiDisplay();

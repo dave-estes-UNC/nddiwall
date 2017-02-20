@@ -30,13 +30,12 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
     quiet_ = !globalConfiguration.verbose;
 
     // 3 dimensional matching the Tile Width x Height x max tiles
-    unsigned int fvDimensions[3];
-    fvDimensions[0] = tile_width;
-    fvDimensions[1] = tile_height;
-    fvDimensions[2] = max_tiles;
+    vector<unsigned int> fvDimensions;
+    fvDimensions.push_back(tile_width);
+    fvDimensions.push_back(tile_height);
+    fvDimensions.push_back(max_tiles);
 
-    display_ = new GrpcNddiDisplay(3,                             // frame volume dimensionality
-                                   fvDimensions,                  // frame volume dimensional sizes
+    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
                                    display_width, display_height, // display size
                                    1,                             // number of coefficient planes in display
                                    3);                            // input vector size (x, y, and z)

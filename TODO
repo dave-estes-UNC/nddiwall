@@ -42,4 +42,6 @@
   - Move to vectors instead of malloc'd arrays.
   - Implement remaining recorders serializers
   - Add playback.
+    * Add input serializers.
+    - Add creation and utilization of an NDDI Display.
 - Add a proper sync mechanism. 

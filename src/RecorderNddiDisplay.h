@@ -7,34 +7,40 @@
 #include <fstream>
 #include <pthread.h>
 #include <queue>
+#include <vector>
 
 #include <cereal/archives/xml.hpp>
+#include <cereal/types/vector.hpp>
+
+#define NDDI_COMMAND_LIST(m) \
+  m(Init) \
+  m(DisplayWidth) \
+  m(DisplayHeight) \
+  m(NumCoefficientPlanes) \
+  m(PutPixel) \
+  m(CopyPixelStrip) \
+  m(CopyPixels) \
+  m(CopyPixelTiles) \
+  m(FillPixel) \
+  m(CopyFrameVolume) \
+  m(UpdateInputVector) \
+  m(PutCoefficientMatrix) \
+  m(FillCoefficientMatrix) \
+  m(FillCoefficient) \
+  m(FillCoefficientTiles) \
+  m(FillScaler) \
+  m(FillScalerTiles) \
+  m(FillScalerTileStack) \
+  m(SetPixelByteSignMode) \
+  m(SetFullScaler) \
+  m(GetFullScaler)
 
 namespace nddi {
 
     enum CommandID : unsigned int {
-        idNone,
-        idInit,
-        idDisplayWidth,
-        idDisplayHeight,
-        idNumCoefficientPlanes,
-        idPutPixel,
-        idCopyPixelStrip,
-        idCopyPixels,
-        idCopyPixelTiles,
-        idFillPixel,
-        idCopyFrameVolume,
-        idUpdateInputVector,
-        idPutCoefficientMatrix,
-        idFillCoefficientMatrix,
-        idFillCoefficient,
-        idFillCoefficientTiles,
-        idFillScaler,
-        idFillScalerTiles,
-        idFillScalerTileStack,
-        idSetPixelByteSignMode,
-        idSetFullScaler,
-        idGetFullScaler
+        idEOT,
+        #define GENERATE_ENUM(m) id ## m ,
+        NDDI_COMMAND_LIST(GENERATE_ENUM)
     };
 
     class NddiCommandMessage {
@@ -44,46 +50,37 @@ namespace nddi {
         }
 
         template <class Archive>
-        void serialize(Archive& ar) {
-          ar(CEREAL_NVP(id));
-        }
+        void serialize(Archive& ar) {}
 
         CommandID id;
     };
 
     class InitCommandMessage : public NddiCommandMessage {
     public:
-        InitCommandMessage(unsigned int frameVolumeDimensionality,
-                           unsigned int* frameVolumeDimensionalSizes,
+        InitCommandMessage() : NddiCommandMessage(idInit) {}
+
+        InitCommandMessage(vector<unsigned int> frameVolumeDimensionalSizes,
                            unsigned int displayWidth,
                            unsigned int displayHeight,
                            unsigned int numCoefficientPlanes,
                            unsigned int inputVectorSize)
-        : frameVolumeDimensionality(frameVolumeDimensionality),
+        : frameVolumeDimensionalSizes(frameVolumeDimensionalSizes),
           displayWidth(displayWidth),
           displayHeight(displayHeight),
           numCoefficientPlanes(numCoefficientPlanes),
           inputVectorSize(inputVectorSize),
-          NddiCommandMessage(idInit) {
-            this->frameVolumeDimensionalSizes = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->frameVolumeDimensionalSizes, frameVolumeDimensionalSizes, sizeof(unsigned int) * frameVolumeDimensionality);
-        }
-
-        ~InitCommandMessage() {
-            if (frameVolumeDimensionalSizes) { free((void*)frameVolumeDimensionalSizes); }
-        }
+          NddiCommandMessage(idInit) {}
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar(CEREAL_NVP(id), CEREAL_NVP(frameVolumeDimensionality));
-          ar.saveBinaryValue(frameVolumeDimensionalSizes, sizeof(unsigned int) * frameVolumeDimensionality, "frameVolumeDimensionalSizes" );
+          ar(CEREAL_NVP(frameVolumeDimensionalSizes));
           ar(CEREAL_NVP(displayWidth), CEREAL_NVP(displayHeight),
              CEREAL_NVP(numCoefficientPlanes), CEREAL_NVP(inputVectorSize));
         }
 
     private:
         unsigned int  frameVolumeDimensionality;
-        unsigned int* frameVolumeDimensionalSizes;
+        vector<unsigned int> frameVolumeDimensionalSizes;
         unsigned int  displayWidth;
         unsigned int  displayHeight;
         unsigned int  numCoefficientPlanes;
@@ -107,6 +104,8 @@ namespace nddi {
 
     class PutPixelCommandMessage : public NddiCommandMessage {
     public:
+        PutPixelCommandMessage() : NddiCommandMessage(idPutPixel) {}
+
         PutPixelCommandMessage(Pixel p, unsigned int* location,
                                unsigned int frameVolumeDimensionality)
         : NddiCommandMessage(idPutPixel),
@@ -135,6 +134,8 @@ namespace nddi {
 
     class CopyPixelStripCommandMessage : public NddiCommandMessage {
     public:
+        CopyPixelStripCommandMessage() : NddiCommandMessage(idCopyPixelStrip) {}
+
         CopyPixelStripCommandMessage(Pixel* p, unsigned int count,
                                      unsigned int* start, unsigned int* end,
                                      unsigned int frameVolumeDimensionality)
@@ -157,7 +158,6 @@ namespace nddi {
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar(CEREAL_NVP(id));
           ar.saveBinaryValue(p, sizeof(Pixel) * count, "p");
           ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
           ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
@@ -173,6 +173,8 @@ namespace nddi {
 
     class CopyPixelsCommandMessage : public NddiCommandMessage {
     public:
+        CopyPixelsCommandMessage() : NddiCommandMessage(idCopyPixels) {}
+
         CopyPixelsCommandMessage(Pixel* p, unsigned int count,
                                  unsigned int* start, unsigned int* end,
                                  unsigned int frameVolumeDimensionality)
@@ -195,7 +197,6 @@ namespace nddi {
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar(CEREAL_NVP(id));
           ar.saveBinaryValue(p, sizeof(Pixel) * count, "p");
           ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
           ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
@@ -208,10 +209,16 @@ namespace nddi {
         unsigned int* end;
         unsigned int  frameVolumeDimensionality;
     };
-    class CopyPixelTilesCommandMessage : public NddiCommandMessage {};
+
+    class CopyPixelTilesCommandMessage : public NddiCommandMessage {
+    public:
+        CopyPixelTilesCommandMessage() : NddiCommandMessage(idCopyPixelTiles) {}
+    };
 
     class FillPixelCommandMessage : public NddiCommandMessage {
     public:
+        FillPixelCommandMessage() : NddiCommandMessage(idFillPixel) {}
+
         FillPixelCommandMessage(Pixel p,
                                 unsigned int* start, unsigned int* end,
                                 unsigned int frameVolumeDimensionality)
@@ -231,7 +238,6 @@ namespace nddi {
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar(CEREAL_NVP(id));
           ar.saveBinaryValue(&p, sizeof(Pixel), "p");
           ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
           ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
@@ -244,17 +250,61 @@ namespace nddi {
         unsigned int  frameVolumeDimensionality;
     };
 
-    class CopyFrameVolumeCommandMessage : public NddiCommandMessage {};
-    class UpdateInputVectorCommandMessage : public NddiCommandMessage {};
-    class PutCoefficientMatrixCommandMessage : public NddiCommandMessage {};
-    class FillCoefficientMatrixCommandMessage : public NddiCommandMessage {};
-    class FillCoefficientCommandMessage : public NddiCommandMessage {};
-    class FillCoefficientTilesCommandMessage : public NddiCommandMessage {};
-    class FillScalerCommandMessage : public NddiCommandMessage {};
-    class FillScalerTilesCommandMessage : public NddiCommandMessage {};
-    class FillScalerTileStackCommandMessage : public NddiCommandMessage {};
-    class SetPixelByteSignModeCommandMessage : public NddiCommandMessage {};
-    class SetFullScalerCommandMessage : public NddiCommandMessage {};
+    class CopyFrameVolumeCommandMessage : public NddiCommandMessage {
+    public:
+        CopyFrameVolumeCommandMessage() : NddiCommandMessage(idCopyFrameVolume) {}
+    };
+
+    class UpdateInputVectorCommandMessage : public NddiCommandMessage {
+    public:
+        UpdateInputVectorCommandMessage() : NddiCommandMessage(idUpdateInputVector) {}
+    };
+
+    class PutCoefficientMatrixCommandMessage : public NddiCommandMessage {
+    public:
+        PutCoefficientMatrixCommandMessage() : NddiCommandMessage(idPutCoefficientMatrix) {}
+    };
+
+    class FillCoefficientMatrixCommandMessage : public NddiCommandMessage {
+    public:
+        FillCoefficientMatrixCommandMessage() : NddiCommandMessage(idFillCoefficientMatrix) {}
+    };
+
+    class FillCoefficientCommandMessage : public NddiCommandMessage {
+    public:
+        FillCoefficientCommandMessage() : NddiCommandMessage(idFillCoefficient) {}
+    };
+
+    class FillCoefficientTilesCommandMessage : public NddiCommandMessage {
+    public:
+        FillCoefficientTilesCommandMessage() : NddiCommandMessage(idFillCoefficientTiles) {}
+    };
+
+    class FillScalerCommandMessage : public NddiCommandMessage {
+    public:
+        FillScalerCommandMessage() : NddiCommandMessage(idFillScaler) {}
+    };
+
+    class FillScalerTilesCommandMessage : public NddiCommandMessage {
+    public:
+        FillScalerTilesCommandMessage() : NddiCommandMessage(idFillScalerTiles) {}
+    };
+
+    class FillScalerTileStackCommandMessage : public NddiCommandMessage {
+    public:
+        FillScalerTileStackCommandMessage() : NddiCommandMessage(idFillScalerTileStack) {}
+    };
+
+    class SetPixelByteSignModeCommandMessage : public NddiCommandMessage {
+    public:
+        SetPixelByteSignModeCommandMessage() : NddiCommandMessage(idSetPixelByteSignMode) {}
+    };
+
+    class SetFullScalerCommandMessage : public NddiCommandMessage {
+    public:
+        SetFullScalerCommandMessage() : NddiCommandMessage(idSetFullScaler) {}
+    };
+
     class GetFullScalerCommandMessage : public NddiCommandMessage {
     public:
         GetFullScalerCommandMessage() : NddiCommandMessage(idGetFullScaler) {}
@@ -285,71 +335,14 @@ namespace nddi {
                     NddiCommandMessage* msg = streamQueue.front();
                     streamQueue.pop();
                     if (msg) {
-                        switch (msg->id) {
-                        case idInit:
-                            oarchive(cereal::make_nvp("command", *(InitCommandMessage*)msg));
+                        CommandID id = msg->id;
+                        switch (id) {
+                        #define GENERATE_REC_CASE(m) \
+                        case id ## m : \
+                            oarchive(CEREAL_NVP(id), cereal::make_nvp("command", *( m ## CommandMessage*)msg)); \
                             break;
-                        case idDisplayWidth:
-                            oarchive(cereal::make_nvp("command", *(DisplayWidthCommandMessage*)msg));
-                            break;
-                        case idDisplayHeight:
-                            oarchive(cereal::make_nvp("command", *(DisplayHeightCommandMessage*)msg));
-                            break;
-                        case idNumCoefficientPlanes:
-                            oarchive(cereal::make_nvp("command", *(NumCoefficientPlanesCommandMessage*)msg));
-                            break;
-                        case idPutPixel:
-                            oarchive(cereal::make_nvp("command", *(PutPixelCommandMessage*)msg));
-                            break;
-                        case idCopyPixelStrip:
-                            oarchive(cereal::make_nvp("command", *(CopyPixelStripCommandMessage*)msg));
-                            break;
-                        case idCopyPixels:
-                            oarchive(cereal::make_nvp("command", *(CopyPixelsCommandMessage*)msg));
-                            break;
-                        case idCopyPixelTiles:
-                            oarchive(cereal::make_nvp("command", *(CopyPixelTilesCommandMessage*)msg));
-                            break;
-                        case idFillPixel:
-                            oarchive(cereal::make_nvp("command", *(FillPixelCommandMessage*)msg));
-                            break;
-                        case idCopyFrameVolume:
-                            oarchive(cereal::make_nvp("command", *(CopyFrameVolumeCommandMessage*)msg));
-                            break;
-                        case idUpdateInputVector:
-                            oarchive(cereal::make_nvp("command", *(UpdateInputVectorCommandMessage*)msg));
-                            break;
-                        case idPutCoefficientMatrix:
-                            oarchive(cereal::make_nvp("command", *(PutCoefficientMatrixCommandMessage*)msg));
-                            break;
-                        case idFillCoefficientMatrix:
-                            oarchive(cereal::make_nvp("command", *(FillCoefficientMatrixCommandMessage*)msg));
-                            break;
-                        case idFillCoefficient:
-                            oarchive(cereal::make_nvp("command", *(FillCoefficientCommandMessage*)msg));
-                            break;
-                        case idFillCoefficientTiles:
-                            oarchive(cereal::make_nvp("command", *(FillCoefficientTilesCommandMessage*)msg));
-                            break;
-                        case idFillScaler:
-                            oarchive(cereal::make_nvp("command", *(FillScalerCommandMessage*)msg));
-                            break;
-                        case idFillScalerTiles:
-                            oarchive(cereal::make_nvp("command", *(FillScalerTilesCommandMessage*)msg));
-                            break;
-                        case idFillScalerTileStack:
-                            oarchive(cereal::make_nvp("command", *(FillScalerTileStackCommandMessage*)msg));
-                            break;
-                        case idSetPixelByteSignMode:
-                            oarchive(cereal::make_nvp("command", *(SetPixelByteSignModeCommandMessage*)msg));
-                            break;
-                        case idSetFullScaler:
-                            oarchive(cereal::make_nvp("command", *(SetFullScalerCommandMessage*)msg));
-                            break;
-                        case idGetFullScaler:
-                            oarchive(cereal::make_nvp("command", *(GetFullScalerCommandMessage*)msg));
-                            break;
-                        case idNone:
+                        NDDI_COMMAND_LIST(GENERATE_REC_CASE)
+                        case idEOT:
                         default:
                             break;
                         }
@@ -358,6 +351,7 @@ namespace nddi {
                 }
                 usleep(50);
             }
+            oarchive(cereal::make_nvp("id", idEOT));
         }
 
         void record(NddiCommandMessage* msg) {
@@ -369,6 +363,62 @@ namespace nddi {
         bool finished;
         pthread_t streamThread;
         static void * pthreadFriendlyRun(void * This) {((Recorder*)This)->run(); return NULL;}
+        std::queue<NddiCommandMessage*> streamQueue;
+    };
+
+    class Player {
+    public:
+        Player() : finished(true) {}
+
+        Player(char* file) : finished(false), file(file)  {
+            typedef void* (*rptr)(void*);
+            if (pthread_create( &streamThread, NULL, pthreadFriendlyRun, this)) {
+                std::cout << "Error: Failed to start thread." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        ~Player() {
+            pthread_join(streamThread, NULL);
+        }
+
+        void run() {
+            std::ifstream is(file);
+            cereal::XMLInputArchive iarchive(is);
+
+            CommandID id;
+            iarchive(id);
+            while (id != idEOT) {
+                std::cout << id << std::endl;
+                NddiCommandMessage* msg = NULL;
+                switch (id) {
+                #define GENERATE_PLAY_CASE(m) \
+                case id ## m : { \
+                    msg = new m ## CommandMessage(); \
+                    iarchive(*msg); \
+                } \
+                break;
+                NDDI_COMMAND_LIST(GENERATE_PLAY_CASE)
+                case idEOT:
+                default:
+                    break;
+                }
+
+                if (msg) {
+                    // TODO(CDE): Protect access to streamQueue.
+                    streamQueue.push(msg);
+                }
+
+                iarchive(id);
+            }
+            finished = true;
+        }
+
+    private:
+        bool finished;
+        char* file;
+        pthread_t streamThread;
+        static void * pthreadFriendlyRun(void * This) {((Player*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
     };
 
@@ -392,32 +442,45 @@ namespace nddi {
         : frameVolumeDimensionality_(frameVolumeDimensionality),
           inputVectorSize_(inputVectorSize),
           numCoefficientPlanes_(numCoefficientPlanes) {
-            NddiCommandMessage* msg = new InitCommandMessage(frameVolumeDimensionality, frameVolumeDimensionalSizes,
+            recorder = new Recorder();
+
+            vector<unsigned int> fds;
+            for (auto i = 0; i < frameVolumeDimensionality; i++) {
+                fds.push_back(frameVolumeDimensionalSizes[i]);
+            }
+            NddiCommandMessage* msg = new InitCommandMessage(fds,
                                                              displayWidth, displayHeight,
                                                              numCoefficientPlanes, inputVectorSize);
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
-        ~RecorderNddiDisplay() {}
+        RecorderNddiDisplay(char* file) {
+            player = new Player(file);
+        }
+
+        ~RecorderNddiDisplay() {
+            if (recorder) { delete(recorder); }
+            if (player) { delete(player); }
+        }
 
         unsigned int DisplayWidth() {
             NddiCommandMessage* msg = new DisplayWidthCommandMessage();
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         unsigned int DisplayHeight() {
             NddiCommandMessage* msg = new DisplayHeightCommandMessage();
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         unsigned int NumCoefficientPlanes() {
             NddiCommandMessage* msg = new NumCoefficientPlanesCommandMessage();
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         void PutPixel(Pixel p, unsigned int* location) {
             NddiCommandMessage* msg = new PutPixelCommandMessage(p, location, frameVolumeDimensionality_);
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         void CopyPixelStrip(Pixel* p, unsigned int* start, unsigned int* end) {
@@ -435,7 +498,7 @@ namespace nddi {
 
             NddiCommandMessage* msg = new CopyPixelStripCommandMessage(p, pixelsToCopy,
                                                                        start, end, frameVolumeDimensionality_);
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         void CopyPixels(Pixel* p, unsigned int* start, unsigned int* end) {
@@ -445,14 +508,14 @@ namespace nddi {
             }
             NddiCommandMessage* msg = new CopyPixelsCommandMessage(p, pixelsToCopy,
                                                                    start, end, frameVolumeDimensionality_);
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         void CopyPixelTiles(Pixel** p, unsigned int* starts, unsigned int* size, size_t count) {}
 
         void FillPixel(Pixel p, unsigned int* start, unsigned int* end) {
             NddiCommandMessage* msg = new FillPixelCommandMessage(p, start, end, frameVolumeDimensionality_);
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         void CopyFrameVolume(unsigned int* start, unsigned int* end, unsigned int* dest) {}
@@ -469,7 +532,7 @@ namespace nddi {
 
         uint16_t GetFullScaler() {
             NddiCommandMessage* msg = new GetFullScalerCommandMessage();
-            recorder.record(msg);
+            recorder->record(msg);
         }
 
         CostModel* GetCostModel() {}
@@ -479,7 +542,8 @@ namespace nddi {
         unsigned int frameVolumeDimensionality_;
         unsigned int inputVectorSize_;
         unsigned int numCoefficientPlanes_;
-        Recorder recorder;
+        Recorder*    recorder = NULL;
+        Player*      player = NULL;
     };
 }
 

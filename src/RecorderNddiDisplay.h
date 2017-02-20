@@ -203,6 +203,43 @@ namespace nddi {
     class CopyPixelTilesCommandMessage : public NddiCommandMessage {
     public:
         CopyPixelTilesCommandMessage() : NddiCommandMessage(idCopyPixelTiles) {}
+
+        CopyPixelTilesCommandMessage(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
+        : NddiCommandMessage(idCopyPixelTiles),
+          p(p),
+          starts(starts),
+          size(size) {
+            assert(false && "Not yet tested.");
+            pixelsPerTile = 1;
+            for (int i = 0; i < size.size(); i++) {
+                pixelsPerTile *= size[i];
+            }
+            for (int i = 0; i < p.size(); i++) {
+                Pixel* tmp = (Pixel*)malloc(sizeof(Pixel) * pixelsPerTile);
+                memcpy((void*)tmp, (void*)p[i], sizeof(Pixel) * pixelsPerTile);
+                p[i] = tmp;
+            }
+        }
+
+        ~CopyPixelTilesCommandMessage() {
+            for (int i = 0; i < p.size(); i++) {
+                if (p[i]) { free((void*) p[i]); }
+            }
+        }
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            for (int i = 0; i < p.size(); i++) {
+                ar.saveBinaryValue(p[i], sizeof(Pixel) * pixelsPerTile, "p");
+            }
+            ar(CEREAL_NVP(starts), CEREAL_NVP(size));
+        }
+
+    private:
+        vector<Pixel*> p;
+        unsigned int pixelsPerTile;
+        vector<vector<unsigned int> > starts;
+        vector<unsigned int> size;
     };
 
     class FillPixelCommandMessage : public NddiCommandMessage {
@@ -216,14 +253,10 @@ namespace nddi {
           end(end) {
         }
 
-        ~FillPixelCommandMessage() {
-        }
-
         template <class Archive>
         void serialize(Archive& ar) {
           ar.saveBinaryValue(&p, sizeof(Pixel), "p");
-          vector<unsigned int> start;
-          vector<unsigned int> end;
+          ar(CEREAL_NVP(start), CEREAL_NVP(end));
         }
 
     private:
@@ -235,6 +268,21 @@ namespace nddi {
     class CopyFrameVolumeCommandMessage : public NddiCommandMessage {
     public:
         CopyFrameVolumeCommandMessage() : NddiCommandMessage(idCopyFrameVolume) {}
+        CopyFrameVolumeCommandMessage(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest)
+        : NddiCommandMessage(idCopyFrameVolume),
+          start(start),
+          end(end),
+          dest(dest) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(start), CEREAL_NVP(end), CEREAL_NVP(dest));
+        }
+
+    private:
+        vector<unsigned int> start;
+        vector<unsigned int> end;
+        vector<unsigned int> dest;
     };
 
     class UpdateInputVectorCommandMessage : public NddiCommandMessage {
@@ -468,14 +516,20 @@ namespace nddi {
             recorder->record(msg);
         }
 
-        void CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
+        void CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
+            NddiCommandMessage* msg = new CopyPixelTilesCommandMessage(p, starts, size);
+            recorder->record(msg);
+        }
 
         void FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {
             NddiCommandMessage* msg = new FillPixelCommandMessage(p, start, end);
             recorder->record(msg);
         }
 
-        void CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {}
+        void CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {
+            NddiCommandMessage* msg = new CopyFrameVolumeCommandMessage(start, end, dest);
+            recorder->record(msg);
+        }
         void UpdateInputVector(vector<int> &input) {}
         void PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location) {}
         void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end) {}

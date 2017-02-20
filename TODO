@@ -39,7 +39,7 @@
   * Then move the biggest arrays to "bytes" in the protobuffers.
 - Write a NDDI recorder/player that serializes and parses these new memcpy'able arrays to and from files. Perhaps JSON?
   - Add thread safety to command queue.
-  - Move to vectors instead of malloc'd arrays.
+  * Move to vectors instead of malloc'd arrays.
   - Implement remaining recorders serializers
   - Add playback.
     * Add input serializers.

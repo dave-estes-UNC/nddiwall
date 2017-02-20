@@ -41,7 +41,7 @@ namespace nddi {
         void CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size);
         void FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end);
         void CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest);
-        void UpdateInputVector(int* input);
+        void UpdateInputVector(vector<int> &input);
         void PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location);
         void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end);
         void FillCoefficient(int coefficient, unsigned int row, unsigned int col, vector<unsigned int> &start, vector<unsigned int> &end);
@@ -56,9 +56,6 @@ namespace nddi {
         void Latch();
 
     private:
-        unsigned int frameVolumeDimensionality_;
-        unsigned int inputVectorSize_;
-        unsigned int numCoefficientPlanes_;
         unique_ptr<NddiWall::Stub> stub_;
 
     };

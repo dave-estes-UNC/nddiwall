@@ -103,7 +103,8 @@ MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t
     initQuantizationMatrix(quality);
 
     /* Initialize Input Vector */
-    int iv[] = {1};
+    vector<int> iv;
+    iv.push_back(1);
     display_->UpdateInputVector(iv);
 
     /* Initialize Coefficient Planes */

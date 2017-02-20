@@ -695,9 +695,9 @@ class NddiServiceImpl final : public NddiWall::Service {
       DEBUG_MSG("Server got a request to update the Input Vector." << std::endl);
       if (myDisplay) {
           DEBUG_MSG("  - Input: ");
-          int input[request->input_size()];
+          vector<int> input;
           for (int i = 0; i < request->input_size(); i++) {
-              input[i] = request->input(i);
+              input.push_back(request->input(i));
               if (i) { DEBUG_MSG(" "); }
               DEBUG_MSG(request->input(i));
           }

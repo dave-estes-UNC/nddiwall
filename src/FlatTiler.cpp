@@ -65,8 +65,9 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
     // Initialize Frame Volume
     nddi::Pixel p;
     p.r = p.g = p.b = p.a = 0xff;
-    unsigned int start[] = {0, 0};
-    unsigned int end[] = {(unsigned int)display_width - 1, (unsigned int)display_height - 1};
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0);
+    end.push_back(display_width - 1); end.push_back(display_height - 1);
     display_->FillPixel(p, start, end);
 
     // Initialize Coefficient Planes

@@ -336,8 +336,9 @@ void MultiDctTiler::InitializeFrameVolume() {
     }
 
     // Update the frame volume with the basis function renderings and gray block in bulk.
-    unsigned int start[] = {0, 0, 0};
-    unsigned int end[] = {(unsigned int)fvWidth_ - 1, (unsigned int)fvHeight_ - 1, FRAMEVOLUME_DEPTH - 1};
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(fvWidth_ - 1); end.push_back(fvHeight_ - 1); end.push_back(FRAMEVOLUME_DEPTH - 1);
     display_->CopyPixels(basisFunctions_, start, end);
 }
 

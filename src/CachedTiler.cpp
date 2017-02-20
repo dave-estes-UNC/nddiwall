@@ -67,8 +67,9 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
     // Initialize Frame Volume
     nddi::Pixel p;
     p.r = p.g = p.b = p.a = 0xff;
-    unsigned int start[] = {0, 0, 0};
-    unsigned int end[] = {(unsigned int)tile_width_, (unsigned int)tile_height_, (unsigned int)max_tiles_};
+    vector<unsigned int> start, end;
+    start.push_back(0); start.push_back(0); start.push_back(0);
+    end.push_back(tile_width_); end.push_back(tile_height_); end.push_back(max_tiles_);
     display_->FillPixel(p, start, end);
 
     // Initialize Coefficient Planes

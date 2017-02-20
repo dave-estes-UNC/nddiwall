@@ -49,12 +49,6 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
     tile_map_height_ = display_height / tile_height;
     if ((tile_map_height_ * tile_height) < display_height) { tile_map_height_++; }
 
-    // Pre-allocate the arrays for the copy pixel tiles command
-    tile_pixels_list = (Pixel**)malloc(sizeof(Pixel*) * tile_map_width_ * tile_map_height_);
-    tile_starts_list = (unsigned int*)malloc(sizeof(unsigned int) * tile_map_width_ * tile_map_height_ * 3);
-    memset(tile_starts_list, 0x00, sizeof(unsigned int) * tile_map_width_ * tile_map_height_ * 3);
-    tile_count = 0;
-
     // Set up tile cache counters
     unchanged_tiles_ = cache_hits_ = cache_misses_ = age_counter_ = 0;
 
@@ -83,9 +77,6 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
 
 CachedTiler::~CachedTiler()
 {
-    if (tile_pixels_list) { free(tile_pixels_list); }
-    if (tile_starts_list) { free(tile_starts_list); }
-
     // Free all of the allocated tile_t structs
     map<unsigned long, tile_t*>::iterator it;
     for (it = cache_map_.begin(); it != cache_map_.end(); it++) {
@@ -359,27 +350,27 @@ void CachedTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     if (misses > 0) {
 
         // Set the tile size parameter
-        vector<unsigned int> vsize;
-        vsize.push_back(tile_width_); vsize.push_back(tile_height_);
-        unsigned int size[] = {(unsigned int)tile_width_, (unsigned int)tile_height_};
+        vector<unsigned int> size;
+        size.push_back(tile_width_); size.push_back(tile_height_);
 
         // Update the Frame Volume by copying the tiles over
-        if (tile_count > 0) {
-            display_->CopyPixelTiles(tile_pixels_list, tile_starts_list, size, tile_count);
+        if (tile_pixels_list.size() > 0) {
+            display_->CopyPixelTiles(tile_pixels_list, tile_starts_list, size);
         }
 
-        // Free the tile pixel memory
-        while (tile_count > 0) {
-            free(tile_pixels_list[tile_count - 1]);
-            tile_count--;
+        // Free the tile memory and empty the vector
+        while (!tile_pixels_list.empty()) {
+            free(tile_pixels_list.back());
+            tile_pixels_list.pop_back();
         }
+        tile_starts_list.clear();
 
         // Update the coefficient plane
         if (coefficients_list.size() > 0) {
             display_->FillCoefficientTiles(coefficients_list,
                                            coefficient_positions_list,
                                            coefficient_plane_starts_list,
-                                           vsize);
+                                           size);
         }
 
         // Free the coefficient memory and empty the vector
@@ -516,14 +507,17 @@ void CachedTiler::PushTile(tile_t* tile, Pixel* pixels, size_t i, size_t j) {
  * @param pixels The array of pixels to use in the update.
  */
 void CachedTiler::PushTile(tile_t* tile, Pixel* pixels) {
+    // Create and push the start coordinates
+    vector<unsigned int> start;
+    start.push_back(0); start.push_back(0); start.push_back(tile->zIndex);
+
 #ifndef NO_OMP
 #pragma omp critical
 #endif
     {
         // Push the tile and starts
-        tile_pixels_list[tile_count] = pixels;
-        tile_starts_list[tile_count * 3 + 2] = tile->zIndex;
-        tile_count++;
+        tile_pixels_list.push_back(pixels);
+        tile_starts_list.push_back(start);
     }
 }
 

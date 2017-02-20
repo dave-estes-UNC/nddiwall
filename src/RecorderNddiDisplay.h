@@ -106,108 +106,98 @@ namespace nddi {
     public:
         PutPixelCommandMessage() : NddiCommandMessage(idPutPixel) {}
 
-        PutPixelCommandMessage(Pixel p, unsigned int* location,
-                               unsigned int frameVolumeDimensionality)
+        PutPixelCommandMessage(Pixel p, vector<unsigned int> &location)
         : NddiCommandMessage(idPutPixel),
           p(p),
-          frameVolumeDimensionality(frameVolumeDimensionality) {
-            this->location = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->location, location, sizeof(unsigned int) * frameVolumeDimensionality);
+          location(location) {
         }
 
         ~PutPixelCommandMessage() {
-            if (location) { free((void*)location); }
         }
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar(CEREAL_NVP(id));
-          ar.saveBinaryValue(&p, sizeof(Pixel), "p");
-          ar.saveBinaryValue(location, sizeof(unsigned int) * frameVolumeDimensionality, "location");
+          ar(CEREAL_NVP(p), CEREAL_NVP(location));
         }
 
     private:
-        Pixel         p;
-        unsigned int* location;
-        unsigned int  frameVolumeDimensionality;
+        Pixel                p;
+        vector<unsigned int> location;
     };
 
     class CopyPixelStripCommandMessage : public NddiCommandMessage {
     public:
         CopyPixelStripCommandMessage() : NddiCommandMessage(idCopyPixelStrip) {}
 
-        CopyPixelStripCommandMessage(Pixel* p, unsigned int count,
-                                     unsigned int* start, unsigned int* end,
-                                     unsigned int frameVolumeDimensionality)
+        CopyPixelStripCommandMessage(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
         : NddiCommandMessage(idCopyPixelStrip),
-          count(count),
-          frameVolumeDimensionality(frameVolumeDimensionality) {
-            this->p = (Pixel*)malloc(sizeof(Pixel) * count);
-            memcpy(this->p, p, sizeof(Pixel) * count);
-            this->start = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->start, start, sizeof(unsigned int) * frameVolumeDimensionality);
-            this->end = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->end, end, sizeof(unsigned int) * frameVolumeDimensionality);
+          start(start),
+          end(end) {
+            int dimensionToCopyAlong;
+            bool dimensionFound = false;
+
+            // Find the dimension to copy along
+            for (int i = 0; !dimensionFound && (i < start.size()); i++) {
+                if (start[i] != end[i]) {
+                    dimensionToCopyAlong = i;
+                    dimensionFound = true;
+                }
+            }
+            pixelsToCopy = end[dimensionToCopyAlong] - start[dimensionToCopyAlong] + 1;
+
+            this->p = (Pixel*)malloc(sizeof(Pixel) * pixelsToCopy);
+            memcpy(this->p, p, sizeof(Pixel) * pixelsToCopy);
         }
 
         ~CopyPixelStripCommandMessage() {
             if (p) { free((void*)p); }
-            if (start) { free((void*)start); }
-            if (end) { free((void*)end); }
         }
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar.saveBinaryValue(p, sizeof(Pixel) * count, "p");
-          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
-          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
+          ar.saveBinaryValue(p, sizeof(Pixel) * pixelsToCopy, "p");
+          ar(CEREAL_NVP(start), CEREAL_NVP(end));
         }
 
     private:
-        Pixel*        p;
-        unsigned int  count;
-        unsigned int* start;
-        unsigned int* end;
-        unsigned int  frameVolumeDimensionality;
+        Pixel*               p;
+        unsigned int         pixelsToCopy;
+        vector<unsigned int> start;
+        vector<unsigned int> end;
     };
 
     class CopyPixelsCommandMessage : public NddiCommandMessage {
     public:
         CopyPixelsCommandMessage() : NddiCommandMessage(idCopyPixels) {}
 
-        CopyPixelsCommandMessage(Pixel* p, unsigned int count,
-                                 unsigned int* start, unsigned int* end,
-                                 unsigned int frameVolumeDimensionality)
+        CopyPixelsCommandMessage(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
         : NddiCommandMessage(idCopyPixels),
-          count(count),
-          frameVolumeDimensionality(frameVolumeDimensionality) {
-            this->p = (Pixel*)malloc(sizeof(Pixel) * count);
-            memcpy(this->p, p, sizeof(Pixel) * count);
-            this->start = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->start, start, sizeof(unsigned int) * frameVolumeDimensionality);
-            this->end = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->end, end, sizeof(unsigned int) * frameVolumeDimensionality);
+          start(start),
+          end(end) {
+            pixelsToCopy = 1;
+            for (int i = 0; i < start.size(); i++) {
+                pixelsToCopy *= end[i] - start[i] + 1;
+            }
+
+            this->p = (Pixel*)malloc(sizeof(Pixel) * pixelsToCopy);
+            memcpy(this->p, p, sizeof(Pixel) * pixelsToCopy);
         }
 
         ~CopyPixelsCommandMessage() {
             if (p) { free((void*)p); }
-            if (start) { free((void*)start); }
-            if (end) { free((void*)end); }
         }
 
         template <class Archive>
         void serialize(Archive& ar) {
-          ar.saveBinaryValue(p, sizeof(Pixel) * count, "p");
-          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
-          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
+          ar.saveBinaryValue(p, sizeof(Pixel) * pixelsToCopy, "p");
+          ar(CEREAL_NVP(start), CEREAL_NVP(end));
         }
 
     private:
-        Pixel*        p;
-        unsigned int  count;
-        unsigned int* start;
-        unsigned int* end;
-        unsigned int  frameVolumeDimensionality;
+        Pixel*               p;
+        unsigned int         pixelsToCopy;
+        vector<unsigned int> start;
+        vector<unsigned int> end;
     };
 
     class CopyPixelTilesCommandMessage : public NddiCommandMessage {
@@ -219,35 +209,27 @@ namespace nddi {
     public:
         FillPixelCommandMessage() : NddiCommandMessage(idFillPixel) {}
 
-        FillPixelCommandMessage(Pixel p,
-                                unsigned int* start, unsigned int* end,
-                                unsigned int frameVolumeDimensionality)
+        FillPixelCommandMessage(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end)
         : NddiCommandMessage(idFillPixel),
           p(p),
-          frameVolumeDimensionality(frameVolumeDimensionality) {
-            this->start = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->start, start, sizeof(unsigned int) * frameVolumeDimensionality);
-            this->end = (unsigned int*)malloc(sizeof(unsigned int) * frameVolumeDimensionality);
-            memcpy(this->end, end, sizeof(unsigned int) * frameVolumeDimensionality);
+          start(start),
+          end(end) {
         }
 
         ~FillPixelCommandMessage() {
-            if (start) { free((void*)start); }
-            if (end) { free((void*)end); }
         }
 
         template <class Archive>
         void serialize(Archive& ar) {
           ar.saveBinaryValue(&p, sizeof(Pixel), "p");
-          ar.saveBinaryValue(start, sizeof(unsigned int) * frameVolumeDimensionality, "start");
-          ar.saveBinaryValue(end, sizeof(unsigned int) * frameVolumeDimensionality, "end");
+          vector<unsigned int> start;
+          vector<unsigned int> end;
         }
 
     private:
         Pixel         p;
-        unsigned int* start;
-        unsigned int* end;
-        unsigned int  frameVolumeDimensionality;
+        vector<unsigned int> start;
+        vector<unsigned int> end;
     };
 
     class CopyFrameVolumeCommandMessage : public NddiCommandMessage {
@@ -429,26 +411,19 @@ namespace nddi {
 
     public:
         RecorderNddiDisplay();
-        RecorderNddiDisplay(unsigned int frameVolumeDimensionality,
-                            unsigned int* frameVolumeDimensionalSizes,
+        RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                             unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
-        : RecorderNddiDisplay(frameVolumeDimensionality, frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
+        : RecorderNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
         }
 
-        RecorderNddiDisplay(unsigned int frameVolumeDimensionality,
-                            unsigned int* frameVolumeDimensionalSizes,
-                            unsigned int displayWidth, unsigned int displayHeight,
-                            unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
-        : frameVolumeDimensionality_(frameVolumeDimensionality),
+        RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
+                unsigned int displayWidth, unsigned int displayHeight,
+                unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
+        : frameVolumeDimensionalSizes_(frameVolumeDimensionalSizes),
           inputVectorSize_(inputVectorSize),
           numCoefficientPlanes_(numCoefficientPlanes) {
             recorder = new Recorder();
-
-            vector<unsigned int> fds;
-            for (auto i = 0; i < frameVolumeDimensionality; i++) {
-                fds.push_back(frameVolumeDimensionalSizes[i]);
-            }
-            NddiCommandMessage* msg = new InitCommandMessage(fds,
+            NddiCommandMessage* msg = new InitCommandMessage(frameVolumeDimensionalSizes,
                                                              displayWidth, displayHeight,
                                                              numCoefficientPlanes, inputVectorSize);
             recorder->record(msg);
@@ -478,55 +453,37 @@ namespace nddi {
             recorder->record(msg);
         }
 
-        void PutPixel(Pixel p, unsigned int* location) {
-            NddiCommandMessage* msg = new PutPixelCommandMessage(p, location, frameVolumeDimensionality_);
+        void PutPixel(Pixel p, vector<unsigned int> &location) {
+            NddiCommandMessage* msg = new PutPixelCommandMessage(p, location);
             recorder->record(msg);
         }
 
-        void CopyPixelStrip(Pixel* p, unsigned int* start, unsigned int* end) {
-            int dimensionToCopyAlong;
-            bool dimensionFound = false;
-
-            // Find the dimension to copy along
-            for (int i = 0; !dimensionFound && (i < frameVolumeDimensionality_); i++) {
-                if (start[i] != end[i]) {
-                    dimensionToCopyAlong = i;
-                    dimensionFound = true;
-                }
-            }
-            int pixelsToCopy = end[dimensionToCopyAlong] - start[dimensionToCopyAlong] + 1;
-
-            NddiCommandMessage* msg = new CopyPixelStripCommandMessage(p, pixelsToCopy,
-                                                                       start, end, frameVolumeDimensionality_);
+        void CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
+            NddiCommandMessage* msg = new CopyPixelStripCommandMessage(p, start, end);
             recorder->record(msg);
         }
 
-        void CopyPixels(Pixel* p, unsigned int* start, unsigned int* end) {
-            int pixelsToCopy = 1;
-            for (int i = 0; i < frameVolumeDimensionality_; i++) {
-                pixelsToCopy *= end[i] - start[i] + 1;
-            }
-            NddiCommandMessage* msg = new CopyPixelsCommandMessage(p, pixelsToCopy,
-                                                                   start, end, frameVolumeDimensionality_);
+        void CopyPixels(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end) {
+            NddiCommandMessage* msg = new CopyPixelsCommandMessage(p, start, end);
             recorder->record(msg);
         }
 
-        void CopyPixelTiles(Pixel** p, unsigned int* starts, unsigned int* size, size_t count) {}
+        void CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
 
-        void FillPixel(Pixel p, unsigned int* start, unsigned int* end) {
-            NddiCommandMessage* msg = new FillPixelCommandMessage(p, start, end, frameVolumeDimensionality_);
+        void FillPixel(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end) {
+            NddiCommandMessage* msg = new FillPixelCommandMessage(p, start, end);
             recorder->record(msg);
         }
 
-        void CopyFrameVolume(unsigned int* start, unsigned int* end, unsigned int* dest) {}
-        void UpdateInputVector(int* input) {}
-        void PutCoefficientMatrix(int* coefficientMatrix, unsigned int* location) {}
-        void FillCoefficientMatrix(int* coefficientMatrix, unsigned int* start, unsigned int* end) {}
-        void FillCoefficient(int coefficient, unsigned int row, unsigned int col, unsigned int* start, unsigned int* end) {}
-        void FillCoefficientTiles(int* coefficients, unsigned int* positions, unsigned int* starts, unsigned int* size, size_t count) {}
-        void FillScaler(Scaler scaler, unsigned int* start, unsigned int* end) {}
-        void FillScalerTiles(Scaler* scalers, unsigned int* starts, unsigned int* size, size_t count) {}
-        void FillScalerTileStack(Scaler* scalers, unsigned int* start, unsigned int* size, size_t count) {}
+        void CopyFrameVolume(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest) {}
+        void UpdateInputVector(vector<int> &input) {}
+        void PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location) {}
+        void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end) {}
+        void FillCoefficient(int coefficient, unsigned int row, unsigned int col, vector<unsigned int> &start, vector<unsigned int> &end) {}
+        void FillCoefficientTiles(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
+        void FillScaler(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end) {}
+        void FillScalerTiles(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
+        void FillScalerTileStack(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size) {}
         void SetPixelByteSignMode(SignMode mode) {}
         void SetFullScaler(uint16_t scaler) {}
 
@@ -539,11 +496,11 @@ namespace nddi {
         void Latch() {}
 
     private:
-        unsigned int frameVolumeDimensionality_;
-        unsigned int inputVectorSize_;
-        unsigned int numCoefficientPlanes_;
-        Recorder*    recorder = NULL;
-        Player*      player = NULL;
+        vector<unsigned int>  frameVolumeDimensionalSizes_;
+        unsigned int          inputVectorSize_;
+        unsigned int          numCoefficientPlanes_;
+        Recorder*             recorder = NULL;
+        Player*               player = NULL;
     };
 }
 

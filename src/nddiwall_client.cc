@@ -53,10 +53,7 @@ int main(int argc, char** argv) {
     // are created. This channel models a connection to an endpoint (in this case,
     // localhost at port 50051). We indicate that the channel isn't authenticated
     // (use of InsecureChannelCredentials()).
-    vector<unsigned int> frameVolumeDimensionalSizes;
-    frameVolumeDimensionalSizes.push_back(DISPLAY_WIDTH);
-    frameVolumeDimensionalSizes.push_back(DISPLAY_HEIGHT);
-    frameVolumeDimensionalSizes.push_back(2);
+    vector<unsigned int> frameVolumeDimensionalSizes = {DISPLAY_WIDTH, DISPLAY_HEIGHT, 2};
     NDimensionalDisplayInterface* myDisplay = NULL;
     RecorderNddiDisplay* myRecorder = NULL;
     GrpcNddiDisplay* myDisplayWall = NULL;
@@ -82,11 +79,8 @@ int main(int argc, char** argv) {
         coeffs[1].push_back(0); coeffs[1].push_back(1); coeffs[1].push_back(0);
         coeffs[2].push_back(0); coeffs[2].push_back(0); coeffs[2].push_back(1);
 
-        vector<unsigned int> start, end;
-        start.clear(); end.clear();
-
-        start.push_back(0); start.push_back(0); start.push_back(0);
-        end.push_back(DISPLAY_WIDTH - 1); end.push_back(DISPLAY_HEIGHT - 1); end.push_back(0);
+        vector<unsigned int> start = {0, 0, 0};
+        vector<unsigned int> end = {DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, 0};
 
         myDisplay->FillCoefficientMatrix(coeffs, start, end);
         if (myDisplayWall) { myDisplayWall->Latch(); }
@@ -109,8 +103,7 @@ int main(int argc, char** argv) {
 
         // Update the FrameBuffer with just one blue pixel at (10,10)
         // Update the FrameBuffer with just one blue pixel at (10,10)
-        vector<uint32_t> location;
-        location.push_back(10); location.push_back(10); location.push_back(0);
+        vector<uint32_t> location = {10, 10, 0};
         p.b = 0xff;
         myDisplay->PutPixel(p, location);
         if (myDisplayWall) { myDisplayWall->Latch(); }
@@ -136,13 +129,14 @@ int main(int argc, char** argv) {
         if (myDisplayWall) { myDisplayWall->Latch(); }
 
         // Update coefficient matrix at (20,20) to use pixel at (10,10)
-        coeffs[0 * 3 + 2] = coeffs[1 * 3 + 2] = -10;
+        coeffs[2][0] = coeffs[2][1] = -10;
+        location[0] = location[1] = 20;
         myDisplay->PutCoefficientMatrix(coeffs, location);
         if (myDisplayWall) { myDisplayWall->Latch(); }
 
         // Sleep for 2s, change to black, then sleep for 2s and change back
         if (myDisplayWall) { sleep(2); }
-        int input[] = {1};
+        vector<int> input = {1};
         myDisplay->UpdateInputVector(input);
         if (myDisplayWall) { sleep(2); }
         start[0] = start[1] = 0;
@@ -154,11 +148,12 @@ int main(int argc, char** argv) {
         // Sleep again and then do the checkerboard blending
         if (myDisplayWall) { sleep(2); }
         s.r = s.g = s.b = s.a = myDisplay->GetFullScaler() >> 1;
-        Scaler scalers[2];
-        scalers[0].packed = scalers[1].packed = s.packed;
-        unsigned int starts[] {40, 40, 0, 60, 60, 0};
-        unsigned int size[] = {10, 10};
-        myDisplay->FillScalerTiles(scalers, starts, size, 2);
+        vector<uint64_t> scalers = {s.packed, s.packed};
+        vector<unsigned int> start1 = {40, 40, 0};
+        vector<unsigned int> start2 = {60, 60, 0};
+        vector<vector<unsigned int> > starts = {start1, start2};
+        vector<unsigned int> size = {10, 10};
+        myDisplay->FillScalerTiles(scalers, starts, size);
         if (myDisplayWall) { myDisplayWall->Latch(); }
 
         while (myDisplayWall) {

@@ -229,6 +229,8 @@ namespace nddi {
 
         template <class Archive>
         void serialize(Archive& ar) {
+            unsigned int tileCount = starts.size();
+            ar(CEREAL_NVP(tileCount));
             for (int i = 0; i < p.size(); i++) {
                 ar.saveBinaryValue(p[i], sizeof(Pixel) * pixelsPerTile, "p");
             }
@@ -368,31 +370,115 @@ namespace nddi {
     class FillCoefficientTilesCommandMessage : public NddiCommandMessage {
     public:
         FillCoefficientTilesCommandMessage() : NddiCommandMessage(idFillCoefficientTiles) {}
+
+        FillCoefficientTilesCommandMessage(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
+        : NddiCommandMessage(idFillCoefficientTiles),
+          coefficients(coefficients),
+          positions(positions),
+          starts(starts),
+          size(size) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(coefficients), CEREAL_NVP(positions), CEREAL_NVP(starts), CEREAL_NVP(size));
+        }
+
+    private:
+        vector<int> coefficients;
+        vector<vector<unsigned int> > positions;
+        vector<vector<unsigned int> > starts;
+        vector<unsigned int> size;
     };
 
     class FillScalerCommandMessage : public NddiCommandMessage {
     public:
         FillScalerCommandMessage() : NddiCommandMessage(idFillScaler) {}
+
+        FillScalerCommandMessage(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end)
+        : NddiCommandMessage(idFillScaler),
+          scaler(scaler),
+          start(start),
+          end(end) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(scaler), CEREAL_NVP(start), CEREAL_NVP(end));
+        }
+
+    private:
+        Scaler scaler;
+        vector<unsigned int> start;
+        vector<unsigned int> end;
     };
 
     class FillScalerTilesCommandMessage : public NddiCommandMessage {
     public:
         FillScalerTilesCommandMessage() : NddiCommandMessage(idFillScalerTiles) {}
+
+        FillScalerTilesCommandMessage(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
+        : NddiCommandMessage(idFillScalerTiles) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(scalers), CEREAL_NVP(starts), CEREAL_NVP(size));
+        }
+
+    private:
+        vector<uint64_t> scalers;
+        vector<vector<unsigned int> > starts;
+        vector<unsigned int> size;
     };
 
     class FillScalerTileStackCommandMessage : public NddiCommandMessage {
     public:
         FillScalerTileStackCommandMessage() : NddiCommandMessage(idFillScalerTileStack) {}
+
+        FillScalerTileStackCommandMessage(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size)
+        : NddiCommandMessage(idFillScalerTileStack) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(scalers), CEREAL_NVP(start), CEREAL_NVP(size));
+        }
+
+    private:
+        vector<uint64_t> scalers;
+        vector<unsigned int> start;
+        vector<unsigned int> size;
     };
 
     class SetPixelByteSignModeCommandMessage : public NddiCommandMessage {
     public:
         SetPixelByteSignModeCommandMessage() : NddiCommandMessage(idSetPixelByteSignMode) {}
+
+        SetPixelByteSignModeCommandMessage(SignMode mode)
+        : NddiCommandMessage(idGetFullScaler),
+          mode(mode) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(mode));
+        }
+
+    private:
+        SignMode mode;
     };
 
     class SetFullScalerCommandMessage : public NddiCommandMessage {
     public:
         SetFullScalerCommandMessage() : NddiCommandMessage(idSetFullScaler) {}
+
+        SetFullScalerCommandMessage(uint64_t scaler)
+        : NddiCommandMessage(idSetFullScaler),
+          scaler(scaler) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(scaler));
+        }
+
+    private:
+        uint64_t scaler;
     };
 
     class GetFullScalerCommandMessage : public NddiCommandMessage {
@@ -549,16 +635,19 @@ namespace nddi {
         unsigned int DisplayWidth() {
             NddiCommandMessage* msg = new DisplayWidthCommandMessage();
             recorder->record(msg);
+            return 0;
         }
 
         unsigned int DisplayHeight() {
             NddiCommandMessage* msg = new DisplayHeightCommandMessage();
             recorder->record(msg);
+            return 0;
         }
 
         unsigned int NumCoefficientPlanes() {
             NddiCommandMessage* msg = new NumCoefficientPlanesCommandMessage();
             recorder->record(msg);
+            return 0;
         }
 
         void PutPixel(Pixel p, vector<unsigned int> &location) {
@@ -611,16 +700,40 @@ namespace nddi {
             recorder->record(msg);
         }
 
-        void FillCoefficientTiles(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
-        void FillScaler(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end) {}
-        void FillScalerTiles(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
-        void FillScalerTileStack(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size) {}
-        void SetPixelByteSignMode(SignMode mode) {}
-        void SetFullScaler(uint16_t scaler) {}
+        void FillCoefficientTiles(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
+            NddiCommandMessage* msg = new FillCoefficientTilesCommandMessage(coefficients, positions, starts, size);
+            recorder->record(msg);
+        }
+
+        void FillScaler(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end) {
+            NddiCommandMessage* msg = new FillScalerCommandMessage(scaler, start, end);
+            recorder->record(msg);
+        }
+
+        void FillScalerTiles(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {
+            NddiCommandMessage* msg = new FillScalerTilesCommandMessage(scalers, starts, size);
+            recorder->record(msg);
+        }
+
+        void FillScalerTileStack(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size) {
+            NddiCommandMessage* msg = new FillScalerTileStackCommandMessage(scalers, start, size);
+            recorder->record(msg);
+        }
+
+        void SetPixelByteSignMode(SignMode mode) {
+            NddiCommandMessage* msg = new SetPixelByteSignModeCommandMessage(mode);
+            recorder->record(msg);
+        }
+
+        void SetFullScaler(uint16_t scaler) {
+            NddiCommandMessage* msg = new SetFullScalerCommandMessage(scaler);
+            recorder->record(msg);
+        }
 
         uint16_t GetFullScaler() {
             NddiCommandMessage* msg = new GetFullScalerCommandMessage();
             recorder->record(msg);
+            return 0;
         }
 
         CostModel* GetCostModel() {}

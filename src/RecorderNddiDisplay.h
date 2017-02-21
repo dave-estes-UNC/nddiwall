@@ -288,21 +288,81 @@ namespace nddi {
     class UpdateInputVectorCommandMessage : public NddiCommandMessage {
     public:
         UpdateInputVectorCommandMessage() : NddiCommandMessage(idUpdateInputVector) {}
+
+        UpdateInputVectorCommandMessage(vector<int> &input)
+        : NddiCommandMessage(idUpdateInputVector), input(input) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(input));
+        }
+
+    private:
+        vector<int> input;
     };
 
     class PutCoefficientMatrixCommandMessage : public NddiCommandMessage {
     public:
         PutCoefficientMatrixCommandMessage() : NddiCommandMessage(idPutCoefficientMatrix) {}
+
+        PutCoefficientMatrixCommandMessage(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location)
+        : NddiCommandMessage(idPutCoefficientMatrix),
+          coefficientMatrix(coefficientMatrix),
+          location(location) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(coefficientMatrix), CEREAL_NVP(location));
+        }
+
+    private:
+        vector< vector<int> > coefficientMatrix;
+        vector<unsigned int> location;
     };
 
     class FillCoefficientMatrixCommandMessage : public NddiCommandMessage {
     public:
         FillCoefficientMatrixCommandMessage() : NddiCommandMessage(idFillCoefficientMatrix) {}
+
+        FillCoefficientMatrixCommandMessage(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end)
+        : NddiCommandMessage(idFillCoefficientMatrix),
+          coefficientMatrix(coefficientMatrix),
+          start(start),
+          end(end) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(coefficientMatrix), CEREAL_NVP(start), CEREAL_NVP(end));
+        }
+
+    private:
+        vector< vector<int> > coefficientMatrix;
+        vector<unsigned int> start;
+        vector<unsigned int> end;
     };
 
     class FillCoefficientCommandMessage : public NddiCommandMessage {
     public:
         FillCoefficientCommandMessage() : NddiCommandMessage(idFillCoefficient) {}
+
+        FillCoefficientCommandMessage(int coefficient, unsigned int row, unsigned int col, vector<unsigned int> &start, vector<unsigned int> &end)
+        : NddiCommandMessage(idFillCoefficient),
+          coefficient(coefficient),
+          row(row),
+          col(col),
+          start(start),
+          end(end) {}
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(coefficient), CEREAL_NVP(row), CEREAL_NVP(col), CEREAL_NVP(start), CEREAL_NVP(end));
+        }
+
+    private:
+        int coefficient;
+        unsigned int row, col;
+        vector<unsigned int> start;
+        vector<unsigned int> end;
     };
 
     class FillCoefficientTilesCommandMessage : public NddiCommandMessage {
@@ -530,10 +590,27 @@ namespace nddi {
             NddiCommandMessage* msg = new CopyFrameVolumeCommandMessage(start, end, dest);
             recorder->record(msg);
         }
-        void UpdateInputVector(vector<int> &input) {}
-        void PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location) {}
-        void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end) {}
-        void FillCoefficient(int coefficient, unsigned int row, unsigned int col, vector<unsigned int> &start, vector<unsigned int> &end) {}
+
+        void UpdateInputVector(vector<int> &input) {
+            NddiCommandMessage* msg = new UpdateInputVectorCommandMessage(input);
+            recorder->record(msg);
+        }
+
+        void PutCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location) {
+            NddiCommandMessage* msg = new PutCoefficientMatrixCommandMessage(coefficientMatrix, location);
+            recorder->record(msg);
+        }
+
+        void FillCoefficientMatrix(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end) {
+            NddiCommandMessage* msg = new FillCoefficientMatrixCommandMessage(coefficientMatrix, start, end);
+            recorder->record(msg);
+        }
+
+        void FillCoefficient(int coefficient, unsigned int row, unsigned int col, vector<unsigned int> &start, vector<unsigned int> &end) {
+            NddiCommandMessage* msg = new FillCoefficientCommandMessage(coefficient, row, col, start, end);
+            recorder->record(msg);
+        }
+
         void FillCoefficientTiles(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}
         void FillScaler(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end) {}
         void FillScalerTiles(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size) {}

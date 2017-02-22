@@ -41,8 +41,9 @@
   - Add thread safety to command queue.
   * Move to vectors instead of malloc'd arrays.
   * Implement remaining recorders serializers
-  - Add playback.
+  * Add playback.
     * Add input serializers.
-    - Add creation and utilization of an NDDI Display.
+    * Add creation and utilization of an NDDI Display.
+  * Fix RecorderNddiDisplay bug with NDDI client.
   - Get PixelBridge working with RecorderNddiDisplay.
 - Add a proper sync mechanism. 

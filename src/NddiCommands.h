@@ -11,28 +11,28 @@
 #include <iostream>
 
 #define NDDI_COMMAND_LIST(m) \
-  m(Init) \
-  m(DisplayWidth) \
-  m(DisplayHeight) \
-  m(NumCoefficientPlanes) \
-  m(PutPixel) \
-  m(CopyPixelStrip) \
-  m(CopyPixels) \
-  m(CopyPixelTiles) \
-  m(FillPixel) \
-  m(CopyFrameVolume) \
-  m(UpdateInputVector) \
-  m(PutCoefficientMatrix) \
-  m(FillCoefficientMatrix) \
-  m(FillCoefficient) \
-  m(FillCoefficientTiles) \
-  m(FillScaler) \
-  m(FillScalerTiles) \
-  m(FillScalerTileStack) \
-  m(SetPixelByteSignMode) \
-  m(SetFullScaler) \
-  m(GetFullScaler) \
-  m(Latch)
+  /*  1 */  m(Init) \
+  /*  2 */  m(DisplayWidth) \
+  /*  3 */  m(DisplayHeight) \
+  /*  4 */  m(NumCoefficientPlanes) \
+  /*  5 */  m(PutPixel) \
+  /*  6 */  m(CopyPixelStrip) \
+  /*  7 */  m(CopyPixels) \
+  /*  8 */  m(CopyPixelTiles) \
+  /*  9 */  m(FillPixel) \
+  /* 10 */  m(CopyFrameVolume) \
+  /* 11 */  m(UpdateInputVector) \
+  /* 12 */  m(PutCoefficientMatrix) \
+  /* 13 */  m(FillCoefficientMatrix) \
+  /* 14 */  m(FillCoefficient) \
+  /* 15 */  m(FillCoefficientTiles) \
+  /* 16 */  m(FillScaler) \
+  /* 17 */  m(FillScalerTiles) \
+  /* 18 */  m(FillScalerTileStack) \
+  /* 19 */  m(SetPixelByteSignMode) \
+  /* 20 */  m(SetFullScaler) \
+  /* 21 */  m(GetFullScaler) \
+  /* 22 */  m(Latch)
 
 namespace nddi {
 

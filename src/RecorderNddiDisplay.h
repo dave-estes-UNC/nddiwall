@@ -54,8 +54,7 @@ namespace nddi {
                         }
                         delete(msg);
                     }
-                }
-                usleep(10);
+                } else { usleep(10); }
             }
             oarchive(cereal::make_nvp("id", idEOT));
         }
@@ -112,11 +111,15 @@ namespace nddi {
                             break;
                         }
                     }
-                }
-                usleep(10);
+                } else { usleep(10); }
             }
 
-            if (display) { delete display; }
+            // If we created a GRCP Display, then wait a second, then latch a final time and destroy it.
+            if (display) {
+                sleep(1);
+                display->Latch();
+                delete display;
+            }
         }
 
         void run() {

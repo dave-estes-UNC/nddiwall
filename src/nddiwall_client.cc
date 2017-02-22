@@ -83,13 +83,13 @@ int main(int argc, char** argv) {
         vector<unsigned int> end = {DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, 0};
 
         myDisplay->FillCoefficientMatrix(coeffs, start, end);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Set the only plane to full on.
         Scaler s;
         s.r = s.g = s.b = s.a = myDisplay->GetFullScaler();
         myDisplay->FillScaler(s, start, end);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Fill FrameBuffer with white and then black
         Pixel p;
@@ -99,21 +99,21 @@ int main(int argc, char** argv) {
         start[2] = end[2] = 1;
         p.r = p.g = p.b = 0x00;
         myDisplay->FillPixel(p, start, end);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Update the FrameBuffer with just one blue pixel at (10,10)
         // Update the FrameBuffer with just one blue pixel at (10,10)
         vector<uint32_t> location = {10, 10, 0};
         p.b = 0xff;
         myDisplay->PutPixel(p, location);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Copy that section of the Frame Volume to another location
         start[0] = 0; start[1] = 0; start[2] = 0;
         end[0] = 10; end[1] = 10; end[2] = 0;
         location[0] = 30; location[1] = 30;
         myDisplay->CopyFrameVolume(start, end, location);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Copy a pixel strip and then a pixel array
         Pixel ps[32];
@@ -126,13 +126,13 @@ int main(int argc, char** argv) {
         start[0] = 30; start[1] = 30; start[2] = 0;
         end[0] = 33; end[1] = 33; end[2] = 1;
         myDisplay->CopyPixels(ps, start, end);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Update coefficient matrix at (20,20) to use pixel at (10,10)
         coeffs[2][0] = coeffs[2][1] = -10;
         location[0] = location[1] = 20;
         myDisplay->PutCoefficientMatrix(coeffs, location);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Sleep for 2s, change to black, then sleep for 2s and change back
         if (myDisplayWall) { sleep(2); }
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
         end[0] = DISPLAY_WIDTH - 1; end[1] = DISPLAY_HEIGHT - 1;
         start[2] = end[2] = 0;
         myDisplay->FillCoefficient(0, 2, 2, start, end);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Sleep again and then do the checkerboard blending
         if (myDisplayWall) { sleep(2); }
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
         vector<vector<unsigned int> > starts = {start1, start2};
         vector<unsigned int> size = {10, 10};
         myDisplay->FillScalerTiles(scalers, starts, size);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+        if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         while (myDisplayWall) {
             usleep(1000);

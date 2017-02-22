@@ -1,6 +1,8 @@
 #ifndef RECORDER_NDDI_DISPLAY_H
 #define RECORDER_NDDI_DISPLAY_H
 
+#include "GrpcNddiDisplay.h"
+#include "NddiCommands.h"
 #include "nddi/Features.h"
 #include "nddi/NDimensionalDisplayInterface.h"
 
@@ -12,479 +14,7 @@
 #include <cereal/archives/xml.hpp>
 #include <cereal/types/vector.hpp>
 
-#define NDDI_COMMAND_LIST(m) \
-  m(Init) \
-  m(DisplayWidth) \
-  m(DisplayHeight) \
-  m(NumCoefficientPlanes) \
-  m(PutPixel) \
-  m(CopyPixelStrip) \
-  m(CopyPixels) \
-  m(CopyPixelTiles) \
-  m(FillPixel) \
-  m(CopyFrameVolume) \
-  m(UpdateInputVector) \
-  m(PutCoefficientMatrix) \
-  m(FillCoefficientMatrix) \
-  m(FillCoefficient) \
-  m(FillCoefficientTiles) \
-  m(FillScaler) \
-  m(FillScalerTiles) \
-  m(FillScalerTileStack) \
-  m(SetPixelByteSignMode) \
-  m(SetFullScaler) \
-  m(GetFullScaler)
-
 namespace nddi {
-
-    enum CommandID : unsigned int {
-        idEOT,
-        #define GENERATE_ENUM(m) id ## m ,
-        NDDI_COMMAND_LIST(GENERATE_ENUM)
-    };
-
-    class NddiCommandMessage {
-    public:
-        NddiCommandMessage(CommandID id)
-        : id(id) {
-        }
-
-        template <class Archive>
-        void serialize(Archive& ar) {}
-
-        CommandID id;
-    };
-
-    class InitCommandMessage : public NddiCommandMessage {
-    public:
-        InitCommandMessage() : NddiCommandMessage(idInit) {}
-
-        InitCommandMessage(vector<unsigned int> frameVolumeDimensionalSizes,
-                           unsigned int displayWidth,
-                           unsigned int displayHeight,
-                           unsigned int numCoefficientPlanes,
-                           unsigned int inputVectorSize)
-        : frameVolumeDimensionalSizes(frameVolumeDimensionalSizes),
-          displayWidth(displayWidth),
-          displayHeight(displayHeight),
-          numCoefficientPlanes(numCoefficientPlanes),
-          inputVectorSize(inputVectorSize),
-          NddiCommandMessage(idInit) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-          ar(CEREAL_NVP(frameVolumeDimensionalSizes));
-          ar(CEREAL_NVP(displayWidth), CEREAL_NVP(displayHeight),
-             CEREAL_NVP(numCoefficientPlanes), CEREAL_NVP(inputVectorSize));
-        }
-
-    private:
-        unsigned int  frameVolumeDimensionality;
-        vector<unsigned int> frameVolumeDimensionalSizes;
-        unsigned int  displayWidth;
-        unsigned int  displayHeight;
-        unsigned int  numCoefficientPlanes;
-        unsigned int  inputVectorSize;
-    };
-
-    class DisplayWidthCommandMessage : public NddiCommandMessage {
-    public:
-        DisplayWidthCommandMessage() : NddiCommandMessage(idDisplayWidth) {}
-    };
-
-    class DisplayHeightCommandMessage : public NddiCommandMessage {
-    public:
-        DisplayHeightCommandMessage() : NddiCommandMessage(idDisplayHeight) {}
-    };
-
-    class NumCoefficientPlanesCommandMessage : public NddiCommandMessage {
-    public:
-        NumCoefficientPlanesCommandMessage() : NddiCommandMessage(idNumCoefficientPlanes) {}
-    };
-
-    class PutPixelCommandMessage : public NddiCommandMessage {
-    public:
-        PutPixelCommandMessage() : NddiCommandMessage(idPutPixel) {}
-
-        PutPixelCommandMessage(Pixel p, vector<unsigned int> &location)
-        : NddiCommandMessage(idPutPixel),
-          p(p),
-          location(location) {
-        }
-
-        ~PutPixelCommandMessage() {
-        }
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-          ar(CEREAL_NVP(p), CEREAL_NVP(location));
-        }
-
-    private:
-        Pixel                p;
-        vector<unsigned int> location;
-    };
-
-    class CopyPixelStripCommandMessage : public NddiCommandMessage {
-    public:
-        CopyPixelStripCommandMessage() : NddiCommandMessage(idCopyPixelStrip) {}
-
-        CopyPixelStripCommandMessage(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
-        : NddiCommandMessage(idCopyPixelStrip),
-          start(start),
-          end(end) {
-            int dimensionToCopyAlong;
-            bool dimensionFound = false;
-
-            // Find the dimension to copy along
-            for (int i = 0; !dimensionFound && (i < start.size()); i++) {
-                if (start[i] != end[i]) {
-                    dimensionToCopyAlong = i;
-                    dimensionFound = true;
-                }
-            }
-            pixelsToCopy = end[dimensionToCopyAlong] - start[dimensionToCopyAlong] + 1;
-
-            this->p = (Pixel*)malloc(sizeof(Pixel) * pixelsToCopy);
-            memcpy(this->p, p, sizeof(Pixel) * pixelsToCopy);
-        }
-
-        ~CopyPixelStripCommandMessage() {
-            if (p) { free((void*)p); }
-        }
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-          ar.saveBinaryValue(p, sizeof(Pixel) * pixelsToCopy, "p");
-          ar(CEREAL_NVP(start), CEREAL_NVP(end));
-        }
-
-    private:
-        Pixel*               p;
-        unsigned int         pixelsToCopy;
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-    };
-
-    class CopyPixelsCommandMessage : public NddiCommandMessage {
-    public:
-        CopyPixelsCommandMessage() : NddiCommandMessage(idCopyPixels) {}
-
-        CopyPixelsCommandMessage(Pixel* p, vector<unsigned int> &start, vector<unsigned int> &end)
-        : NddiCommandMessage(idCopyPixels),
-          start(start),
-          end(end) {
-            pixelsToCopy = 1;
-            for (int i = 0; i < start.size(); i++) {
-                pixelsToCopy *= end[i] - start[i] + 1;
-            }
-
-            this->p = (Pixel*)malloc(sizeof(Pixel) * pixelsToCopy);
-            memcpy(this->p, p, sizeof(Pixel) * pixelsToCopy);
-        }
-
-        ~CopyPixelsCommandMessage() {
-            if (p) { free((void*)p); }
-        }
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-          ar.saveBinaryValue(p, sizeof(Pixel) * pixelsToCopy, "p");
-          ar(CEREAL_NVP(start), CEREAL_NVP(end));
-        }
-
-    private:
-        Pixel*               p;
-        unsigned int         pixelsToCopy;
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-    };
-
-    class CopyPixelTilesCommandMessage : public NddiCommandMessage {
-    public:
-        CopyPixelTilesCommandMessage() : NddiCommandMessage(idCopyPixelTiles) {}
-
-        CopyPixelTilesCommandMessage(vector<Pixel*> &p, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
-        : NddiCommandMessage(idCopyPixelTiles),
-          p(p),
-          starts(starts),
-          size(size) {
-            assert(false && "Not yet tested.");
-            pixelsPerTile = 1;
-            for (int i = 0; i < size.size(); i++) {
-                pixelsPerTile *= size[i];
-            }
-            for (int i = 0; i < p.size(); i++) {
-                Pixel* tmp = (Pixel*)malloc(sizeof(Pixel) * pixelsPerTile);
-                memcpy((void*)tmp, (void*)p[i], sizeof(Pixel) * pixelsPerTile);
-                p[i] = tmp;
-            }
-        }
-
-        ~CopyPixelTilesCommandMessage() {
-            for (int i = 0; i < p.size(); i++) {
-                if (p[i]) { free((void*) p[i]); }
-            }
-        }
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            unsigned int tileCount = starts.size();
-            ar(CEREAL_NVP(tileCount));
-            for (int i = 0; i < p.size(); i++) {
-                ar.saveBinaryValue(p[i], sizeof(Pixel) * pixelsPerTile, "p");
-            }
-            ar(CEREAL_NVP(starts), CEREAL_NVP(size));
-        }
-
-    private:
-        vector<Pixel*> p;
-        unsigned int pixelsPerTile;
-        vector<vector<unsigned int> > starts;
-        vector<unsigned int> size;
-    };
-
-    class FillPixelCommandMessage : public NddiCommandMessage {
-    public:
-        FillPixelCommandMessage() : NddiCommandMessage(idFillPixel) {}
-
-        FillPixelCommandMessage(Pixel p, vector<unsigned int> &start, vector<unsigned int> &end)
-        : NddiCommandMessage(idFillPixel),
-          p(p),
-          start(start),
-          end(end) {
-        }
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-          ar.saveBinaryValue(&p, sizeof(Pixel), "p");
-          ar(CEREAL_NVP(start), CEREAL_NVP(end));
-        }
-
-    private:
-        Pixel         p;
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-    };
-
-    class CopyFrameVolumeCommandMessage : public NddiCommandMessage {
-    public:
-        CopyFrameVolumeCommandMessage() : NddiCommandMessage(idCopyFrameVolume) {}
-        CopyFrameVolumeCommandMessage(vector<unsigned int> &start, vector<unsigned int> &end, vector<unsigned int> &dest)
-        : NddiCommandMessage(idCopyFrameVolume),
-          start(start),
-          end(end),
-          dest(dest) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(start), CEREAL_NVP(end), CEREAL_NVP(dest));
-        }
-
-    private:
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-        vector<unsigned int> dest;
-    };
-
-    class UpdateInputVectorCommandMessage : public NddiCommandMessage {
-    public:
-        UpdateInputVectorCommandMessage() : NddiCommandMessage(idUpdateInputVector) {}
-
-        UpdateInputVectorCommandMessage(vector<int> &input)
-        : NddiCommandMessage(idUpdateInputVector), input(input) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(input));
-        }
-
-    private:
-        vector<int> input;
-    };
-
-    class PutCoefficientMatrixCommandMessage : public NddiCommandMessage {
-    public:
-        PutCoefficientMatrixCommandMessage() : NddiCommandMessage(idPutCoefficientMatrix) {}
-
-        PutCoefficientMatrixCommandMessage(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &location)
-        : NddiCommandMessage(idPutCoefficientMatrix),
-          coefficientMatrix(coefficientMatrix),
-          location(location) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(coefficientMatrix), CEREAL_NVP(location));
-        }
-
-    private:
-        vector< vector<int> > coefficientMatrix;
-        vector<unsigned int> location;
-    };
-
-    class FillCoefficientMatrixCommandMessage : public NddiCommandMessage {
-    public:
-        FillCoefficientMatrixCommandMessage() : NddiCommandMessage(idFillCoefficientMatrix) {}
-
-        FillCoefficientMatrixCommandMessage(vector< vector<int> > &coefficientMatrix, vector<unsigned int> &start, vector<unsigned int> &end)
-        : NddiCommandMessage(idFillCoefficientMatrix),
-          coefficientMatrix(coefficientMatrix),
-          start(start),
-          end(end) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(coefficientMatrix), CEREAL_NVP(start), CEREAL_NVP(end));
-        }
-
-    private:
-        vector< vector<int> > coefficientMatrix;
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-    };
-
-    class FillCoefficientCommandMessage : public NddiCommandMessage {
-    public:
-        FillCoefficientCommandMessage() : NddiCommandMessage(idFillCoefficient) {}
-
-        FillCoefficientCommandMessage(int coefficient, unsigned int row, unsigned int col, vector<unsigned int> &start, vector<unsigned int> &end)
-        : NddiCommandMessage(idFillCoefficient),
-          coefficient(coefficient),
-          row(row),
-          col(col),
-          start(start),
-          end(end) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(coefficient), CEREAL_NVP(row), CEREAL_NVP(col), CEREAL_NVP(start), CEREAL_NVP(end));
-        }
-
-    private:
-        int coefficient;
-        unsigned int row, col;
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-    };
-
-    class FillCoefficientTilesCommandMessage : public NddiCommandMessage {
-    public:
-        FillCoefficientTilesCommandMessage() : NddiCommandMessage(idFillCoefficientTiles) {}
-
-        FillCoefficientTilesCommandMessage(vector<int> &coefficients, vector<vector<unsigned int> > &positions, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
-        : NddiCommandMessage(idFillCoefficientTiles),
-          coefficients(coefficients),
-          positions(positions),
-          starts(starts),
-          size(size) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(coefficients), CEREAL_NVP(positions), CEREAL_NVP(starts), CEREAL_NVP(size));
-        }
-
-    private:
-        vector<int> coefficients;
-        vector<vector<unsigned int> > positions;
-        vector<vector<unsigned int> > starts;
-        vector<unsigned int> size;
-    };
-
-    class FillScalerCommandMessage : public NddiCommandMessage {
-    public:
-        FillScalerCommandMessage() : NddiCommandMessage(idFillScaler) {}
-
-        FillScalerCommandMessage(Scaler scaler, vector<unsigned int> &start, vector<unsigned int> &end)
-        : NddiCommandMessage(idFillScaler),
-          scaler(scaler),
-          start(start),
-          end(end) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(scaler), CEREAL_NVP(start), CEREAL_NVP(end));
-        }
-
-    private:
-        Scaler scaler;
-        vector<unsigned int> start;
-        vector<unsigned int> end;
-    };
-
-    class FillScalerTilesCommandMessage : public NddiCommandMessage {
-    public:
-        FillScalerTilesCommandMessage() : NddiCommandMessage(idFillScalerTiles) {}
-
-        FillScalerTilesCommandMessage(vector<uint64_t> &scalers, vector<vector<unsigned int> > &starts, vector<unsigned int> &size)
-        : NddiCommandMessage(idFillScalerTiles) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(scalers), CEREAL_NVP(starts), CEREAL_NVP(size));
-        }
-
-    private:
-        vector<uint64_t> scalers;
-        vector<vector<unsigned int> > starts;
-        vector<unsigned int> size;
-    };
-
-    class FillScalerTileStackCommandMessage : public NddiCommandMessage {
-    public:
-        FillScalerTileStackCommandMessage() : NddiCommandMessage(idFillScalerTileStack) {}
-
-        FillScalerTileStackCommandMessage(vector<uint64_t> &scalers, vector<unsigned int> &start, vector<unsigned int> &size)
-        : NddiCommandMessage(idFillScalerTileStack) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(scalers), CEREAL_NVP(start), CEREAL_NVP(size));
-        }
-
-    private:
-        vector<uint64_t> scalers;
-        vector<unsigned int> start;
-        vector<unsigned int> size;
-    };
-
-    class SetPixelByteSignModeCommandMessage : public NddiCommandMessage {
-    public:
-        SetPixelByteSignModeCommandMessage() : NddiCommandMessage(idSetPixelByteSignMode) {}
-
-        SetPixelByteSignModeCommandMessage(SignMode mode)
-        : NddiCommandMessage(idGetFullScaler),
-          mode(mode) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(mode));
-        }
-
-    private:
-        SignMode mode;
-    };
-
-    class SetFullScalerCommandMessage : public NddiCommandMessage {
-    public:
-        SetFullScalerCommandMessage() : NddiCommandMessage(idSetFullScaler) {}
-
-        SetFullScalerCommandMessage(uint64_t scaler)
-        : NddiCommandMessage(idSetFullScaler),
-          scaler(scaler) {}
-
-        template <class Archive>
-        void serialize(Archive& ar) {
-            ar(CEREAL_NVP(scaler));
-        }
-
-    private:
-        uint64_t scaler;
-    };
-
-    class GetFullScalerCommandMessage : public NddiCommandMessage {
-    public:
-        GetFullScalerCommandMessage() : NddiCommandMessage(idGetFullScaler) {}
-    };
 
     class Recorder {
     public:
@@ -525,7 +55,7 @@ namespace nddi {
                         delete(msg);
                     }
                 }
-                usleep(50);
+                usleep(10);
             }
             oarchive(cereal::make_nvp("id", idEOT));
         }
@@ -546,16 +76,47 @@ namespace nddi {
     public:
         Player() : finished(true) {}
 
-        Player(char* file) : finished(false), file(file)  {
+        Player(char* file)
+        : finished(false), file(file)  {}
+
+        ~Player() {
+            pthread_join(streamThread, NULL);
+        }
+
+        void play() {
             typedef void* (*rptr)(void*);
             if (pthread_create( &streamThread, NULL, pthreadFriendlyRun, this)) {
                 std::cout << "Error: Failed to start thread." << std::endl;
                 exit(EXIT_FAILURE);
             }
-        }
 
-        ~Player() {
-            pthread_join(streamThread, NULL);
+            GrpcNddiDisplay* display = NULL;
+
+            while (!finished || !streamQueue.empty()) {
+                if (!streamQueue.empty()) {
+                    // TODO(CDE): Protect access to streamQueue.
+                    NddiCommandMessage* msg = streamQueue.front();
+                    streamQueue.pop();
+                    if (msg) {
+                        CommandID id = msg->id;
+                        std::cout << "Popped a " << CommandNames[id] << std::endl;;
+                        switch (id) {
+                        #define GENERATE_PLAY_CASE(m) \
+                        case id ## m : { \
+                            ((m ## CommandMessage*)msg)->play(display); \
+                        } \
+                        break;
+                        NDDI_COMMAND_LIST(GENERATE_PLAY_CASE)
+                        case idEOT:
+                        default:
+                            break;
+                        }
+                    }
+                }
+                usleep(10);
+            }
+
+            if (display) { delete display; }
         }
 
         void run() {
@@ -565,16 +126,15 @@ namespace nddi {
             CommandID id;
             iarchive(id);
             while (id != idEOT) {
-                std::cout << id << std::endl;
                 NddiCommandMessage* msg = NULL;
                 switch (id) {
-                #define GENERATE_PLAY_CASE(m) \
+                #define GENERATE_READ_CASE(m) \
                 case id ## m : { \
                     msg = new m ## CommandMessage(); \
-                    iarchive(*msg); \
+                    iarchive(*( m ## CommandMessage *)msg); \
                 } \
                 break;
-                NDDI_COMMAND_LIST(GENERATE_PLAY_CASE)
+                NDDI_COMMAND_LIST(GENERATE_READ_CASE)
                 case idEOT:
                 default:
                     break;
@@ -625,6 +185,7 @@ namespace nddi {
 
         RecorderNddiDisplay(char* file) {
             player = new Player(file);
+            player->play();
         }
 
         ~RecorderNddiDisplay() {
@@ -736,8 +297,12 @@ namespace nddi {
             return 0;
         }
 
+        void Latch() {
+            NddiCommandMessage* msg = new LatchCommandMessage();
+            recorder->record(msg);
+        }
+
         CostModel* GetCostModel() {}
-        void Latch() {}
 
     private:
         vector<unsigned int>  frameVolumeDimensionalSizes_;

@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <pthread.h>
+#include <string.h>
 #include <queue>
 #include <vector>
 
@@ -18,8 +19,9 @@ namespace nddi {
 
     class Recorder {
     public:
-        Recorder() {
-            finished = false;
+        Recorder(string file)
+        : finished(false),
+          file(file) {
             typedef void* (*rptr)(void*);
             if (pthread_create( &streamThread, NULL, pthreadFriendlyRun, this)) {
                 std::cout << "Error: Failed to start thread." << std::endl;
@@ -33,7 +35,7 @@ namespace nddi {
         }
 
         void run() {
-            std::ofstream os("recording.xml", std::ofstream::out);
+            std::ofstream os(file, std::ofstream::out);
             cereal::XMLOutputArchive oarchive(os);
             while (!finished || !streamQueue.empty()) {
                 if (!streamQueue.empty()) {
@@ -66,6 +68,7 @@ namespace nddi {
 
     private:
         bool finished;
+        string file;
         pthread_t streamThread;
         static void * pthreadFriendlyRun(void * This) {((Recorder*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
@@ -73,10 +76,11 @@ namespace nddi {
 
     class Player {
     public:
-        Player() : finished(true) {}
+        Player() : finished(true), file("recording.xml") {}
 
-        Player(char* file)
-        : finished(false), file(file)  {}
+        Player(string file)
+        : finished(false),
+          file(file) {}
 
         ~Player() {
             pthread_join(streamThread, NULL);
@@ -155,7 +159,7 @@ namespace nddi {
 
     private:
         bool finished;
-        char* file;
+        string file;
         pthread_t streamThread;
         static void * pthreadFriendlyRun(void * This) {((Player*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
@@ -176,10 +180,17 @@ namespace nddi {
         RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                 unsigned int displayWidth, unsigned int displayHeight,
                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
+        : RecorderNddiDisplay(frameVolumeDimensionalSizes, displayWidth, displayHeight,
+                numCoefficientPlanes, inputVectorSize, "recording.xml") {
+        }
+        RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
+                unsigned int displayWidth, unsigned int displayHeight,
+                unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                string file)
         : frameVolumeDimensionalSizes_(frameVolumeDimensionalSizes),
           inputVectorSize_(inputVectorSize),
           numCoefficientPlanes_(numCoefficientPlanes) {
-            recorder = new Recorder();
+            recorder = new Recorder(file);
             NddiCommandMessage* msg = new InitCommandMessage(frameVolumeDimensionalSizes,
                                                              displayWidth, displayHeight,
                                                              numCoefficientPlanes, inputVectorSize);

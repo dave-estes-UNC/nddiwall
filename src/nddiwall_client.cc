@@ -59,8 +59,8 @@ int main(int argc, char** argv) {
     GrpcNddiDisplay* myDisplayWall = NULL;
     if (argc == 1) {
         myDisplay = myDisplayWall = new GrpcNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
-    } else if (argc == 2 && strcmp(argv[1], "-r") == 0) {
-        myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+    } else if (argc == 3 && strcmp(argv[1], "-r") == 0) {
+        myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3, argv[2]);
     } else if (argc == 3 && strcmp(argv[1], "-p") == 0) {
         myRecorder = new RecorderNddiDisplay(argv[2]);
     } else {

@@ -32,7 +32,7 @@ public:
      * @param display_height The height of the display
      * @param quality The quality factor used for DCT.
      */
-    ItTiler(size_t display_width, size_t display_height, size_t quality);
+    ItTiler(size_t display_width, size_t display_height, size_t quality, string file = "");
 
     ~ItTiler() {
     }
@@ -40,7 +40,7 @@ public:
     /**
      * Returns the Display created and initialized by the tiler.
      */
-    GrpcNddiDisplay* GetDisplay();
+    NDimensionalDisplayInterface* GetDisplay();
 
     /**
      * Update the scalers and then the NDDI display based on the frame that's passed in.
@@ -81,7 +81,7 @@ private:
     uint32_t qp;
     uint32_t qp6;
 
-    GrpcNddiDisplay  *display_;
+    NDimensionalDisplayInterface  *display_;
     size_t            display_width_, display_height_;
     bool              quiet_;
     int               zigZag_[BLOCK_SIZE];

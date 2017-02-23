@@ -35,7 +35,6 @@
 #include <memory>
 #include <string>
 
-#include <unistd.h>
 #include <grpc++/grpc++.h>
 
 #include "GrpcNddiDisplay.h"
@@ -86,11 +85,8 @@ int main(int argc, char** argv) {
         if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
         // Set the only plane to full on.
-        uint16_t f = myDisplay->GetFullScaler();
-        assert(!f || f == 0xff);
-        f = 0xff;
         Scaler s;
-        s.r = s.g = s.b = s.a = f;
+        s.r = s.g = s.b = s.a = myDisplay->GetFullScaler();
         myDisplay->FillScaler(s, start, end);
         if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
@@ -149,7 +145,7 @@ int main(int argc, char** argv) {
 
         // Sleep again and then do the checkerboard blending
         if (myDisplayWall) { sleep(2); }
-        s.r = s.g = s.b = s.a = f >> 1;
+        s.r = s.g = s.b = s.a = myDisplay->GetFullScaler() >> 1;
         vector<uint64_t> scalers = {s.packed, s.packed};
         vector<unsigned int> start1 = {40, 40, 0};
         vector<unsigned int> start2 = {60, 60, 0};

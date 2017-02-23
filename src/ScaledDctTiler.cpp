@@ -57,7 +57,7 @@
 #define SQRT_125             0.353553391
 #define SQRT_250             0.5
 
-ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size_t quality)
+ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size_t quality, string file)
 : display_width_(display_width),
   display_height_(display_height)
 {
@@ -78,10 +78,18 @@ ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size
     displayTilesHigh_ = CEIL(display_height, BLOCK_HEIGHT);
     tileStackHeights_ = NULL;
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
-                                   display_width, display_height, // display size
-                                   FRAMEVOLUME_DEPTH,             // Number of coefficient planes
-                                   3);                            // Input vector size (x, y, 1)
+    if (file.length()) {
+        display_ = new RecorderNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3,
+                file);
+    } else {
+        display_ = new GrpcNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3);
+    }
 
     /* Set the full scaler value and the sign mode */
     display_->SetFullScaler(MAX_DCT_COEFF);
@@ -1030,7 +1038,7 @@ void ScaledDctTiler::AdjustFrame(int16_t* buffer, int16_t* renderedBuffer, size_
 /**
  * Returns the Display created and initialized by the tiler.
  */
-GrpcNddiDisplay* ScaledDctTiler::GetDisplay() {
+NDimensionalDisplayInterface* ScaledDctTiler::GetDisplay() {
     return display_;
 }
 

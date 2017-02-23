@@ -10,16 +10,18 @@
 #include <pthread.h>
 #include <string.h>
 #include <queue>
+#include <unistd.h>
 #include <vector>
 
-#include <cereal/archives/xml.hpp>
+//#include <cereal/archives/xml.hpp>
+#include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
 
 namespace nddi {
 
-    class Recorder {
+    class CommandRecorder {
     public:
-        Recorder(string file)
+        CommandRecorder(string file)
         : finished(false),
           file(file) {
             typedef void* (*rptr)(void*);
@@ -29,14 +31,16 @@ namespace nddi {
             }
         }
 
-        ~Recorder() {
+        ~CommandRecorder() {
             finished = true;
             pthread_join(streamThread, NULL);
         }
 
         void run() {
             std::ofstream os(file, std::ofstream::out);
-            cereal::XMLOutputArchive oarchive(os);
+            //cereal::XMLOutputArchive oarchive(os);
+            cereal::BinaryOutputArchive oarchive(os);
+
             while (!finished || !streamQueue.empty()) {
                 if (!streamQueue.empty()) {
                     // TODO(CDE): Protect access to streamQueue.
@@ -70,19 +74,19 @@ namespace nddi {
         bool finished;
         string file;
         pthread_t streamThread;
-        static void * pthreadFriendlyRun(void * This) {((Recorder*)This)->run(); return NULL;}
+        static void * pthreadFriendlyRun(void * This) {((CommandRecorder*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
     };
 
-    class Player {
+    class CommandPlayer {
     public:
-        Player() : finished(true), file("recording.xml") {}
+        CommandPlayer() : finished(true), file("recording") {}
 
-        Player(string file)
+        CommandPlayer(string file)
         : finished(false),
           file(file) {}
 
-        ~Player() {
+        ~CommandPlayer() {
             pthread_join(streamThread, NULL);
         }
 
@@ -102,7 +106,7 @@ namespace nddi {
                     streamQueue.pop();
                     if (msg) {
                         CommandID id = msg->id;
-                        std::cout << "Popped a " << CommandNames[id] << std::endl;;
+                        //std::cout << "Popped a " << CommandNames[id] << std::endl;;
                         switch (id) {
                         #define GENERATE_PLAY_CASE(m) \
                         case id ## m : { \
@@ -128,7 +132,8 @@ namespace nddi {
 
         void run() {
             std::ifstream is(file);
-            cereal::XMLInputArchive iarchive(is);
+            //cereal::XMLInputArchive iarchive(is);
+            cereal::BinaryInputArchive iarchive(is);
 
             CommandID id;
             iarchive(id);
@@ -161,7 +166,7 @@ namespace nddi {
         bool finished;
         string file;
         pthread_t streamThread;
-        static void * pthreadFriendlyRun(void * This) {((Player*)This)->run(); return NULL;}
+        static void * pthreadFriendlyRun(void * This) {((CommandPlayer*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
     };
 
@@ -181,16 +186,18 @@ namespace nddi {
                 unsigned int displayWidth, unsigned int displayHeight,
                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
         : RecorderNddiDisplay(frameVolumeDimensionalSizes, displayWidth, displayHeight,
-                numCoefficientPlanes, inputVectorSize, "recording.xml") {
+                numCoefficientPlanes, inputVectorSize, "recording") {
         }
         RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                 unsigned int displayWidth, unsigned int displayHeight,
                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
                 string file)
         : frameVolumeDimensionalSizes_(frameVolumeDimensionalSizes),
+          displayWidth_(displayWidth),
+          displayHeight_(displayHeight),
           inputVectorSize_(inputVectorSize),
           numCoefficientPlanes_(numCoefficientPlanes) {
-            recorder = new Recorder(file);
+            recorder = new CommandRecorder(file);
             NddiCommandMessage* msg = new InitCommandMessage(frameVolumeDimensionalSizes,
                                                              displayWidth, displayHeight,
                                                              numCoefficientPlanes, inputVectorSize);
@@ -198,7 +205,7 @@ namespace nddi {
         }
 
         RecorderNddiDisplay(char* file) {
-            player = new Player(file);
+            player = new CommandPlayer(file);
             player->play();
         }
 
@@ -210,19 +217,19 @@ namespace nddi {
         unsigned int DisplayWidth() {
             NddiCommandMessage* msg = new DisplayWidthCommandMessage();
             recorder->record(msg);
-            return 0;
+            return displayWidth_;
         }
 
         unsigned int DisplayHeight() {
             NddiCommandMessage* msg = new DisplayHeightCommandMessage();
             recorder->record(msg);
-            return 0;
+            return displayHeight_;;
         }
 
         unsigned int NumCoefficientPlanes() {
             NddiCommandMessage* msg = new NumCoefficientPlanesCommandMessage();
             recorder->record(msg);
-            return 0;
+            return numCoefficientPlanes_;
         }
 
         void PutPixel(Pixel p, vector<unsigned int> &location) {
@@ -301,6 +308,7 @@ namespace nddi {
         }
 
         void SetFullScaler(uint16_t scaler) {
+            fullScaler_ = scaler;
             NddiCommandMessage* msg = new SetFullScalerCommandMessage(scaler);
             recorder->record(msg);
         }
@@ -308,7 +316,7 @@ namespace nddi {
         uint16_t GetFullScaler() {
             NddiCommandMessage* msg = new GetFullScalerCommandMessage();
             recorder->record(msg);
-            return 0;
+            return fullScaler_;
         }
 
         void Latch() {
@@ -320,10 +328,13 @@ namespace nddi {
 
     private:
         vector<unsigned int>  frameVolumeDimensionalSizes_;
+        unsigned int          displayWidth_;
+        unsigned int          displayHeight_;
         unsigned int          inputVectorSize_;
         unsigned int          numCoefficientPlanes_;
-        Recorder*             recorder = NULL;
-        Player*               player = NULL;
+        uint16_t              fullScaler_{0xff};
+        CommandRecorder*      recorder = NULL;
+        CommandPlayer*        player = NULL;
     };
 }
 

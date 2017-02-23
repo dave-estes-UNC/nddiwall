@@ -56,7 +56,7 @@
 #define CEIL(x, y)           (1 + ((x - 1) / y))
 #define SQRT2                1.414213562
 
-MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t quality)
+MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t quality, string file)
 : display_width_(display_width),
   display_height_(display_height)
 {
@@ -85,10 +85,18 @@ MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t
     displayTilesHigh_ = CEIL(display_height, UNSCALED_BASIC_BLOCK_HEIGHT);
     tileStackHeights_ = NULL;
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
-                                   display_width, display_height, // display size
-                                   FRAMEVOLUME_DEPTH,             // Number of coefficient planes
-                                   3);                            // Input vector size (x, y, 1)
+    if (file.length()) {
+        display_ = new RecorderNddiDisplay(fvDimensions,
+                display_width, display_height, // display size
+                FRAMEVOLUME_DEPTH,
+                3,
+                file);
+    } else {
+        display_ = new GrpcNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3);
+    }
 
     /* Set the full scaler value and the sign mode */
     display_->SetFullScaler(MAX_DCT_COEFF);
@@ -614,7 +622,7 @@ void MultiDctTiler::PrerenderCoefficients(vector<uint64_t> &coefficients, size_t
 /**
  * Returns the Display created and initialized by the tiler.
  */
-GrpcNddiDisplay* MultiDctTiler::GetDisplay() {
+NDimensionalDisplayInterface* MultiDctTiler::GetDisplay() {
     return display_;
 }
 

@@ -14,7 +14,6 @@
 #include "PixelBridgeFeatures.h"
 #include "Configuration.h"
 #include "Tiler.h"
-#include "GrpcNddiDisplay.h"
 
 
 using namespace std;
@@ -53,14 +52,14 @@ public:
      */
     CachedTiler(size_t display_width, size_t display_height,
                 size_t tile_width, size_t tile_height,
-                size_t max_tiles, size_t bits);
+                size_t max_tiles, size_t bits, string file = "");
 
     ~CachedTiler();
 
     /**
      * Returns the Display created and initialized by the tiler.
      */
-    virtual GrpcNddiDisplay* GetDisplay();
+    virtual NDimensionalDisplayInterface* GetDisplay();
 
     /**
      * Update the tile_map, tilecache, and then the NDDI display based on the frame that's passed in.
@@ -87,7 +86,7 @@ private:
     void PushTile(tile_t* tile, size_t i, size_t j);
 #endif
 
-    GrpcNddiDisplay*               display_;
+    NDimensionalDisplayInterface*               display_;
     size_t                         display_width_, display_height_;
     size_t                         tile_width_, tile_height_, max_tiles_;
     size_t                         tile_map_width_, tile_map_height_;

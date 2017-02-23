@@ -47,7 +47,7 @@ int ItTiler::Ci4T[] = {
 
 
 ItTiler::ItTiler(size_t display_width, size_t display_height,
-                 size_t quality)
+                 size_t quality, string file)
 
 : qp(0),
   display_width_(display_width),
@@ -61,10 +61,18 @@ ItTiler::ItTiler(size_t display_width, size_t display_height,
     fvDimensions.push_back(BLOCK_HEIGHT);
     fvDimensions.push_back(FRAMEVOLUME_DEPTH);
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
-                                   display_width, display_height, // display size
-                                   FRAMEVOLUME_DEPTH,             // Number of coefficient planes
-                                   3);                            // input vector size (x, y, 1)
+    if (file.length()) {
+        display_ = new RecorderNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3,
+                file);
+    } else {
+        display_ = new GrpcNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3);
+    }
 
     // Set the full scaler value
     display_->SetFullScaler(MAX_IT_COEFF);
@@ -88,7 +96,7 @@ ItTiler::ItTiler(size_t display_width, size_t display_height,
 /**
  * Returns the Display created and initialized by the tiler.
  */
-GrpcNddiDisplay* ItTiler::GetDisplay() {
+NDimensionalDisplayInterface* ItTiler::GetDisplay() {
     return display_;
 }
 

@@ -21,7 +21,8 @@
  */
 FlatTiler::FlatTiler (size_t display_width, size_t display_height,
                       size_t tile_width, size_t tile_height,
-                      size_t bits)
+                      size_t bits,
+                      string file)
 : display_width_(display_width),
   display_height_(display_height),
   tile_width_(tile_width),
@@ -35,10 +36,18 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
     fvDimensions.push_back(display_width);
     fvDimensions.push_back(display_height);
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                   // framevolume dimensional sizes
-                                   display_width, display_height,  // display size
-                                   1,                              // number of coefficient planes in display
-                                   2);                             // input vector size (x and y only)
+    if (file.length()) {
+        display_ = new RecorderNddiDisplay(fvDimensions,
+                    display_width, display_height,
+                    1,
+                    2,
+                    file);
+    } else {
+        display_ = new GrpcNddiDisplay(fvDimensions,
+                    display_width, display_height,
+                    1,
+                    2);
+    }
 
     // Compute tile_map width
     tile_map_width_ = display_width_ / tile_width;
@@ -76,7 +85,7 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
 /**
  * Returns the Display created and initialized by the tiler.
  */
-GrpcNddiDisplay* FlatTiler::GetDisplay() {
+NDimensionalDisplayInterface* FlatTiler::GetDisplay() {
     return display_;
 }
 

@@ -37,7 +37,7 @@ public:
      * @param quality The quality factor used for DCT.
      * @param quiet Used to squelch extra information output.
      */
-    DctTiler(size_t display_width, size_t display_height, size_t quality);
+    DctTiler(size_t display_width, size_t display_height, size_t quality, string file = "");
 
     ~DctTiler() {
         if (tileStackHeights_)
@@ -49,7 +49,7 @@ public:
     /**
      * Returns the Display created and initialized by the tiler.
      */
-    GrpcNddiDisplay* GetDisplay();
+    virtual NDimensionalDisplayInterface* GetDisplay();
 
     /**
      * Update the scalers and then the NDDI display based on the frame that's passed in.
@@ -69,7 +69,7 @@ protected:
 protected:
     static const size_t  MAX_DCT_COEFF = 256;
 
-    GrpcNddiDisplay     *display_;
+    NDimensionalDisplayInterface     *display_;
     size_t               display_width_, display_height_;
     bool                 quiet_;
     uint32_t             displayTilesWide_, displayTilesHigh_;

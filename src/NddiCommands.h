@@ -42,7 +42,7 @@ namespace nddi {
         NDDI_COMMAND_LIST(GENERATE_ENUM)
     };
 
-    string CommandNames[] = {
+    static const string CommandNames[] = {
         "",
         #define GENERATE_NAMES(m) #m ,
         NDDI_COMMAND_LIST(GENERATE_NAMES)
@@ -234,8 +234,6 @@ namespace nddi {
         : NddiCommandMessage(idCopyPixelTiles),
           starts(starts),
           size(size) {
-
-            assert(false && "Not yet tested.");
 
             this->p.resize(p.size());
 

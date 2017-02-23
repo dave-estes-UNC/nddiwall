@@ -19,7 +19,7 @@
  */
 CachedTiler::CachedTiler (size_t display_width, size_t display_height,
                           size_t tile_width, size_t tile_height,
-                          size_t max_tiles, size_t bits)
+                          size_t max_tiles, size_t bits, string file)
 : display_width_(display_width),
   display_height_(display_height),
   tile_width_(tile_width),
@@ -35,10 +35,18 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
     fvDimensions.push_back(tile_height);
     fvDimensions.push_back(max_tiles);
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
-                                   display_width, display_height, // display size
-                                   1,                             // number of coefficient planes in display
-                                   3);                            // input vector size (x, y, and z)
+    if (file.length()) {
+        display_ = new RecorderNddiDisplay(fvDimensions,
+                display_width, display_height,
+                1,
+                3,
+                file);
+    } else {
+        display_ = new GrpcNddiDisplay(fvDimensions,
+                display_width, display_height,
+                1,
+                3);
+    }
 
     // Compute tile_map width
     tile_map_width_ = display_width / tile_width;
@@ -88,7 +96,7 @@ CachedTiler::~CachedTiler()
 /**
  * Returns the Display created and initialized by the tiler.
  */
-GrpcNddiDisplay* CachedTiler::GetDisplay() {
+NDimensionalDisplayInterface* CachedTiler::GetDisplay() {
     return display_;
 }
 

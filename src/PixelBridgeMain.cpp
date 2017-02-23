@@ -11,6 +11,7 @@
 #include "Configuration.h"
 
 #include "GrpcNddiDisplay.h"
+#include "RecorderNddiDisplay.h"
 
 #include "CachedTiler.h"
 #include "DctTiler.h"
@@ -36,7 +37,7 @@ Configuration globalConfiguration = Configuration();
 
 // Helper Objects
 Player*  myPlayer;
-GrpcNddiDisplay* myDisplay;
+NDimensionalDisplayInterface* myDisplay;
 Tiler* myTiler;
 Rewinder* myRewinder = NULL;
 
@@ -59,6 +60,8 @@ queue<uint8_t*> bufferQueue;
 pthread_mutex_t      bufferQueueMutex;
 #endif
 
+bool finished = false;
+
 void setupDisplay() {
 
     Scaler s;
@@ -69,7 +72,8 @@ void setupDisplay() {
         // Setup Cached Tiler which initializies Coefficient Plane
         myTiler = new CachedTiler(displayWidth, displayHeight,
                 globalConfiguration.tileWidth, globalConfiguration.tileHeight,
-                globalConfiguration.maxTiles, globalConfiguration.sigBits);
+                globalConfiguration.maxTiles, globalConfiguration.sigBits,
+                globalConfiguration.recordFile);
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
@@ -83,13 +87,16 @@ void setupDisplay() {
 #endif
 #if defined USE_SCALED_DCT
         myTiler = new ScaledDctTiler(displayWidth, displayHeight,
-                                         globalConfiguration.quality);
+                                         globalConfiguration.quality,
+                                         globalConfiguration.recordFile);
 #elif (defined USE_MULTI_DCT)
         myTiler = new MultiDctTiler(displayWidth, displayHeight,
-                                         globalConfiguration.quality);
+                                         globalConfiguration.quality,
+                                         globalConfiguration.recordFile);
 #else
         myTiler = new DctTiler(displayWidth, displayHeight,
-                               globalConfiguration.quality);
+                               globalConfiguration.quality,
+                               globalConfiguration.recordFile);
 #endif
 
         // Grab the display and cost model
@@ -100,7 +107,8 @@ void setupDisplay() {
 
         // Setup IT Tiler and initializes Coefficient Plane and Frame Volume
         myTiler = new ItTiler(displayWidth, displayHeight,
-                              globalConfiguration.quality);
+                              globalConfiguration.quality,
+                              globalConfiguration.recordFile);
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
@@ -112,7 +120,8 @@ void setupDisplay() {
         myTiler = new FlatTiler(displayWidth, displayHeight,
                                 globalConfiguration.tileWidth,
                                 globalConfiguration.tileHeight,
-                                globalConfiguration.sigBits);
+                                globalConfiguration.sigBits,
+                                globalConfiguration.recordFile);
 
         // Grab the display and cost model
         myDisplay = myTiler->GetDisplay();
@@ -125,10 +134,18 @@ void setupDisplay() {
         fvDimensions.push_back(displayWidth);
         fvDimensions.push_back(displayHeight);
 
-        myDisplay = new GrpcNddiDisplay(fvDimensions,                // framevolume dimensional sizes
-                                        displayWidth, displayHeight, // display size
-                                        1,                           // number of coefficient planes on the display
-                                        2);                          // input vector size (x and y only)
+        if (globalConfiguration.recordFile.length()) {
+            myDisplay = new RecorderNddiDisplay(fvDimensions,
+                    displayWidth, displayHeight,
+                    1,
+                    2,
+                    globalConfiguration.recordFile);
+        } else {
+            myDisplay = new GrpcNddiDisplay(fvDimensions,
+                    displayWidth, displayHeight,
+                    1,
+                    2);
+        }
 
         // Initialize Frame Volume
         nddi::Pixel p;
@@ -202,7 +219,11 @@ void updateDisplay(uint8_t* buffer, size_t width, size_t height) {
         // Free the temporary frame buffer
         free(frameBuffer);
     }
-    myDisplay->Latch();
+    if (globalConfiguration.recordFile.length()) {
+        ((RecorderNddiDisplay*)myDisplay)->Latch();
+    } else {
+        ((GrpcNddiDisplay*)myDisplay)->Latch();
+    }
     totalUpdates++;
 
 }
@@ -233,7 +254,9 @@ void renderFrame() {
 
     static rewind_play_t rewindState = NOT_REWINDING;
 
-    if (!globalConfiguration.maxFrames || (totalUpdates < globalConfiguration.maxFrames)) {
+    if (globalConfiguration.maxFrames && (totalUpdates >= globalConfiguration.maxFrames)) {
+        finished = true;
+    } else {
         // If we're not in a rewind backwards or forward state...
         if (rewindState == NOT_REWINDING) {
 #ifdef USE_ASYNC_DECODER
@@ -718,6 +741,10 @@ bool parseArgs(int argc, char *argv[]) {
             globalConfiguration.csv = true;
             argc--;
             argv++;
+        } else if (strcmp(*argv, "--record") == 0) {
+            globalConfiguration.recordFile = argv[1];
+            argc -= 2;
+            argv += 2;
         } else {
             fileName = *argv;
             argc--;
@@ -809,7 +836,7 @@ int main(int argc, char *argv[]) {
     gettimeofday(&startTime, NULL);
 
     // Run main loop
-    while (1) {
+    while (!finished) {
         if (globalConfiguration.tiler > COUNT) {
             renderFrame();
         } else if (globalConfiguration.tiler == COUNT){
@@ -818,5 +845,17 @@ int main(int argc, char *argv[]) {
             computeFlow();
         }
     }
+
+    if (myPlayer) { delete myPlayer; }
+    if (myDisplay) {
+        if (globalConfiguration.recordFile.length()) {
+            delete (RecorderNddiDisplay*)myDisplay;
+        } else {
+            delete (GrpcNddiDisplay*)myDisplay;
+        }
+    }
+    if (myTiler) { delete myTiler; }
+    if (myRewinder) { delete myRewinder; }
+
     return 0;
 }

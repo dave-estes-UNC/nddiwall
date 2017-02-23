@@ -34,7 +34,8 @@ public:
      */
     FlatTiler(size_t display_width, size_t display_height,
               size_t tile_width, size_t tile_height,
-              size_t bits);
+              size_t bits,
+              string file = "");
 
     ~FlatTiler() {
         tile_map_.clear();
@@ -43,7 +44,7 @@ public:
     /**
      * Returns the Display created and initialized by the tiler.
      */
-    virtual GrpcNddiDisplay* GetDisplay();
+    virtual NDimensionalDisplayInterface* GetDisplay();
 
     /**
      * Update the tile_map, tilecache, and then the NDDI display based on the frame that's passed in.
@@ -60,7 +61,7 @@ private:
     void UpdateFrameVolume(Pixel* pixels, int i_map, int j_map);
 #endif
 
-    GrpcNddiDisplay*  display_;
+    NDimensionalDisplayInterface*  display_;
     size_t            display_width_, display_height_;
     size_t            tile_width_, tile_height_;
     size_t            tile_map_width_, tile_map_height_;

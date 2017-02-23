@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "GrpcNddiDisplay.h"
+#include "RecorderNddiDisplay.h"
 
 /*
  *  Tiler.h
@@ -27,7 +28,7 @@ public:
     /**
      * Returns the Display created and initialized by the tiler.
      */
-    virtual nddi::GrpcNddiDisplay* GetDisplay() = 0;
+    virtual nddi::NDimensionalDisplayInterface* GetDisplay() = 0;
 
 	/**
 	 * Update the tile_map, tilecache, and then the NDDI display based on the frame that's passed in.

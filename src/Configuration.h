@@ -76,6 +76,7 @@ public:
     int dctBudget;
     bool dctSnap;
     bool dctTrim;
+    string recordFile = {};
 
 public:
 

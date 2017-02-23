@@ -63,7 +63,7 @@
  * dimensions change, then the DctTiler should be destroyed and re-created.
  */
 DctTiler::DctTiler (size_t display_width, size_t display_height,
-                    size_t quality)
+                    size_t quality, string file)
 : display_width_(display_width),
   display_height_(display_height)
 {
@@ -84,10 +84,18 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     displayTilesHigh_ = CEIL(display_height, BLOCK_HEIGHT);
     tileStackHeights_ = (uint8_t*)calloc(displayTilesWide_ * displayTilesHigh_, sizeof(uint8_t));
 
-    display_ = new GrpcNddiDisplay(fvDimensions,                  // framevolume dimensional sizes
-                                   display_width, display_height, // display size
-                                   FRAMEVOLUME_DEPTH,             // Number of coefficient planes
-                                   3);                            // Input vector size (x, y, 1)
+    if (file.length()) {
+        display_ = new RecorderNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3,
+                file);
+    } else {
+        display_ = new GrpcNddiDisplay(fvDimensions,
+                display_width, display_height,
+                FRAMEVOLUME_DEPTH,
+                3);
+    }
 
     /* Set the full scaler value and the sign mode */
     display_->SetFullScaler(MAX_DCT_COEFF);
@@ -115,7 +123,7 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
 /**
  * Returns the Display created and initialized by the tiler.
  */
-GrpcNddiDisplay* DctTiler::GetDisplay() {
+NDimensionalDisplayInterface* DctTiler::GetDisplay() {
     return display_;
 }
 

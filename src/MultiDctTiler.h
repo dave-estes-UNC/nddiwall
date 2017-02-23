@@ -30,12 +30,12 @@ public:
      * @param quality The quality factor used for DCT.
      * @param quiet Used to squelch extra information output.
      */
-        MultiDctTiler(size_t display_width, size_t display_height, size_t quality);
+        MultiDctTiler(size_t display_width, size_t display_height, size_t quality, string file = "");
 
     /**
      * Returns the Display created and initialized by the tiler.
      */
-    GrpcNddiDisplay* GetDisplay();
+    NDimensionalDisplayInterface* GetDisplay();
 
     /**
      * Update the scalers and then the NDDI display based on the frame that's passed in.

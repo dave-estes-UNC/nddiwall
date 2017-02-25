@@ -24,6 +24,7 @@ namespace nddi {
         CommandRecorder(string file)
         : finished(false),
           file(file) {
+            streamMutex = PTHREAD_MUTEX_INITIALIZER;
             typedef void* (*rptr)(void*);
             if (pthread_create( &streamThread, NULL, pthreadFriendlyRun, this)) {
                 std::cout << "Error: Failed to start thread." << std::endl;
@@ -43,9 +44,11 @@ namespace nddi {
 
             while (!finished || !streamQueue.empty()) {
                 if (!streamQueue.empty()) {
-                    // TODO(CDE): Protect access to streamQueue.
+                    pthread_mutex_lock(&streamMutex);
                     NddiCommandMessage* msg = streamQueue.front();
                     streamQueue.pop();
+                    pthread_mutex_unlock(&streamMutex);
+
                     if (msg) {
                         CommandID id = msg->id;
                         switch (id) {
@@ -66,13 +69,15 @@ namespace nddi {
         }
 
         void record(NddiCommandMessage* msg) {
-            // TODO(CDE): Protect access to streamQueue.
+            pthread_mutex_lock(&streamMutex);
             streamQueue.push(msg);
+            pthread_mutex_unlock(&streamMutex);
         }
 
     private:
         bool finished;
         string file;
+        pthread_mutex_t streamMutex;
         pthread_t streamThread;
         static void * pthreadFriendlyRun(void * This) {((CommandRecorder*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
@@ -80,11 +85,15 @@ namespace nddi {
 
     class CommandPlayer {
     public:
-        CommandPlayer() : finished(true), file("recording") {}
+        CommandPlayer() : finished(true), file("recording") {
+            streamMutex = PTHREAD_MUTEX_INITIALIZER;
+        }
 
         CommandPlayer(string file)
         : finished(false),
-          file(file) {}
+          file(file) {
+            streamMutex = PTHREAD_MUTEX_INITIALIZER;
+        }
 
         ~CommandPlayer() {
             pthread_join(streamThread, NULL);
@@ -101,9 +110,11 @@ namespace nddi {
 
             while (!finished || !streamQueue.empty()) {
                 if (!streamQueue.empty()) {
-                    // TODO(CDE): Protect access to streamQueue.
+                    pthread_mutex_lock(&streamMutex);
                     NddiCommandMessage* msg = streamQueue.front();
                     streamQueue.pop();
+                    pthread_mutex_unlock(&streamMutex);
+
                     if (msg) {
                         CommandID id = msg->id;
                         //std::cout << "Popped a " << CommandNames[id] << std::endl;;
@@ -153,8 +164,9 @@ namespace nddi {
                 }
 
                 if (msg) {
-                    // TODO(CDE): Protect access to streamQueue.
+                    pthread_mutex_lock(&streamMutex);
                     streamQueue.push(msg);
+                    pthread_mutex_unlock(&streamMutex);
                 }
 
                 iarchive(id);
@@ -165,6 +177,7 @@ namespace nddi {
     private:
         bool finished;
         string file;
+        pthread_mutex_t streamMutex;
         pthread_t streamThread;
         static void * pthreadFriendlyRun(void * This) {((CommandPlayer*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;

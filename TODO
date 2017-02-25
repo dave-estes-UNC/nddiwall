@@ -38,7 +38,7 @@
 * Investigate changing vectors to straight arrays throughout the NDDI interface.
   * Then move the biggest arrays to "bytes" in the protobuffers.
 - Write a NDDI recorder/player that serializes and parses these new memcpy'able arrays to and from files. Perhaps JSON?
-  - Add thread safety to command queue.
+  * Add thread safety to command queue.
   - Kill the server when finished.
   * Move to vectors instead of malloc'd arrays.
   * Implement remaining recorders serializers
@@ -47,9 +47,9 @@
     * Add creation and utilization of an NDDI Display.
   * Fix RecorderNddiDisplay bug with NDDI client.
   * Switch to Binary Archive
-  - Get PixelBridge working with RecorderNddiDisplay.
+  * Get PixelBridge working with RecorderNddiDisplay.
     * Figure out a way to have recorders return full scaler, num coefficient planes, etc.
     * Convert all of the Tilers to accept a file in the constructor and to use a generic NDimensionalDisplayInterface display_ liek FlatTiler.
     * Similarly, convert PixelBridge's simple (fb) mode to construct a recorder or grpc display.
-    - Fix bug with DCT tilers. Likely one of the scaler commands.
+    * Fix bug with DCT tilers. Likely one of the scaler commands.
 - Add a proper sync mechanism. 

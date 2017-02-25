@@ -219,7 +219,6 @@ namespace nddi {
 
         RecorderNddiDisplay(char* file) {
             player = new CommandPlayer(file);
-            player->play();
         }
 
         ~RecorderNddiDisplay() {
@@ -338,6 +337,10 @@ namespace nddi {
         }
 
         CostModel* GetCostModel() {}
+
+        void Play() {
+            player->play();
+        }
 
     private:
         vector<unsigned int>  frameVolumeDimensionalSizes_;

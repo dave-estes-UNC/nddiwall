@@ -48,4 +48,5 @@ set(PIXELBRIDGE_SRC_FILES src/PixelBridgeMain.cpp src/GrpcNddiDisplay.cc src/Cac
 
 add_executable(nddiwall_server src/GrpcNddiDisplay.cc src/nddiwall_server.cc ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
 add_executable(nddiwall_client src/GrpcNddiDisplay.cc src/nddiwall_client.cc ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_player src/GrpcNddiDisplay.cc src/nddiwall_player.cc ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
 add_executable(pixelbridge src/GrpcNddiDisplay.cc ${PIXELBRIDGE_SRC_FILES} ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})

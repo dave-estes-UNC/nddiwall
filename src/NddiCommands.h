@@ -522,7 +522,7 @@ namespace nddi {
         SetPixelByteSignModeCommandMessage() : NddiCommandMessage(idSetPixelByteSignMode) {}
 
         SetPixelByteSignModeCommandMessage(SignMode mode)
-        : NddiCommandMessage(idGetFullScaler),
+        : NddiCommandMessage(idSetPixelByteSignMode),
           mode(mode) {}
 
         void play(GrpcNddiDisplay* display) {
@@ -542,7 +542,7 @@ namespace nddi {
     public:
         SetFullScalerCommandMessage() : NddiCommandMessage(idSetFullScaler) {}
 
-        SetFullScalerCommandMessage(uint64_t scaler)
+        SetFullScalerCommandMessage(uint16_t scaler)
         : NddiCommandMessage(idSetFullScaler),
           scaler(scaler) {}
 
@@ -556,7 +556,7 @@ namespace nddi {
         }
 
     private:
-        uint64_t scaler;
+        uint16_t scaler;
     };
 
     class GetFullScalerCommandMessage : public NddiCommandMessage {

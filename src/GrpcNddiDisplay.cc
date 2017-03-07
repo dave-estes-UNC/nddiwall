@@ -29,6 +29,7 @@ using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
 using nddiwall::UpdateInputVectorRequest;
 using nddiwall::LatchRequest;
+using nddiwall::ShutdownRequest;
 
 // public
 
@@ -517,6 +518,17 @@ void GrpcNddiDisplay::Latch() {
     StatusReply reply;
     ClientContext context;
     Status status = stub_->Latch(&context, request, &reply);
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
+}
+
+void GrpcNddiDisplay::Shutdown() {
+    ShutdownRequest request;
+    StatusReply reply;
+    ClientContext context;
+    Status status = stub_->Shutdown(&context, request, &reply);
     if (!status.ok()) {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;

@@ -52,6 +52,7 @@ namespace nddi {
         uint16_t GetFullScaler();
         CostModel* GetCostModel();
         void Latch();
+        void Shutdown();
 
     private:
         unique_ptr<NddiWall::Stub> stub_;

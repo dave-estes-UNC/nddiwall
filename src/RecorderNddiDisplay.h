@@ -336,6 +336,11 @@ namespace nddi {
             recorder->record(msg);
         }
 
+        void Shutdown() {
+            NddiCommandMessage* msg = new ShutdownCommandMessage();
+            recorder->record(msg);
+        }
+
         CostModel* GetCostModel() {}
 
         void Play() {

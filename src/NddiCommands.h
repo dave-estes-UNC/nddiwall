@@ -32,7 +32,8 @@
   /* 19 */  m(SetPixelByteSignMode) \
   /* 20 */  m(SetFullScaler) \
   /* 21 */  m(GetFullScaler) \
-  /* 22 */  m(Latch)
+  /* 22 */  m(Latch) \
+  /* 23 */  m(Shutdown)
 
 namespace nddi {
 
@@ -574,6 +575,15 @@ namespace nddi {
 
         void play(GrpcNddiDisplay* display) {
             display->Latch();
+        }
+    };
+
+    class ShutdownCommandMessage : public NddiCommandMessage {
+    public:
+        ShutdownCommandMessage() : NddiCommandMessage(idShutdown) {}
+
+        void play(GrpcNddiDisplay* display) {
+            display->Shutdown();
         }
     };
 

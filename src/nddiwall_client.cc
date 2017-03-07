@@ -119,13 +119,15 @@ int main(int argc, char** argv) {
     myDisplay->FillScalerTiles(scalers, starts, size);
     if (myDisplayWall) { myDisplayWall->Latch(); } else if (myRecorder) { myRecorder->Latch(); }
 
-    while (myDisplayWall) {
-        usleep(1000);
-        if (myDisplayWall) { myDisplayWall->Latch(); }
+    sleep(3);
+    if (myDisplayWall) {
+        myDisplayWall->Shutdown();
+        delete(myDisplayWall);
     }
-
-    if (myRecorder) { delete(myRecorder); }
-    if (myDisplayWall) { delete(myDisplayWall); }
+    if (myRecorder) {
+        myRecorder->Shutdown();
+        delete(myRecorder);
+    }
 
     return 0;
 }

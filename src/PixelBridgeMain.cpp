@@ -849,8 +849,10 @@ int main(int argc, char *argv[]) {
     if (myPlayer) { delete myPlayer; }
     if (myDisplay) {
         if (globalConfiguration.recordFile.length()) {
+            ((RecorderNddiDisplay*)myDisplay)->Shutdown();
             delete (RecorderNddiDisplay*)myDisplay;
         } else {
+            ((GrpcNddiDisplay*)myDisplay)->Shutdown();
             delete (GrpcNddiDisplay*)myDisplay;
         }
     }

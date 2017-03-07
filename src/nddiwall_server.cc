@@ -53,6 +53,7 @@ using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
 using nddiwall::UpdateInputVectorRequest;
 using nddiwall::LatchRequest;
+using nddiwall::ShutdownRequest;
 using nddiwall::NddiWall;
 
 /*
@@ -62,6 +63,8 @@ GlNddiDisplay* myDisplay;
 pthread_t serverThread;
 pthread_mutex_t renderMutex;
 pthread_cond_t renderCondition;
+std::unique_ptr<Server> server;
+bool alive;
 
 
 // Logic and data behind the server's behavior.
@@ -680,9 +683,20 @@ class NddiServiceImpl final : public NddiWall::Service {
   Status Latch(ServerContext* context, const LatchRequest* request,
                StatusReply* reply) override {
       DEBUG_MSG("Server got a request to latch." << std::endl);
-      //pthread_mutex_lock(&renderMutex);
+      pthread_mutex_lock(&renderMutex);
       pthread_cond_signal(&renderCondition);
-      //pthread_mutex_unlock(&renderMutex);
+      pthread_mutex_unlock(&renderMutex);
+      reply->set_status(reply->OK);
+      return Status::OK;
+  }
+
+  Status Shutdown(ServerContext* context, const ShutdownRequest* request,
+                   StatusReply* reply) override {
+      DEBUG_MSG("Server got a request to shutdown." << std::endl);
+      alive = false;
+      pthread_mutex_lock(&renderMutex);
+      pthread_cond_signal(&renderCondition);
+      pthread_mutex_unlock(&renderMutex);
       reply->set_status(reply->OK);
       return Status::OK;
   }
@@ -702,7 +716,7 @@ void* runServer(void *) {
   // clients. In this case it corresponds to an *synchronous* service.
   builder.RegisterService(&service);
   // Finally assemble the server.
-  std::unique_ptr<Server> server(builder.BuildAndStart());
+  server = builder.BuildAndStart();
   std::cout << "Server listening on " << server_address << std::endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
@@ -711,10 +725,19 @@ void* runServer(void *) {
 }
 
 void renderFrame() {
-    //pthread_mutex_lock(&renderMutex);
-    pthread_cond_wait(&renderCondition, &renderMutex);
-    glutPostRedisplay();
-    //pthread_mutex_unlock(&renderMutex);
+
+    if (alive) {
+        pthread_mutex_lock(&renderMutex);
+        pthread_cond_wait(&renderCondition, &renderMutex);
+        glutPostRedisplay();
+        pthread_mutex_unlock(&renderMutex);
+    } else {
+        server->completion_queue()->Shutdown();
+        server->Shutdown();
+        pthread_join(serverThread, NULL);
+        delete myDisplay;
+        exit(0);
+    }
 }
 
 void draw( void ) {
@@ -764,7 +787,10 @@ void keyboard( unsigned char key, int x, int y ) {
 
     switch (key) {
         case 27: // Esc
-            pthread_cancel(serverThread);
+            alive = false;
+            server->completion_queue()->Shutdown();
+            server->Shutdown();
+            pthread_join(serverThread, NULL);
             delete myDisplay;
             exit(0);
             break;
@@ -796,7 +822,8 @@ void motion( int x, int y ) {
 
 int main(int argc, char** argv) {
 
-  //RunServer();
+  alive = true;
+
   pthread_create(&serverThread, NULL, runServer, NULL);
 
   // Wait until the server initializes the NDDI display for a client.

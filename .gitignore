@@ -1,6 +1,4 @@
 *~
-.cproject
-.project
 *.o
 nddiwall_client
 nddiwall_server

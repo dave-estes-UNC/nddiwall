@@ -54,33 +54,39 @@
     * Similarly, convert PixelBridge's simple (fb) mode to construct a recorder or grpc display.
     * Fix bug with DCT tilers. Likely one of the scaler commands.
 p Add a proper sync mechanism.
-+ Define experiments
-  - Video Conference (7689x4320)
-    - 4x Across Top: 1080p paricipant streams
-    - Middle Left: 4k Slide Show
-    - Middle Right: 1080p presenter stream scaled 2x
-    - 4x Across Bottom: 1080p paricipant streams
-  - Stadium Jumbotron (7680x4860)
-    - Main Frame: 4k Soccer footage scaled 2x (7680x4320)
-    - Top Right Frame: 1080p Video commercial (1920x1080)
-    - Middle Right Frame: Game Statistics (1920x2160)
-    - Bottom Right Frame: 1080p Video second game (1920x1080)
-    - Bottom Frame: Ticker (7680x540)
-  - City Billboard
-    - Three 1080p displays for top of building
-    - One 4k main vertical display
-    - One quarter-height 4k vertical display
-    - One 4k side horizontal display
-- Coefficient Plans RAM savings
-  - Create a new memory-thrify implementation of coefficient planes.
-  - Do not preallocate coefficient and scalar memory.
-  - Instead allocate CoefficientMatrices and Scalars on-demand. CoefficientPlanes will have a pointer for every physical
+* Define experiments
+  * Video Conference (7689x4320)
+    * 4x Across Top: 1080p participant streams
+    * Middle Left: 4k Slide Show
+    * Middle Right: 1080p presenter stream scaled 2x
+    * 4x Across Bottom: 1080p paricipant streams
+  * Stadium Jumbotron (7680x4860)
+    * Main Frame: 4k Soccer footage scaled 2x (7680x4320)
+    * Top Right Frame: 1080p Video commercial (1920x1080)
+    * Middle Right Frame: Game Statistics (1920x2160)
+    * Bottom Right Frame: 1080p Video second game (1920x1080)
+    * Bottom Frame: Ticker (7680x540)
+  * City Billboard
+    * Three 1080p displays for top of building
+    * One 4k main vertical display
+    * One quarter-height 4k vertical display
+    * One 4k side horizontal display
+* Coefficient Plans RAM savings
+  x Create a new memory-thrify implementation of coefficient planes.
+  x Do not preallocate coefficient and scalar memory.
+  x Instead allocate CoefficientMatrices and Scalars on-demand. CoefficientPlanes will have a pointer for every physical
     pixel to the matrix and the scalar whenever they're initialized.
-  - Fill commands will allocate a single matrix or scalar and will update the pointers to point to it.
-  - Any command to set a coefficient or scalar will trigger an efficient reverse-lookup to see how many pixel locations
+  x Fill commands will allocate a single matrix or scalar and will update the pointers to point to it.
+  x Any command to set a coefficient or scalar will trigger an efficient reverse-lookup to see how many pixel locations
     use it. If the command is a fill which includes all of those locations, then the single piece of shared memory is updated.
     Otherwise, the shared memory is duplicated into a new allocation for the command's range, and then the values are updated.
-  - The reverse-lookup is done be maintaining a set of bounding volumes arranged from the largest to the smallest.
+  x The reverse-lookup is done be maintaining a set of bounding volumes arranged from the largest to the smallest.
+  * Implement support for fixed 8x8 macroblocks with one coefficient matrix and one scaler per macroblock.
+  * Implement single coefficient plane emulation of 64 plane using special coefficients for current X, Y and P.
+    (coefficient matrices only)
+  - Add RAM savings features to the interface of GrpcNddiDisplay.
+  - Build in the support to the version of DctTiler in the nddiwall project. Note, a simple copy of DctTiler.* might suffice.
+  - Turn on the support for the RAM savings features via PixelBridgeFeatures.h.
 - Frame Volume RAM savings
   - If dimensionality jumps up, then we'll use a dynamic allocator that just allocates planes of RAM when an area
     of the Frame Volume is initialized.

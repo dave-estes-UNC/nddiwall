@@ -548,7 +548,7 @@ static bool doing_it = false;
 void showUsage() {
     cout << "pixelbridge [--mode <fb|flat|cache|dct|count|flow>] [--ts <n> <n>] [--tc <n>] [--bits <1-8>]" << endl <<
             "            [--dctscales x:y[,x:y...]] [--dctdelta <n>] [--dctplanes <n>] [--dctbudget <n>] [--dctsnap] [--dcttrim] [--quality <0/1-100>]" << endl <<
-            "            [--start <n>] [--frames <n>] [--rewind <n> <n>] [--verbose] [--csv] <filename>" << endl;
+            "            [--start <n>] [--frames <n>] [--rewind <n> <n>] [--verbose] [--csv | -- record <record-filename>] <filename>" << endl;
     cout << endl;
     cout << "  --mode  Configure NDDI as a framebuffer (fb), as a flat tile array (flat), as a cached tile (cache), using DCT (dct), or using IT (it).\n" <<
             "          Optional the mode can be set to count the number of pixels changed (count) or determine optical flow (flow)." << endl;
@@ -570,6 +570,7 @@ void showUsage() {
     cout << "  --rewind  Sets a start point and a number of frames to play in reverse. Once finished, normal playback continues." << endl;
     cout << "  --verbose  Outputs frame-by-frame statistics." << endl;
     cout << "  --csv  Outputs CSV data." << endl;
+    cout << "  --record  Records the NDDI commands to the file specified." << endl;
 }
 
 

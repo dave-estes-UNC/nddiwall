@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
         myDisplay->Play();
         delete(myDisplay);
     } else {
-        std::cout << "Ussage: nddiwall_player <recording>" << std::endl;
+        std::cout << "Ussage: nddiwall_player <record-filename>" << std::endl;
         return -1;
     }
 

@@ -24,9 +24,13 @@ int main(int argc, char** argv) {
     RecorderNddiDisplay* myRecorder = NULL;
     GrpcNddiDisplay* myDisplayWall = NULL;
     if (argc == 1) {
-        myDisplay = myDisplayWall = new GrpcNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3);
+        myDisplay = myDisplayWall = new GrpcNddiDisplay(frameVolumeDimensionalSizes,
+                                                        DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                                                        (unsigned int)1, (unsigned int)3);
     } else if (argc == 3 && strcmp(argv[1], "-r") == 0) {
-        myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 3, argv[2]);
+        myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes,
+                                                         DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                                                         (unsigned int)1, (unsigned int)3, argv[2]);
     } else {
         std::cout << "Ussage: nddiwall_client [-r <recording>]" << std::endl;
         return -1;

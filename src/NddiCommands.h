@@ -74,26 +74,33 @@ namespace nddi {
                            unsigned int displayWidth,
                            unsigned int displayHeight,
                            unsigned int numCoefficientPlanes,
-                           unsigned int inputVectorSize)
+                           unsigned int inputVectorSize,
+                           bool fixed8x8Macroblocks,
+                           bool useSingleCoeffcientPlane)
         : NddiCommandMessage(idInit),
           frameVolumeDimensionalSizes(frameVolumeDimensionalSizes),
           displayWidth(displayWidth),
           displayHeight(displayHeight),
           numCoefficientPlanes(numCoefficientPlanes),
-          inputVectorSize(inputVectorSize) {}
+          inputVectorSize(inputVectorSize),
+          fixed8x8Macroblocks(fixed8x8Macroblocks),
+          useSingleCoeffcientPlane(useSingleCoeffcientPlane) {}
 
         void play(GrpcNddiDisplay* &display) {
             display = new GrpcNddiDisplay(frameVolumeDimensionalSizes,
                                           displayWidth, displayHeight,
                                           numCoefficientPlanes,
-                                          inputVectorSize);
+                                          inputVectorSize,
+                                          fixed8x8Macroblocks,
+                                          useSingleCoeffcientPlane);
         }
 
         template <class Archive>
         void serialize(Archive& ar) {
           ar(CEREAL_NVP(frameVolumeDimensionalSizes));
           ar(CEREAL_NVP(displayWidth), CEREAL_NVP(displayHeight),
-             CEREAL_NVP(numCoefficientPlanes), CEREAL_NVP(inputVectorSize));
+             CEREAL_NVP(numCoefficientPlanes), CEREAL_NVP(inputVectorSize),
+             CEREAL_NVP(fixed8x8Macroblocks), CEREAL_NVP(useSingleCoeffcientPlane));
         }
 
     private:
@@ -103,6 +110,8 @@ namespace nddi {
         unsigned int  displayHeight;
         unsigned int  numCoefficientPlanes;
         unsigned int  inputVectorSize;
+        bool fixed8x8Macroblocks;
+        bool useSingleCoeffcientPlane;
     };
 
     class DisplayWidthCommandMessage : public NddiCommandMessage {

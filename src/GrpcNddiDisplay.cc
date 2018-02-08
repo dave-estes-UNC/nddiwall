@@ -36,13 +36,16 @@ using nddiwall::ShutdownRequest;
 GrpcNddiDisplay::GrpcNddiDisplay() {}
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
-                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
-: GrpcNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
+                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                                 bool fixed8x8Macroblocks, bool useSingleCoeffcientPlane)
+: GrpcNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize,
+                  fixed8x8Macroblocks, useSingleCoeffcientPlane) {
 }
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int displayWidth, unsigned int displayHeight,
-                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
+                                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                                 bool fixed8x8Macroblocks, bool useSingleCoeffcientPlane)
 : stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
 
     // Data we are sending to the server.
@@ -54,6 +57,8 @@ GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSiz
     request.set_displayheight(displayHeight);
     request.set_numcoefficientplanes(numCoefficientPlanes);
     request.set_inputvectorsize(inputVectorSize);
+    request.set_fixed8x8macroblocks(fixed8x8Macroblocks);
+    request.set_usesinglecoeffcientplane(useSingleCoeffcientPlane);
 
     // Container for the data we expect from the server.
     StatusReply reply;

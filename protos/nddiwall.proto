@@ -37,6 +37,8 @@ message InitializeRequest {
   uint32 displayHeight = 3;
   uint32 numCoefficientPlanes = 4;
   uint32 inputVectorSize = 5;
+  bool fixed8x8Macroblocks = 6;
+  bool useSingleCoeffcientPlane = 7;
 }
 
 message DisplayWidthRequest {

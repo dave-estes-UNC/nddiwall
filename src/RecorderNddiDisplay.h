@@ -133,7 +133,7 @@ namespace nddi {
                 } else { usleep(10); }
             }
 
-            // If we created a GRCP Display, then wait a second, then latch a final time and destroy it.
+            // If we created a GRPC Display, then wait a second, then latch a final time and destroy it.
             if (display) {
                 sleep(1);
                 display->Latch();
@@ -191,29 +191,38 @@ namespace nddi {
     public:
         RecorderNddiDisplay();
         RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
-                            unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
-        : RecorderNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize) {
+                unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                bool fixed8x8Macroblocks = false, bool useSingleCoeffcientPlane = false)
+        : RecorderNddiDisplay(frameVolumeDimensionalSizes, 640, 480, numCoefficientPlanes, inputVectorSize,
+                fixed8x8Macroblocks, useSingleCoeffcientPlane) {
         }
 
         RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                 unsigned int displayWidth, unsigned int displayHeight,
-                unsigned int numCoefficientPlanes, unsigned int inputVectorSize)
+                unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
+                bool fixed8x8Macroblocks = false, bool useSingleCoeffcientPlane = false)
         : RecorderNddiDisplay(frameVolumeDimensionalSizes, displayWidth, displayHeight,
-                numCoefficientPlanes, inputVectorSize, "recording") {
+                numCoefficientPlanes, inputVectorSize,
+                "recording",
+                fixed8x8Macroblocks, useSingleCoeffcientPlane) {
         }
         RecorderNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                 unsigned int displayWidth, unsigned int displayHeight,
                 unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
-                string file)
+                string file,
+                bool fixed8x8Macroblocks = false, bool useSingleCoeffcientPlane = false)
         : frameVolumeDimensionalSizes_(frameVolumeDimensionalSizes),
           displayWidth_(displayWidth),
           displayHeight_(displayHeight),
           inputVectorSize_(inputVectorSize),
-          numCoefficientPlanes_(numCoefficientPlanes) {
+          numCoefficientPlanes_(numCoefficientPlanes),
+          fixed8x8Macroblocks_(fixed8x8Macroblocks),
+          useSingleCoeffcientPlane_(useSingleCoeffcientPlane) {
             recorder = new CommandRecorder(file);
             NddiCommandMessage* msg = new InitCommandMessage(frameVolumeDimensionalSizes,
                                                              displayWidth, displayHeight,
-                                                             numCoefficientPlanes, inputVectorSize);
+                                                             numCoefficientPlanes, inputVectorSize,
+                                                             fixed8x8Macroblocks, useSingleCoeffcientPlane);
             recorder->record(msg);
         }
 
@@ -352,6 +361,8 @@ namespace nddi {
         unsigned int          displayWidth_;
         unsigned int          displayHeight_;
         unsigned int          inputVectorSize_;
+        bool                  fixed8x8Macroblocks_;
+        bool                  useSingleCoeffcientPlane_;
         unsigned int          numCoefficientPlanes_;
         uint16_t              fullScaler_{0xff};
         CommandRecorder*      recorder = NULL;

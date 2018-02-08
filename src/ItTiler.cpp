@@ -64,14 +64,14 @@ ItTiler::ItTiler(size_t display_width, size_t display_height,
     if (file.length()) {
         display_ = new RecorderNddiDisplay(fvDimensions,
                 display_width, display_height,
-                FRAMEVOLUME_DEPTH,
-                3,
+                (unsigned int)FRAMEVOLUME_DEPTH,
+                (unsigned int)3,
                 file);
     } else {
         display_ = new GrpcNddiDisplay(fvDimensions,
                 display_width, display_height,
-                FRAMEVOLUME_DEPTH,
-                3);
+                (unsigned int)FRAMEVOLUME_DEPTH,
+                (unsigned int)3);
     }
 
     // Set the full scaler value

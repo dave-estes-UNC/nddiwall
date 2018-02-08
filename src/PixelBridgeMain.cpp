@@ -137,14 +137,14 @@ void setupDisplay() {
         if (globalConfiguration.recordFile.length()) {
             myDisplay = new RecorderNddiDisplay(fvDimensions,
                     displayWidth, displayHeight,
-                    1,
-                    2,
+                    (unsigned int)1,
+                    (unsigned int)2,
                     globalConfiguration.recordFile);
         } else {
             myDisplay = new GrpcNddiDisplay(fvDimensions,
                     displayWidth, displayHeight,
-                    1,
-                    2);
+                    (unsigned int)1,
+                    (unsigned int)2);
         }
 
         // Initialize Frame Volume

@@ -84,9 +84,14 @@ p Add a proper sync mechanism.
   * Implement support for fixed 8x8 macroblocks with one coefficient matrix and one scaler per macroblock.
   * Implement single coefficient plane emulation of 64 plane using special coefficients for current X, Y and P.
     (coefficient matrices only)
-  - Add RAM savings features support to the nddiwallserver. Will include expanding the Initialization message.
-  - Build in the support to the version of DctTiler in the nddiwall project. Note, a simple copy of DctTiler.* might suffice.
-  - Turn on the support for the RAM savings features via PixelBridgeFeatures.h.
+  * Add RAM savings features support to the nddiwallserver. Will include expanding the Initialization message.
+  * Turn on the support for the RAM savings features via PixelBridgeFeatures.h.
+  * Build in the support to the version of DctTiler in the nddiwall project. Note, a simple copy of DctTiler.* might suffice.
+    * Fix crash in nddiwall_server
+  - Get the statistics sorted out for nddi server, making sure they match the standalone pixelbridge app when using RAM
+    savings and when not.
+    - Figure out what to do with the extra bulk transmission changes that we need to log from DctTiler.
+      There are some TODOs marked on #if 0 lines.
 - Frame Volume RAM savings
   - If dimensionality jumps up, then we'll use a dynamic allocator that just allocates planes of RAM when an area
     of the Frame Volume is initialized.

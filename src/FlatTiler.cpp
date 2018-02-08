@@ -39,14 +39,14 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
     if (file.length()) {
         display_ = new RecorderNddiDisplay(fvDimensions,
                     display_width, display_height,
-                    1,
-                    2,
+                    (unsigned int)1,
+                    (unsigned int)2,
                     file);
     } else {
         display_ = new GrpcNddiDisplay(fvDimensions,
                     display_width, display_height,
-                    1,
-                    2);
+                    (unsigned int)1,
+                    (unsigned int)2);
     }
 
     // Compute tile_map width

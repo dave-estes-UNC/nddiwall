@@ -88,13 +88,18 @@ class NddiServiceImpl final : public NddiWall::Service {
         DEBUG_MSG("  - Display: " << request->displaywidth() << "x" << request->displayheight() << std::endl);
         DEBUG_MSG("  - Coefficient Planes: " << request->numcoefficientplanes() << std::endl);
         DEBUG_MSG("  - Input Vector Size: " << request->inputvectorsize() << std::endl);
+        DEBUG_MSG("  - Fixed 8x8 Macroblocks: " << request->fixed8x8macroblocks() << std::endl);
+        DEBUG_MSG("  - Use Single Coeffcient Plane: " << request->usesinglecoeffcientplane() << std::endl);
 
         // Initialize the NDDI display
         myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
                                       request->displaywidth(),         // display size
                                       request->displayheight(),
                                       request->numcoefficientplanes(), // number of coefficient planes on the display
-                                      request->inputvectorsize());     // input vector size (x, y, t)
+                                      request->inputvectorsize(),      // input vector size (x, y, t)
+                                      false,                           // Is not headless
+                                      request->fixed8x8macroblocks(),  // Use fixed macroblocks
+                                      request->usesinglecoeffcientplane()); // Use only one coefficient plane for coefficeints
 
         reply->set_status(reply->OK);
     } else {

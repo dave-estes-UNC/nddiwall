@@ -90,8 +90,9 @@ p Add a proper sync mechanism.
     * Fix crash in nddiwall_server
   - Get the statistics sorted out for nddi server, making sure they match the standalone pixelbridge app when using RAM
     savings and when not.
-    - Figure out what to do with the extra bulk transmission changes that we need to log from DctTiler.
+    * Figure out what to do with the extra bulk transmission changes that we need to log from DctTiler.
       There are some TODOs marked on #if 0 lines.
+    - Copy over the outputStats() implementation from legacy PixelBridge to nddiwall_server.
 - Frame Volume RAM savings
   - If dimensionality jumps up, then we'll use a dynamic allocator that just allocates planes of RAM when an area
     of the Frame Volume is initialized.

@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
+#include <sys/time.h>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -10,6 +11,8 @@
 #endif
 
 #include <grpc++/grpc++.h>
+
+#include "Configuration.h"
 
 #include "nddi/Features.h"
 #include "nddi/GlNddiDisplay.h"
@@ -65,6 +68,8 @@ pthread_mutex_t renderMutex;
 pthread_cond_t renderCondition;
 std::unique_ptr<Server> server;
 bool alive;
+int totalUpdates = 0;
+timeval startTime, endTime; // Used for timing data
 
 
 // Logic and data behind the server's behavior.
@@ -729,17 +734,132 @@ void* runServer(void *) {
   server->Wait();
 }
 
+void outputStats() {
+
+    CostModel * costModel = myDisplay->GetCostModel();
+
+    //
+    // Print a detailed, readable report if we're not running configHeadless
+    //
+    cout << endl;
+
+    // General
+    //
+    cout << "General Information" << endl;
+    cout << "  Dimensions: " << myDisplay->DisplayWidth() << " x " << myDisplay->DisplayHeight() << endl;
+    cout << "  Coefficient Planes: " << (myDisplay ? myDisplay->NumCoefficientPlanes() : 0) << endl;
+    cout << "  Frames Rendered: " << totalUpdates << endl;
+    cout << endl;
+
+    // Transmission
+    //
+    cout << "Transmission Statistics:" << endl;
+    // Get total transmission cost
+    long totalCost = costModel->getLinkBytesTransmitted();
+    cout << "  Total Pixel Data Updated (bytes): " << totalUpdates * myDisplay->DisplayWidth() * myDisplay->DisplayHeight() * BYTES_PER_PIXEL <<
+    " Total NDDI Cost (bytes): " << totalCost <<
+    " Ratio: " << (double)totalCost / (double)totalUpdates / (double)myDisplay->DisplayWidth() / (double)myDisplay->DisplayHeight() / BYTES_PER_PIXEL << endl;
+    cout << endl;
+
+
+    // Memory
+    //
+    cout << "Memory Statistics:" << endl;
+    cout << "  Input Vector" << endl;
+    cout << "    - Num Reads: " << costModel->getReadAccessCount(INPUT_VECTOR_COMPONENT) <<  " - Bytes Read: " << costModel->getBytesRead(INPUT_VECTOR_COMPONENT) << endl;
+    cout << "    - Num Writes: " << costModel->getWriteAccessCount(INPUT_VECTOR_COMPONENT) << " - Bytes Written: " << costModel->getBytesWritten(INPUT_VECTOR_COMPONENT) << endl;
+    cout << "  Coefficient Plane" << endl;
+    cout << "    - Num Reads: " << costModel->getReadAccessCount(COEFFICIENT_PLANE_COMPONENT) <<  " - Bytes Read: " << costModel->getBytesRead(COEFFICIENT_PLANE_COMPONENT) << endl;
+    cout << "    - Num Writes: " << costModel->getWriteAccessCount(COEFFICIENT_PLANE_COMPONENT) << " - Bytes Written: " << costModel->getBytesWritten(COEFFICIENT_PLANE_COMPONENT) << endl;
+    cout << "  Frame Volume" << endl;
+    cout << "    - Num Reads: " << costModel->getReadAccessCount(FRAME_VOLUME_COMPONENT) <<  " - Bytes Read: " << costModel->getBytesRead(FRAME_VOLUME_COMPONENT) << endl;
+    cout << "    - Num Writes: " << costModel->getWriteAccessCount(FRAME_VOLUME_COMPONENT) << " - Bytes Written: " << costModel->getBytesWritten(FRAME_VOLUME_COMPONENT) << endl;
+    cout << endl;
+
+
+    // Pixel
+    //
+    cout << "Pixel Statistics:" << endl;
+    cout << "  Pixel Mappings: " << costModel->getPixelsMapped() << endl;
+    cout << "  Pixel Blends: " << costModel->getPixelsBlended() << endl;
+    cout << endl;
+
+    // Performance
+    //
+    gettimeofday(&endTime, NULL);
+    cout << "Performance Statistics:" << endl;
+    cout << "  Average FPS: " << (double)totalUpdates / ((double)(endTime.tv_sec * 1000000
+                                                                  + endTime.tv_usec
+                                                                  - startTime.tv_sec * 1000000
+                                                                  - startTime.tv_usec) / 1000000.0f) << endl;
+    cout << endl;
+
+    // CSV
+    //
+
+    // Pretty print a heading to stdout, but for headless just spit it to stderr for reference
+    cout << "CSV Headings:" << endl;
+    cout << "Frames,Commands Sent,Bytes Transmitted,IV Num Reads,IV Bytes Read,IV Num Writes,IV Bytes Written,CP Num Reads,CP Bytes Read,CP Num Writes,CP Bytes Written,FV Num Reads,FV Bytes Read,FV Num Writes,FV Bytes Written,FV Time,Pixels Mapped,Pixels Blended" << endl;
+
+    cout
+    << totalUpdates << " , "
+    << costModel->getLinkCommandsSent() << " , "
+    << costModel->getLinkBytesTransmitted() << " , "
+    << costModel->getReadAccessCount(INPUT_VECTOR_COMPONENT) << " , "
+    << costModel->getBytesRead(INPUT_VECTOR_COMPONENT) << " , "
+    << costModel->getWriteAccessCount(INPUT_VECTOR_COMPONENT) << " , "
+    << costModel->getBytesWritten(INPUT_VECTOR_COMPONENT) << " , "
+    << costModel->getReadAccessCount(COEFFICIENT_PLANE_COMPONENT) << " , "
+    << costModel->getBytesRead(COEFFICIENT_PLANE_COMPONENT) << " , "
+    << costModel->getWriteAccessCount(COEFFICIENT_PLANE_COMPONENT) << " , "
+    << costModel->getBytesWritten(COEFFICIENT_PLANE_COMPONENT) << " , "
+    << costModel->getReadAccessCount(FRAME_VOLUME_COMPONENT) << " , "
+    << costModel->getBytesRead(FRAME_VOLUME_COMPONENT) << " , "
+    << costModel->getWriteAccessCount(FRAME_VOLUME_COMPONENT) << " , "
+    << costModel->getBytesWritten(FRAME_VOLUME_COMPONENT) << " , "
+    << costModel->getTime(FRAME_VOLUME_COMPONENT) << " , "
+    << costModel->getPixelsMapped() << " , "
+    << costModel->getPixelsBlended() << " , "
+    << endl;
+
+    cerr << endl;
+
+    // Warnings about Configuration
+#if defined(SUPRESS_EXCESS_RENDERING) || defined(SKIP_COMPUTE_WHEN_SCALER_ZERO) || defined(NO_CL) || defined(NO_GL) || defined(CLEAR_COST_MODEL_AFTER_SETUP)
+    cerr << endl << "CONFIGURATION WARNINGS:" << endl;
+#ifdef SUPRESS_EXCESS_RENDERING
+    cerr << "  - Was compiled with SUPRESS_EXCESS_RENDERING, and so the numbers may be off. Recompile with \"make NO_HACKS=1\"." << endl;
+#endif
+#ifdef SKIP_COMPUTE_WHEN_SCALER_ZERO
+    cerr << "  - Was compiled with SKIP_COMPUTE_WHEN_SCALER_ZERO, and so the numbers may be off when running with NO_OMP." << endl <<
+            "    When using OpenMP, the number will be fine regardless because they're register in bulk later. Recompile" << endl <<
+            "    with \"make NO_HACKS=1\"." << endl;
+#endif
+#ifdef NO_CL
+    cerr << "  - Was compiled without OpenCL." << endl;
+#endif
+#ifdef NO_GL
+    cerr << "  - Was compiled without OpenGL." << endl;
+#endif
+#ifdef CLEAR_COST_MODEL_AFTER_SETUP
+    cerr << "  - Was compiled with CLEAR_COST_MODEL_AFTER_SETUP, affecting the true cost." << endl;
+#endif
+#endif
+}
+
 void renderFrame() {
 
     if (alive) {
         pthread_mutex_lock(&renderMutex);
         pthread_cond_wait(&renderCondition, &renderMutex);
         glutPostRedisplay();
+        totalUpdates++;
         pthread_mutex_unlock(&renderMutex);
     } else {
         server->completion_queue()->Shutdown();
         server->Shutdown();
         pthread_join(serverThread, NULL);
+        outputStats();
         delete myDisplay;
         exit(0);
     }
@@ -850,6 +970,9 @@ int main(int argc, char** argv) {
   glEnable(GL_TEXTURE_2D);
 
   glutIdleFunc(renderFrame);
+
+  // Take the start time stamp
+  gettimeofday(&startTime, NULL);
 
   // Run main loop
   glutMainLoop();

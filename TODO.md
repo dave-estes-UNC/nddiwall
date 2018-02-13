@@ -88,15 +88,18 @@ p Add a proper sync mechanism.
   * Turn on the support for the RAM savings features via PixelBridgeFeatures.h.
   * Build in the support to the version of DctTiler in the nddiwall project. Note, a simple copy of DctTiler.* might suffice.
     * Fix crash in nddiwall_server
-  - Get the statistics sorted out for nddi server, making sure they match the standalone pixelbridge app when using RAM
-    savings and when not.
-    * Figure out what to do with the extra bulk transmission changes that we need to log from DctTiler.
-      There are some TODOs marked on #if 0 lines.
-    - Copy over the outputStats() implementation from legacy PixelBridge to nddiwall_server.
 - Frame Volume RAM savings
   - If dimensionality jumps up, then we'll use a dynamic allocator that just allocates planes of RAM when an area
     of the Frame Volume is initialized.
-- Modify nddiwall_server to spit out stats like the original pixelbridge application did. Includes CSV support.
-- Build a refresh nddi command that allows a client to specify only a particular part of the display to update. This small
-  feature can be used in lieu of a full synchronization feature. Will need up make sure it makes it into the recorder/player.
- 
+* Modify nddiwall_server to spit out stats like the original pixelbridge application did. Includes CSV support.
+  * Get the statistics sorted out for nddi server, making sure they match the standalone pixelbridge app when using RAM
+    savings and when not.
+    * Figure out what to do with the extra bulk transmission changes that we need to log from DctTiler.
+      There are some TODOs marked on #if 0 lines.
+    * Copy over the outputStats() implementation from legacy PixelBridge to nddiwall_server.
+- Work out multi-client scheme
+  - Maybe write a standalone master client which configures the display. Can also just designate a PixelBridge as the master.
+  - Slave clients will reserve their regions of the coefficient planes and frame volume based on the physical area of the display
+    they'll be rendering too.
+  - Build a refresh nddi command that allows a client to specify only a particular part of the display to update. This small
+    feature can be used in lieu of a full synchronization feature. Will need up make sure it makes it into the recorder/player.

@@ -98,8 +98,16 @@ p Add a proper sync mechanism.
       There are some TODOs marked on #if 0 lines.
     * Copy over the outputStats() implementation from legacy PixelBridge to nddiwall_server.
 - Work out multi-client scheme
-  - Maybe write a standalone master client which configures the display. Can also just designate a PixelBridge as the master.
-  - Slave clients will reserve their regions of the coefficient planes and frame volume based on the physical area of the display
-    they'll be rendering too.
-  - Build a refresh nddi command that allows a client to specify only a particular part of the display to update. This small
-    feature can be used in lieu of a full synchronization feature. Will need up make sure it makes it into the recorder/player.
+  * Add the build targets for nddiwall_master_client and nddiwall_slave_client using nddiwall_test_client and nddiwall_pixelbridge_client.
+  * Create a master client which initializes the display to the full size. When it exits, it will send the shutdown command.
+  - Expand the latch command to optionally take a region of the display to latch. This will extend down to the
+    NDDI implementation (Likely just GlNddiDisplay) such that it only computes the latched region and displays that portion updated
+    alongside the previous framebuffer. Futhermore, the CostModel will reflect only that region of pixels for the Pixel Mapping Charge.
+  - Make any necessary changes to support multiple GRPC clients connecting to the server.
+  - Modify the PixelBridge to support operation as a slave client. In this mode, it won't send an Init Command or a Shutdown Command.
+    This mode is triggered with a command line option which also specifies its region of the display. This region is strictly used as
+    by the client itself primarly in form of x and y offsets for the nddi commands. (e.g. When filling frame volume or coefficient plane
+    data, these offsets will be added to the start/end/position arguments.
+  - NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for
+          the particular use case. Once each client has finished that number of frames, the master client will exit, triggering the
+          display of the client stats.

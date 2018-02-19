@@ -45,8 +45,11 @@ link_libraries(grpc++_unsecure grpc gpr ${PROTOBUF_LIBRARY} pthread dl ${OPENGL_
 
 file(GLOB_RECURSE NDDI_SRC_FILES ${PROJECT_SOURCE_DIR}/src/nddi/*.cpp)
 set(PIXELBRIDGE_SRC_FILES src/PixelBridgeMain.cpp src/GrpcNddiDisplay.cc src/CachedTiler.cpp src/DctTiler.cpp src/FfmpegPlayer.cpp src/FlatTiler.cpp src/ItTiler.cpp src/MultiDctTiler.cpp src/RandomPlayer.cpp src/Rewinder.cpp src/ScaledDctTiler.cpp)
+set(SLAVE_SRC_FILES src/NddiWallSlaveClient.cpp src/GrpcNddiDisplay.cc src/CachedTiler.cpp src/DctTiler.cpp src/FfmpegPlayer.cpp src/FlatTiler.cpp src/ItTiler.cpp src/MultiDctTiler.cpp src/RandomPlayer.cpp src/Rewinder.cpp src/ScaledDctTiler.cpp)
 
-add_executable(nddiwall_server src/GrpcNddiDisplay.cc src/nddiwall_server.cc ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
-add_executable(nddiwall_client src/GrpcNddiDisplay.cc src/nddiwall_client.cc ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
-add_executable(nddiwall_player src/GrpcNddiDisplay.cc src/nddiwall_player.cc ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
-add_executable(pixelbridge src/GrpcNddiDisplay.cc ${PIXELBRIDGE_SRC_FILES} ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_server src/GrpcNddiDisplay.cc src/NddiWallServer.cpp ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_test_client src/GrpcNddiDisplay.cc src/NddiWallTestClient.cpp ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_player_client src/GrpcNddiDisplay.cc src/NddiWallPlayer.cpp ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_pixelbridge_client src/GrpcNddiDisplay.cc ${PIXELBRIDGE_SRC_FILES} ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_master_client src/GrpcNddiDisplay.cc src/NddiWallMasterClient.cpp ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})
+add_executable(nddiwall_slave_client src/GrpcNddiDisplay.cc ${SLAVE_SRC_FILES} ${NDDI_SRC_FILES} ${GENERATED_PROTOBUF_FILES})

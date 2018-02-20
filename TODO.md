@@ -101,14 +101,15 @@ p Add a proper sync mechanism.
   * Add the build targets for nddiwall_master_client and nddiwall_slave_client using nddiwall_test_client and nddiwall_pixelbridge_client.
   * Create a master client which initializes the display to the full size. When it exits, it will send the shutdown command.
   * Make any necessary changes to support multiple GRPC clients connecting to the server.
-  - Modify RecorderNddiDisplay to also support slave mode.
-  - Expand the latch command to optionally take a region of the display to latch. This will extend down to the
-    NDDI implementation (Likely just GlNddiDisplay) such that it only computes the latched region and displays that portion updated
-    alongside the previous framebuffer. Furthermore, the CostModel will reflect only that region of pixels for the Pixel Mapping Charge.
-  - Modify the PixelBridge to support operation as a slave client. In this mode, it won't send an Init Command or a Shutdown Command.
+  * Modify the PixelBridge to support operation as a slave client. In this mode, it won't send an Init Command or a Shutdown Command.
     This mode is triggered with a command line option which also specifies its region of the display. This region is strictly used as
     by the client itself primarily in form of x and y offsets for the nddi commands. (e.g. When filling frame volume or coefficient plane
     data, these offsets will be added to the start/end/position arguments.
+  - Modify PixelBridge to shift its coordinates for all of the NDDI commands using the subregion.
+  - Expand the latch command to optionally take a region of the display to latch. This will extend down to the
+    NDDI implementation (Likely just GlNddiDisplay) such that it only computes the latched region and displays that portion updated
+    alongside the previous framebuffer. Furthermore, the CostModel will reflect only that region of pixels for the Pixel Mapping Charge.
+  - Modify RecorderNddiDisplay to also support slave mode. Make sure recording playback of multiple clients works.
   - NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for
           the particular use case. Once each client has finished that number of frames, the master client will exit, triggering the
           display of the client stats.

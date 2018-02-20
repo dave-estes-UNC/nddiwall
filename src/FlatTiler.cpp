@@ -43,11 +43,15 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
                     (unsigned int)2,
                     file);
     } else {
-        display_ = new GrpcNddiDisplay(fvDimensions,
-                    display_width, display_height,
-                    (unsigned int)1,
-                    (unsigned int)2);
-    }
+        if (!globalConfiguration.isSlave) {
+            display_ = new GrpcNddiDisplay(fvDimensions,
+                        display_width, display_height,
+                        (unsigned int)1,
+                        (unsigned int)2);
+        } else {
+            display_ = new GrpcNddiDisplay();
+        }
+   }
 
     // Compute tile_map width
     tile_map_width_ = display_width_ / tile_width;

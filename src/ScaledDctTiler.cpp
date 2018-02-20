@@ -85,10 +85,14 @@ ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size
                 (unsigned int)3,
                 file);
     } else {
-        display_ = new GrpcNddiDisplay(fvDimensions,
-                display_width, display_height,
-                (unsigned int)FRAMEVOLUME_DEPTH,
-                (unsigned int)3);
+        if (!globalConfiguration.isSlave) {
+            display_ = new GrpcNddiDisplay(fvDimensions,
+                    display_width, display_height,
+                    (unsigned int)FRAMEVOLUME_DEPTH,
+                    (unsigned int)3);
+        } else {
+            display_ = new GrpcNddiDisplay();
+        }
     }
 
     /* Set the full scaler value and the sign mode */

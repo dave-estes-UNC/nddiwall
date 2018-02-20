@@ -141,10 +141,14 @@ void setupDisplay() {
                     (unsigned int)2,
                     globalConfiguration.recordFile);
         } else {
-            myDisplay = new GrpcNddiDisplay(fvDimensions,
-                    displayWidth, displayHeight,
-                    (unsigned int)1,
-                    (unsigned int)2);
+            if (!globalConfiguration.isSlave) {
+                myDisplay = new GrpcNddiDisplay(fvDimensions,
+                        displayWidth, displayHeight,
+                        (unsigned int)1,
+                        (unsigned int)2);
+            } else {
+                myDisplay = new GrpcNddiDisplay();
+            }
         }
 
         // Initialize Frame Volume
@@ -548,7 +552,8 @@ static bool doing_it = false;
 void showUsage() {
     cout << "pixelbridge [--mode <fb|flat|cache|dct|count|flow>] [--ts <n> <n>] [--tc <n>] [--bits <1-8>]" << endl <<
             "            [--dctscales x:y[,x:y...]] [--dctdelta <n>] [--dctplanes <n>] [--dctbudget <n>] [--dctsnap] [--dcttrim] [--quality <0/1-100>]" << endl <<
-            "            [--start <n>] [--frames <n>] [--rewind <n> <n>] [--verbose] [--csv | -- record <record-filename>] <filename>" << endl;
+            "            [--start <n>] [--frames <n>] [--rewind <n> <n>] [--verbose] [--csv | -- record <record-filename>] <filename>" << endl <<
+            "            [--subregion <x> <y> <width> <height>]" << endl;
     cout << endl;
     cout << "  --mode  Configure NDDI as a framebuffer (fb), as a flat tile array (flat), as a cached tile (cache), using DCT (dct), or using IT (it).\n" <<
             "          Optional the mode can be set to count the number of pixels changed (count) or determine optical flow (flow)." << endl;
@@ -571,6 +576,7 @@ void showUsage() {
     cout << "  --verbose  Outputs frame-by-frame statistics." << endl;
     cout << "  --csv  Outputs CSV data." << endl;
     cout << "  --record  Records the NDDI commands to the file specified." << endl;
+    cout << "  --subregion  Used to indicate which subregion of the display this client renders to when it's configured as one of several slaves." << endl;
 }
 
 
@@ -746,6 +752,14 @@ bool parseArgs(int argc, char *argv[]) {
             globalConfiguration.recordFile = argv[1];
             argc -= 2;
             argv += 2;
+        } else if (strcmp(*argv, "--subregion") == 0) {
+            globalConfiguration.isSlave = true;
+            globalConfiguration.sub_x = atoi(argv[1]);
+            globalConfiguration.sub_y = atoi(argv[2]);
+            globalConfiguration.sub_w = atoi(argv[3]);
+            globalConfiguration.sub_h = atoi(argv[4]);
+            argc -= 5;
+            argv += 5;
         } else {
             fileName = *argv;
             argc--;

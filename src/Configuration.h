@@ -77,6 +77,9 @@ public:
     bool dctSnap;
     bool dctTrim;
     string recordFile = {};
+    bool isSlave;
+    size_t sub_x, sub_y, sub_w, sub_h;
+
 
 public:
 
@@ -105,6 +108,9 @@ public:
         dctBudget = UNUSED_CONFIG;
         dctSnap = false;
         dctSnap = false;
+
+        isSlave = false;
+        sub_x = sub_y = sub_w = sub_h = 0;
     }
 
     void clearDctScales() {

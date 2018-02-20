@@ -57,12 +57,14 @@ int main(int argc, char** argv) {
     if (!RECORDING_FILE) {
         myDisplay = myDisplayWall = new GrpcNddiDisplay(frameVolumeDimensionalSizes,
                                                         DISPLAY_WIDTH, DISPLAY_HEIGHT,
-                                                        (unsigned int)64, (unsigned int)3);
+                                                        (unsigned int)64, (unsigned int)3,
+                                                        true, true);
     } else {
         myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes,
                                                          DISPLAY_WIDTH, DISPLAY_HEIGHT,
                                                          (unsigned int)64, (unsigned int)3,
-                                                         RECORDING_FILE);
+                                                         RECORDING_FILE,
+                                                         true, true);
     }
 
     std::cout << "Width is " << myDisplay->DisplayWidth() << std::endl;

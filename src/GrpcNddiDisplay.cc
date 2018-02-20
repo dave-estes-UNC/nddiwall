@@ -33,7 +33,9 @@ using nddiwall::ShutdownRequest;
 
 // public
 
-GrpcNddiDisplay::GrpcNddiDisplay() {}
+// Simple constructor used by slaves when the master has already initialized the NDDI Display
+GrpcNddiDisplay::GrpcNddiDisplay()
+: stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {}
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int numCoefficientPlanes, unsigned int inputVectorSize,

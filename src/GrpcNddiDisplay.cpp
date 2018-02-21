@@ -34,8 +34,9 @@ using nddiwall::ShutdownRequest;
 // public
 
 // Simple constructor used by slaves when the master has already initialized the NDDI Display
-GrpcNddiDisplay::GrpcNddiDisplay()
-: stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {}
+GrpcNddiDisplay::GrpcNddiDisplay(unsigned int x, unsigned int y)
+: origin_x(x), origin_y(y),
+  stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {}
 
 GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                                  unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
@@ -48,7 +49,8 @@ GrpcNddiDisplay::GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSiz
                                  unsigned int displayWidth, unsigned int displayHeight,
                                  unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
                                  bool fixed8x8Macroblocks, bool useSingleCoeffcientPlane)
-: stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
+: origin_x(0), origin_y(0),
+  stub_(NddiWall::NewStub(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()))) {
 
     // Data we are sending to the server.
     InitializeRequest request;
@@ -127,7 +129,8 @@ void GrpcNddiDisplay::PutPixel(Pixel p, vector<unsigned int> &location) {
     PutPixelRequest request;
     request.set_pixel(p.packed);
     for (size_t i = 0; i < location.size(); i++) {
-      request.add_location(location[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_location(location[i] + off);
     }
 
     StatusReply reply;
@@ -147,8 +150,9 @@ void GrpcNddiDisplay::CopyPixelStrip(Pixel* p, vector<unsigned int> &start, vect
     CopyPixelStripRequest request;
     size_t count = 1;
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
       count *= end[i] - start[i] + 1;
     }
     request.set_pixels((void*)p, sizeof(Pixel) * count);
@@ -170,8 +174,9 @@ void GrpcNddiDisplay::CopyPixels(Pixel* p, vector<unsigned int> &start, vector<u
     CopyPixelsRequest request;
     size_t count = 1;
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
       count *= end[i] - start[i] + 1;
     }
     request.set_pixels((void*)p, sizeof(Pixel) * count);
@@ -194,7 +199,8 @@ void GrpcNddiDisplay::CopyPixelTiles(vector<Pixel*> &p, vector<vector<unsigned i
     CopyPixelTilesRequest request;
     for (size_t i = 0; i < starts.size(); i++) {
         for (size_t j = 0; j < starts[i].size(); j++) {
-            request.add_starts(starts[i][j]);
+            unsigned int off = (j == 0) ? origin_x : (j == 1) ? origin_y : 0;
+            request.add_starts(starts[i][j] + off);
         }
     }
     request.add_size(size[0]);
@@ -224,8 +230,9 @@ void GrpcNddiDisplay::FillPixel(Pixel p, vector<unsigned int> &start, vector<uns
     FillPixelRequest request;
     request.set_pixel(p.packed);
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
     }
 
     StatusReply reply;
@@ -245,9 +252,10 @@ void GrpcNddiDisplay::CopyFrameVolume(vector<unsigned int> &start, vector<unsign
 
     CopyFrameVolumeRequest request;
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
-      request.add_dest(dest[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
+      request.add_dest(dest[i] + off);
     }
 
     StatusReply reply;
@@ -287,7 +295,8 @@ void GrpcNddiDisplay::PutCoefficientMatrix(vector< vector<int> > &coefficientMat
         }
     }
     for (size_t i = 0; i < location.size(); i++) {
-      request.add_location(location[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_location(location[i] + off);
     }
 
     StatusReply reply;
@@ -313,8 +322,9 @@ void GrpcNddiDisplay::FillCoefficientMatrix(vector< vector<int> > &coefficientMa
         }
     }
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
     }
 
     StatusReply reply;
@@ -339,8 +349,9 @@ void GrpcNddiDisplay::FillCoefficient(int coefficient,
     request.set_row(row);
     request.set_col(col);
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
     }
 
     StatusReply reply;
@@ -373,7 +384,8 @@ void GrpcNddiDisplay::FillCoefficientTiles(vector<int> &coefficients,
     }
     for (size_t i = 0; i < starts.size(); i++) {
         for (size_t j = 0; j < starts[i].size(); j++) {
-            request.add_starts(starts[i][j]);
+            unsigned int off = (j == 0) ? origin_x : (j == 1) ? origin_y : 0;
+            request.add_starts(starts[i][j] + off);
         }
     }
     request.add_size(size[0]);
@@ -398,8 +410,9 @@ void GrpcNddiDisplay::FillScaler(Scaler scaler,
     FillScalerRequest request;
     request.set_scaler(scaler.packed);
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
-      request.add_end(end[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
+      request.add_end(end[i] + off);
     }
 
     StatusReply reply;
@@ -425,6 +438,7 @@ void GrpcNddiDisplay::FillScalerTiles(vector<uint64_t> &scalers,
     }
     for (size_t i = 0; i < starts.size(); i++) {
         for (size_t j = 0; j < starts[i].size(); j++) {
+            unsigned int off = (j == 0) ? origin_x : (j == 1) ? origin_y : 0;
             request.add_starts(starts[i][j]);
         }
     }
@@ -453,7 +467,8 @@ void GrpcNddiDisplay::FillScalerTileStack(vector<uint64_t> &scalers,
       request.add_scalers(scalers[i]);
     }
     for (size_t i = 0; i < start.size(); i++) {
-      request.add_start(start[i]);
+      unsigned int off = (i == 0) ? origin_x : (i == 1) ? origin_y : 0;
+      request.add_start(start[i] + off);
     }
     for (size_t i = 0; i < size.size(); i++) {
       request.add_size(size[i]);

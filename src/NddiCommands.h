@@ -1,6 +1,8 @@
 #ifndef NDDI_COMMANDS_H
 #define NDDI_COMMANDS_H
 
+#include "Configuration.h"
+
 #include "GrpcNddiDisplay.h"
 #include "nddi/Features.h"
 #include "nddi/NDimensionalDisplayInterface.h"
@@ -87,12 +89,16 @@ namespace nddi {
           useSingleCoeffcientPlane(useSingleCoeffcientPlane) {}
 
         void play(GrpcNddiDisplay* &display) {
-            display = new GrpcNddiDisplay(frameVolumeDimensionalSizes,
-                                          displayWidth, displayHeight,
-                                          numCoefficientPlanes,
-                                          inputVectorSize,
-                                          fixed8x8Macroblocks,
-                                          useSingleCoeffcientPlane);
+            if (!globalConfiguration.isSlave) {
+                display = new GrpcNddiDisplay(frameVolumeDimensionalSizes,
+                                              displayWidth, displayHeight,
+                                              numCoefficientPlanes,
+                                              inputVectorSize,
+                                              fixed8x8Macroblocks,
+                                              useSingleCoeffcientPlane);
+            } else {
+                display = new GrpcNddiDisplay(globalConfiguration.sub_x, globalConfiguration.sub_y);
+            }
         }
 
         template <class Archive>

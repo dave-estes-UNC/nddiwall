@@ -91,7 +91,7 @@ ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size
                     (unsigned int)FRAMEVOLUME_DEPTH,
                     (unsigned int)3);
         } else {
-            display_ = new GrpcNddiDisplay();
+            display_ = new GrpcNddiDisplay(globalConfiguration.sub_x, globalConfiguration.sub_y);
         }
     }
 

@@ -49,7 +49,7 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
                         (unsigned int)1,
                         (unsigned int)2);
         } else {
-            display_ = new GrpcNddiDisplay(globalConfiguration.sub_x, globalConfiguration.sub_y);
+            display_ = new GrpcNddiDisplay();
         }
    }
 

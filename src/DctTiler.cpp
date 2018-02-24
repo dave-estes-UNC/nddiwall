@@ -108,7 +108,7 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
                     (unsigned int)3,
                     saveRam_, saveRam_);
         } else {
-            display_ = new GrpcNddiDisplay(globalConfiguration.sub_x, globalConfiguration.sub_y);
+            display_ = new GrpcNddiDisplay();
         }
     }
 

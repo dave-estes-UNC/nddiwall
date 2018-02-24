@@ -23,7 +23,7 @@ namespace nddi {
     class GrpcNddiDisplay : public NDimensionalDisplayInterface {
 
     public:
-        GrpcNddiDisplay(unsigned int x = 0, unsigned int y = 0);
+        GrpcNddiDisplay();
         GrpcNddiDisplay(vector<unsigned int> &frameVolumeDimensionalSizes,
                         unsigned int numCoefficientPlanes, unsigned int inputVectorSize,
                         bool fixed8x8Macroblocks = false, bool useSingleCoeffcientPlane = false);
@@ -57,7 +57,6 @@ namespace nddi {
         void Shutdown();
 
     private:
-        unsigned int origin_x, origin_y;
         unique_ptr<NddiWall::Stub> stub_;
 
     };

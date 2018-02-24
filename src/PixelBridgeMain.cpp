@@ -147,7 +147,7 @@ void setupDisplay() {
                         (unsigned int)1,
                         (unsigned int)2);
             } else {
-                myDisplay = new GrpcNddiDisplay(globalConfiguration.sub_x, globalConfiguration.sub_y);
+                myDisplay = new GrpcNddiDisplay();
             }
         }
 
@@ -864,14 +864,10 @@ int main(int argc, char *argv[]) {
     if (myPlayer) { delete myPlayer; }
     if (myDisplay) {
         if (globalConfiguration.recordFile.length()) {
-            if (!globalConfiguration.isSlave) {
-                ((RecorderNddiDisplay*)myDisplay)->Shutdown();
-            }
+            ((RecorderNddiDisplay*)myDisplay)->Shutdown();
             delete (RecorderNddiDisplay*)myDisplay;
         } else {
-            if (!globalConfiguration.isSlave) {
-                ((GrpcNddiDisplay*)myDisplay)->Shutdown();
-            }
+            ((GrpcNddiDisplay*)myDisplay)->Shutdown();
             delete (GrpcNddiDisplay*)myDisplay;
         }
     }

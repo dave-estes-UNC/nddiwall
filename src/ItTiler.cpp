@@ -55,6 +55,8 @@ ItTiler::ItTiler(size_t display_width, size_t display_height,
 {
     quiet_ = !globalConfiguration.verbose;
 
+    assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+
     // 3 dimensional matching the Macroblock Width x Height x 64+3+1
     vector<unsigned int> fvDimensions;
     fvDimensions.push_back(BLOCK_WIDTH);

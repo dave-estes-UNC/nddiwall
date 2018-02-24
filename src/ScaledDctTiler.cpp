@@ -64,6 +64,8 @@ ScaledDctTiler::ScaledDctTiler(size_t display_width, size_t display_height, size
 
     quiet_ = !globalConfiguration.verbose;
 
+    assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+
     /* 3 dimensional matching the Macroblock Width x Height x 64 */
     vector<unsigned int> fvDimensions;
     fvDimensions.push_back(BLOCK_WIDTH);

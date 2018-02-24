@@ -31,6 +31,8 @@ FlatTiler::FlatTiler (size_t display_width, size_t display_height,
 {
     quiet_ = !globalConfiguration.verbose;
 
+    assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+
     // 2 dimensional matching the Video Width x Height
     vector<unsigned int> fvDimensions;
     fvDimensions.push_back(display_width);

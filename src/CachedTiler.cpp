@@ -29,6 +29,8 @@ CachedTiler::CachedTiler (size_t display_width, size_t display_height,
 {
     quiet_ = !globalConfiguration.verbose;
 
+    assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+
     // 3 dimensional matching the Tile Width x Height x max tiles
     vector<unsigned int> fvDimensions;
     fvDimensions.push_back(tile_width);

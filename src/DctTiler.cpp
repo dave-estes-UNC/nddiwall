@@ -256,12 +256,26 @@ void DctTiler::InitializeCoefficientPlanes() {
             end[2] = FRAMEVOLUME_DEPTH - 1;
             if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
             if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
+            if (globalConfiguration.isSlave) {
+                start[0] += globalConfiguration.sub_x;
+                start[1] += globalConfiguration.sub_y;
+                end[0] += globalConfiguration.sub_x;
+                end[1] += globalConfiguration.sub_y;
+                coeffs[2][0] -= globalConfiguration.sub_x;
+                coeffs[2][1] -= globalConfiguration.sub_y;
+            }
             display_->FillCoefficientMatrix(coeffs, start, end);
         }
     }
     // Finish up by setting the proper k for every plane
     start[0] = 0; start[1] = 0;
     end[0] = display_width_ - 1; end[1] = display_height_ - 1;
+    if (globalConfiguration.isSlave) {
+        start[0] += globalConfiguration.sub_x;
+        start[1] += globalConfiguration.sub_y;
+        end[0] += globalConfiguration.sub_x;
+        end[1] += globalConfiguration.sub_y;
+    }
     for (int k = 0; k < FRAMEVOLUME_DEPTH; k++) {
         start[2] = k; end[2] = k;
         if (saveRam_) {
@@ -276,6 +290,12 @@ void DctTiler::InitializeCoefficientPlanes() {
     end[0] = display_width_ - 1;
     end[1] = display_height_ - 1;
     end[2] = display_->NumCoefficientPlanes() - 1;
+    if (globalConfiguration.isSlave) {
+        start[0] += globalConfiguration.sub_x;
+        start[1] += globalConfiguration.sub_y;
+        end[0] += globalConfiguration.sub_x;
+        end[1] += globalConfiguration.sub_y;
+    }
     s.packed = 0;
     display_->FillScaler(s, start, end);
 
@@ -484,6 +504,10 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
             /* Send the NDDI command to update this macroblock's coefficients, one plane at a time. */
             start[0] = i * BLOCK_WIDTH;
             start[1] = j * BLOCK_HEIGHT;
+            if (globalConfiguration.isSlave) {
+                start[0] += globalConfiguration.sub_x;
+                start[1] += globalConfiguration.sub_y;
+            }
             display_->FillScalerTileStack(coefficients, start, size);
         }
     }

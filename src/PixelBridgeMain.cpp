@@ -129,6 +129,8 @@ void setupDisplay() {
     // Simple Framebuffer
     } else {
 
+        assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+
         // 2 dimensional matching the Video Width x Height
         vector<unsigned int> fvDimensions;
         fvDimensions.push_back(displayWidth);
@@ -864,10 +866,14 @@ int main(int argc, char *argv[]) {
     if (myPlayer) { delete myPlayer; }
     if (myDisplay) {
         if (globalConfiguration.recordFile.length()) {
-            ((RecorderNddiDisplay*)myDisplay)->Shutdown();
+            if (!globalConfiguration.isSlave) {
+                ((RecorderNddiDisplay*)myDisplay)->Shutdown();
+            }
             delete (RecorderNddiDisplay*)myDisplay;
         } else {
-            ((GrpcNddiDisplay*)myDisplay)->Shutdown();
+            if (!globalConfiguration.isSlave) {
+                ((GrpcNddiDisplay*)myDisplay)->Shutdown();
+            }
             delete (GrpcNddiDisplay*)myDisplay;
         }
     }

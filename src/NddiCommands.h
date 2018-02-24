@@ -582,9 +582,21 @@ namespace nddi {
     public:
         LatchCommandMessage() : NddiCommandMessage(idLatch) {}
 
+        LatchCommandMessage(uint32_t sub_x, uint32_t sub_y, uint32_t sub_w, uint32_t sub_h)
+        : NddiCommandMessage(idLatch),
+          sub_x(sub_x),sub_y(sub_y), sub_w(sub_w), sub_h(sub_h) {}
+
         void play(GrpcNddiDisplay* display) {
-            display->Latch();
+            display->Latch(sub_x, sub_y, sub_w, sub_h);
         }
+
+        template <class Archive>
+        void serialize(Archive& ar) {
+            ar(CEREAL_NVP(sub_x), CEREAL_NVP(sub_y), CEREAL_NVP(sub_w), CEREAL_NVP(sub_h));
+        }
+
+    private:
+        uint32_t sub_x, sub_y, sub_w, sub_h;
     };
 
     class ShutdownCommandMessage : public NddiCommandMessage {

@@ -226,9 +226,15 @@ void updateDisplay(uint8_t* buffer, size_t width, size_t height) {
         free(frameBuffer);
     }
     if (globalConfiguration.recordFile.length()) {
-        ((RecorderNddiDisplay*)myDisplay)->Latch();
+        ((RecorderNddiDisplay*)myDisplay)->Latch(globalConfiguration.sub_x,
+                                                 globalConfiguration.sub_y,
+                                                 globalConfiguration.sub_w,
+                                                 globalConfiguration.sub_h);
     } else {
-        ((GrpcNddiDisplay*)myDisplay)->Latch();
+        ((GrpcNddiDisplay*)myDisplay)->Latch(globalConfiguration.sub_x,
+                                             globalConfiguration.sub_y,
+                                             globalConfiguration.sub_w,
+                                             globalConfiguration.sub_h);
     }
     totalUpdates++;
 
@@ -816,6 +822,14 @@ int main(int argc, char *argv[]) {
     displayWidth = myPlayer->width();
     displayHeight = myPlayer->height();
 #endif
+
+    if (!globalConfiguration.isSlave) {
+        globalConfiguration.sub_x = 0;
+        globalConfiguration.sub_y = 0;
+        globalConfiguration.sub_w = displayWidth;
+        globalConfiguration.sub_h = displayHeight;
+    }
+
     if (globalConfiguration.rewindStartFrame > 0) {
         myRewinder = new Rewinder(globalConfiguration.rewindStartFrame - globalConfiguration.rewindFrames, displayWidth, displayHeight);
     }

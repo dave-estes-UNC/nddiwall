@@ -145,6 +145,10 @@ message UpdateInputVectorRequest {
 }
 
 message LatchRequest {
+  uint32 sub_x = 1;
+  uint32 sub_y = 2;
+  uint32 sub_w = 3;
+  uint32 sub_h = 4;
 }
 
 message ShutdownRequest {

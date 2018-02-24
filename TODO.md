@@ -106,9 +106,11 @@ p Add a proper sync mechanism.
     by the client itself primarily in form of x and y offsets for the nddi commands. (e.g. When filling frame volume or coefficient plane
     data, these offsets will be added to the start/end/position arguments.
   * Modify PixelBridge (DctTiler) to shift its coordinates for all of the NDDI commands using the subregion.
-  - Expand the latch command to optionally take a region of the display to latch. This will extend down to the
+  * Expand the latch command to optionally take a region of the display to latch. This will extend down to the
     NDDI implementation (Likely just GlNddiDisplay) such that it only computes the latched region and displays that portion updated
     alongside the previous framebuffer. Furthermore, the CostModel will reflect only that region of pixels for the Pixel Mapping Charge.
+  - Consider strengthening the thread safetly of the subregion region. For instance, its possible for two simultaneous latches to come
+    in and only the second may render. I'm not sure if this is protected by renderMutex or not. That might just cover it, actually.
   * Modify RecorderNddiDisplay to also support slave mode. Make sure recording playback of multiple clients works.
   - NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for
           the particular use case. Once each client has finished that number of frames, the master client will exit, triggering the

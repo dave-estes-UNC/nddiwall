@@ -136,7 +136,7 @@ namespace nddi {
             // If we created a GRPC Display, then wait a second, then latch a final time and destroy it.
             if (display) {
                 sleep(1);
-                display->Latch();
+                display->Latch(0, 0, 1, 1);
                 delete display;
             }
         }
@@ -340,8 +340,8 @@ namespace nddi {
             return fullScaler_;
         }
 
-        void Latch() {
-            NddiCommandMessage* msg = new LatchCommandMessage();
+        void Latch(uint32_t sub_x, uint32_t sub_y, uint32_t sub_w, uint32_t sub_h) {
+            NddiCommandMessage* msg = new LatchCommandMessage(sub_x, sub_y, sub_w, sub_h);
             recorder->record(msg);
         }
 

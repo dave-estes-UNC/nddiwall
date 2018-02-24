@@ -70,6 +70,7 @@ std::unique_ptr<Server> server;
 bool alive;
 int totalUpdates = 0;
 timeval startTime, endTime; // Used for timing data
+uint32_t sub_x, sub_y, sub_w, sub_h;
 
 
 // Logic and data behind the server's behavior.
@@ -693,9 +694,16 @@ class NddiServiceImpl final : public NddiWall::Service {
   Status Latch(ServerContext* context, const LatchRequest* request,
                StatusReply* reply) override {
       DEBUG_MSG("Server got a request to latch." << std::endl);
+
+      sub_x = request->sub_x();
+      sub_y = request->sub_y();
+      sub_w = request->sub_w();
+      sub_h = request->sub_h();
+
       pthread_mutex_lock(&renderMutex);
       pthread_cond_signal(&renderCondition);
       pthread_mutex_unlock(&renderMutex);
+
       reply->set_status(reply->OK);
       return Status::OK;
   }
@@ -871,7 +879,7 @@ void draw( void ) {
         return;
 
     // Grab the frame buffer from the NDDI display
-    GLuint texture = myDisplay->GetFrameBufferTex();
+    GLuint texture = myDisplay->GetFrameBufferTex(sub_x, sub_y, sub_w, sub_h);
 
 // TODO(CDE): Temporarily putting this here until GlNddiDisplay and ClNddiDisplay
 //            are using the exact same kind of GL textures

@@ -520,11 +520,18 @@ CostModel* GrpcNddiDisplay::GetCostModel() {
     return 0;
 }
 
-void GrpcNddiDisplay::Latch() {
+void GrpcNddiDisplay::Latch(uint32_t sub_x, uint32_t sub_y, uint32_t sub_w, uint32_t sub_h) {
     LatchRequest request;
+    request.set_sub_x(sub_x);
+    request.set_sub_y(sub_y);
+    request.set_sub_w(sub_w);
+    request.set_sub_h(sub_h);
+
     StatusReply reply;
+
     ClientContext context;
     Status status = stub_->Latch(&context, request, &reply);
+
     if (!status.ok()) {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;

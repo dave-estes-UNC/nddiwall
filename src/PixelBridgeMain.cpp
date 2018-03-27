@@ -130,6 +130,7 @@ void setupDisplay() {
     } else {
 
         assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+        assert(globalConfiguration.scale == 1 && "Scaling not supported for this mode!");
 
         // 2 dimensional matching the Video Width x Height
         vector<unsigned int> fvDimensions;
@@ -561,7 +562,7 @@ void showUsage() {
     cout << "pixelbridge [--mode <fb|flat|cache|dct|count|flow>] [--ts <n> <n>] [--tc <n>] [--bits <1-8>]" << endl <<
             "            [--dctscales x:y[,x:y...]] [--dctdelta <n>] [--dctplanes <n>] [--dctbudget <n>] [--dctsnap] [--dcttrim] [--quality <0/1-100>]" << endl <<
             "            [--start <n>] [--frames <n>] [--rewind <n> <n>] [--verbose] [--csv | -- record <record-filename>] <filename>" << endl <<
-            "            [--subregion <x> <y> <width> <height>]" << endl;
+            "            [--subregion <x> <y> <width> <height>] [--scale <n>]" << endl;
     cout << endl;
     cout << "  --mode  Configure NDDI as a framebuffer (fb), as a flat tile array (flat), as a cached tile (cache), using DCT (dct), or using IT (it).\n" <<
             "          Optional the mode can be set to count the number of pixels changed (count) or determine optical flow (flow)." << endl;
@@ -585,6 +586,7 @@ void showUsage() {
     cout << "  --csv  Outputs CSV data." << endl;
     cout << "  --record  Records the NDDI commands to the file specified." << endl;
     cout << "  --subregion  Used to indicate which subregion of the display this client renders to when it's configured as one of several slaves." << endl;
+    cout << "  --scale  The output is scaled by <n> in both directions." << endl;
 }
 
 
@@ -768,6 +770,10 @@ bool parseArgs(int argc, char *argv[]) {
             globalConfiguration.sub_h = atoi(argv[4]);
             argc -= 5;
             argv += 5;
+        } else if (strcmp(*argv, "--scale") == 0) {
+            globalConfiguration.scale = atoi(argv[1]);
+            argc -= 2;
+            argv += 2;
         } else {
             fileName = *argv;
             argc--;
@@ -826,8 +832,8 @@ int main(int argc, char *argv[]) {
     if (!globalConfiguration.isSlave) {
         globalConfiguration.sub_x = 0;
         globalConfiguration.sub_y = 0;
-        globalConfiguration.sub_w = displayWidth;
-        globalConfiguration.sub_h = displayHeight;
+        globalConfiguration.sub_w = displayWidth * globalConfiguration.scale;
+        globalConfiguration.sub_h = displayHeight * globalConfiguration.scale;
     }
 
     if (globalConfiguration.rewindStartFrame > 0) {

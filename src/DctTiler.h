@@ -71,6 +71,7 @@ protected:
 
     NDimensionalDisplayInterface     *display_;
     size_t               display_width_, display_height_;
+    size_t               scale_;
     bool                 quiet_;
     uint32_t             displayTilesWide_, displayTilesHigh_;
     uint8_t             *tileStackHeights_;
@@ -81,6 +82,8 @@ protected:
     static const size_t  FRAMEVOLUME_DEPTH = BLOCK_SIZE;
     static const size_t  BASIS_BLOCKS_WIDE = UNSCALED_BASIC_BLOCK_WIDTH;
     static const size_t  BASIS_BLOCKS_TALL = UNSCALED_BASIC_BLOCK_HEIGHT;
+
+    size_t               scaled_block_width_, scaled_block_height_, scaled_block_size_;
 
     int                  zigZag_[BLOCK_WIDTH * BLOCK_HEIGHT];
     uint8_t              quantizationMatrix_[BLOCK_WIDTH * BLOCK_HEIGHT];

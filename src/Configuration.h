@@ -79,6 +79,7 @@ public:
     string recordFile = {};
     bool isSlave;
     size_t sub_x, sub_y, sub_w, sub_h;
+    size_t scale;
 
 
 public:
@@ -111,6 +112,7 @@ public:
 
         isSlave = false;
         sub_x = sub_y = sub_w = sub_h = 0;
+        scale = 1;
     }
 
     void clearDctScales() {

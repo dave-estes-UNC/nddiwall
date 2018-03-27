@@ -63,6 +63,7 @@ MultiDctTiler::MultiDctTiler(size_t display_width, size_t display_height, size_t
     quiet_ = !globalConfiguration.verbose;
 
     assert(!globalConfiguration.isSlave && "Slave support not implemented for this mode!");
+    assert(globalConfiguration.scale == 1 && "Scaling not supported for this mode!");
 
    /*
      * The frame volume is still 64 planes deep, but the width and height is based on the first

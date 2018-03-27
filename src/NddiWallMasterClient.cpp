@@ -12,13 +12,14 @@ using namespace nddi;
 unsigned int DISPLAY_WIDTH = 0;
 unsigned int DISPLAY_HEIGHT = 0;
 char* RECORDING_FILE = nullptr;
+vector<unsigned int> frameVolumeDimensionalSizes;
 
 bool parseArgs(int argc, char *argv[]) {
     argc--;
     argv++;
 
     while (argc) {
-        if (strcmp(*argv, "-d") == 0) {
+        if (strcmp(*argv, "--display") == 0) {
             DISPLAY_WIDTH = atoi(argv[1]);
             DISPLAY_HEIGHT = atoi(argv[2]);
             argc -= 3;
@@ -27,6 +28,16 @@ bool parseArgs(int argc, char *argv[]) {
             RECORDING_FILE = argv[1];
             argc -= 2;
             argv += 2;
+        } else if (strcmp(*argv, "--fv") == 0) {
+            argc--;
+            argv++;
+            char *p = strtok(*argv, ",");
+            while (p != NULL) {
+                frameVolumeDimensionalSizes.push_back(atoi(p));
+                p = strtok(NULL, ",");
+            }
+            argc--;
+            argv++;
         } else {
             return false;
         }
@@ -42,7 +53,7 @@ bool parseArgs(int argc, char *argv[]) {
 int main(int argc, char** argv) {
 
     if (!parseArgs(argc, argv)) {
-        std::cout << "Ussage: nddiwall_client -d <width> <height>[-r <recording>]" << std::endl;
+        std::cout << "Ussage: nddiwall_client --display <width> <height> [--record <recording>] [--fv x,y,z,...]" << std::endl;
         return -1;
     }
 
@@ -50,7 +61,6 @@ int main(int argc, char** argv) {
     // are created. This channel models a connection to an endpoint (in this case,
     // localhost at port 50051). We indicate that the channel isn't authenticated
     // (use of InsecureChannelCredentials()).
-    vector<unsigned int> frameVolumeDimensionalSizes = {DISPLAY_WIDTH, DISPLAY_HEIGHT, (unsigned int)64};
     NDimensionalDisplayInterface* myDisplay = NULL;
     RecorderNddiDisplay* myRecorder = NULL;
     GrpcNddiDisplay* myDisplayWall = NULL;
@@ -69,6 +79,11 @@ int main(int argc, char** argv) {
 
     std::cout << "Width is " << myDisplay->DisplayWidth() << std::endl;
     std::cout << "Height is " << myDisplay->DisplayHeight() << std::endl;
+    std::cout << "Frame Volume dimensions are";
+    for (size_t i = 0; i < frameVolumeDimensionalSizes.size(); i++) {
+        std::cout << " " << frameVolumeDimensionalSizes[i];
+    }
+    std::cout << std::endl;
     std::cout << "Number of Coefficient Planes is " << myDisplay->NumCoefficientPlanes() << std::endl;
 
     std::cout << std::endl << "Press <q>-<Enter> to Quit..." << std::endl;

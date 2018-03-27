@@ -65,7 +65,8 @@
 DctTiler::DctTiler (size_t display_width, size_t display_height,
                     size_t quality, string file)
 : display_width_(display_width),
-  display_height_(display_height)
+  display_height_(display_height),
+  scale_(1)
 {
     quiet_ = !globalConfiguration.verbose;
 
@@ -78,10 +79,28 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     saveRam_ = false;
 #endif
 
-    /* 3 dimensional matching the Macroblock Width x Height x 64 */
+    /*
+     * Scale the display size members, leaving the display size input parameters
+     * untouched for the tile calculations below.
+     */
+    if (globalConfiguration.scale > 1) {
+        scale_ = globalConfiguration.scale;
+        display_width_ *= scale_;
+        display_height_ *= scale_;
+    }
+    scaled_block_width_ = BLOCK_WIDTH * scale_;
+    scaled_block_height_ = BLOCK_HEIGHT * scale_;
+    scaled_block_size_ = BLOCK_SIZE * scale_ * scale_;
+
+    /*
+     *  3 dimensional matching the Macroblock Width x Height x 64.
+     *  If we're scaling, then the other stacks are arranged along
+     *  the x direction of the frame volume.
+     */
     vector<unsigned int> fvDimensions;
     fvDimensions.push_back(BLOCK_WIDTH);
-    fvDimensions.push_back(BLOCK_HEIGHT);
+    for (size_t s = 2; s <= scale_; s++) { fvDimensions[0] += BLOCK_WIDTH * s; }
+    fvDimensions.push_back(scaled_block_height_);
     fvDimensions.push_back(FRAMEVOLUME_DEPTH);
 
     /*
@@ -95,7 +114,7 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
 
     if (file.length()) {
         display_ = new RecorderNddiDisplay(fvDimensions,
-                display_width, display_height,
+                display_width_, display_height_,
                 (unsigned int)FRAMEVOLUME_DEPTH,
                 (unsigned int)3,
                 file,
@@ -103,7 +122,7 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     } else {
         if (!globalConfiguration.isSlave) {
             display_ = new GrpcNddiDisplay(fvDimensions,
-                    display_width, display_height,
+                    display_width_, display_height_,
                     (unsigned int)FRAMEVOLUME_DEPTH,
                     (unsigned int)3,
                     saveRam_, saveRam_);
@@ -249,10 +268,10 @@ void DctTiler::InitializeCoefficientPlanes() {
     // Break the display into macroblocks and initialize each cube of coefficients to pick out the proper block from the frame volume
     for (int j = 0; j < displayTilesHigh_; j++) {
         for (int i = 0; i < displayTilesWide_; i++) {
-            coeffs[2][0] = -i * BLOCK_WIDTH;
-            coeffs[2][1] = -j * BLOCK_HEIGHT;
-            start[0] = i * BLOCK_WIDTH; start[1] = j * BLOCK_HEIGHT; start[2] = 0;
-            end[0] = (i + 1) * BLOCK_WIDTH - 1; end[1] = (j + 1) * BLOCK_HEIGHT - 1; end[2] = FRAMEVOLUME_DEPTH - 1;
+            coeffs[2][0] = -i * scaled_block_width_;
+            coeffs[2][1] = -j * scaled_block_height_;
+            start[0] = i * scaled_block_width_; start[1] = j * scaled_block_height_; start[2] = 0;
+            end[0] = (i + 1) * scaled_block_width_ - 1; end[1] = (j + 1) * scaled_block_height_ - 1; end[2] = FRAMEVOLUME_DEPTH - 1;
             end[2] = FRAMEVOLUME_DEPTH - 1;
             if (end[0] >= display_width_) { end[0] = display_width_ - 1; }
             if (end[1] >= display_height_) { end[1] = display_height_ - 1; }
@@ -308,13 +327,14 @@ void DctTiler::InitializeCoefficientPlanes() {
 
 /**
  * Initializes the Frame Volume for this tiler by pre-rendering each
- * of the 16 basis functions into 4x4 planes in the Frame Volume. They're
+ * of the 64 basis functions into 8x8 planes in the Frame Volume. They're
  * rendered for each color channel and stored in those groups of three in
- * zig-zag order.
+ * zig-zag order. If scaling, then still only 64 basis functions are rendered,
+ * but they'll be stretched into scaled planes. e.g. 16x16, 32x32, etc.
  */
 void DctTiler::InitializeFrameVolume() {
 
-    basisFunctions_ = (Pixel *)calloc(BLOCK_SIZE * FRAMEVOLUME_DEPTH, sizeof(Pixel));
+    basisFunctions_ = (Pixel *)calloc(scaled_block_size_ * FRAMEVOLUME_DEPTH, sizeof(Pixel));
 
     // Pre-render each basis function
 #ifndef NO_OMP
@@ -326,7 +346,7 @@ void DctTiler::InitializeFrameVolume() {
             // Don't process the final basis block.
             if (i == BASIS_BLOCKS_WIDE - 1 && j == BASIS_BLOCKS_TALL) continue;
 
-            size_t p = zigZag_[j * BASIS_BLOCKS_WIDE + i] * BLOCK_SIZE;
+            size_t p = zigZag_[j * BASIS_BLOCKS_WIDE + i] * scaled_block_size_;
 
             for (int y = 0; y < BLOCK_HEIGHT; y++) {
                 for (int x = 0; x < BLOCK_WIDTH; x++) {
@@ -357,23 +377,27 @@ void DctTiler::InitializeFrameVolume() {
                         c = ~c + 1;
                     }
 
-                    // Set the color channels with the magnitude clamped to 127
-                    basisFunctions_[p].r = c;
-                    basisFunctions_[p].g = c;
-                    basisFunctions_[p].b = c;
-                    basisFunctions_[p].a = 0xff;
-
+                    for (size_t sy = 0; sy < scale_; sy++) {
+                        for (size_t sx = 0; sx < scale_; sx++) {
+                            // Set the color channels with the magnitude clamped to 127
+                            basisFunctions_[p + sx + sy * scaled_block_width_].r = c;
+                            basisFunctions_[p + sx + sy * scaled_block_width_].g = c;
+                            basisFunctions_[p + sx + sy * scaled_block_width_].b = c;
+                            basisFunctions_[p + sx + sy * scaled_block_width_].a = 0xff;
+                        }
+                    }
                     // Move to the next pixel
-                    p++;
+                    p += scale_;
                 }
+                p += scaled_block_width_ * (scale_ - 1);
             }
         }
     }
 
     // Then render the gray block as the actual last basis block
-    size_t p = zigZag_[BASIS_BLOCKS_WIDE * BASIS_BLOCKS_TALL - 1] * BLOCK_SIZE;
-    for (int y = 0; y < BLOCK_HEIGHT; y++) {
-        for (int x = 0; x < BLOCK_WIDTH; x++) {
+    size_t p = zigZag_[BASIS_BLOCKS_WIDE * BASIS_BLOCKS_TALL - 1] * scaled_block_size_;
+    for (int y = 0; y < scaled_block_height_; y++) {
+        for (int x = 0; x < scaled_block_width_; x++) {
             unsigned int c = 0x7f;
             basisFunctions_[p].r = c;
             basisFunctions_[p].g = c;
@@ -386,7 +410,7 @@ void DctTiler::InitializeFrameVolume() {
     // Update the frame volume with the basis function renderings and gray block in bulk.
     vector<unsigned int> start, end;
     start.push_back(0); start.push_back(0); start.push_back(0);
-    end.push_back(BLOCK_WIDTH - 1); end.push_back(BLOCK_HEIGHT - 1); end.push_back(FRAMEVOLUME_DEPTH - 1);
+    end.push_back(scaled_block_width_ - 1); end.push_back(scaled_block_height_ - 1); end.push_back(FRAMEVOLUME_DEPTH - 1);
     display_->CopyPixels(basisFunctions_, start, end);
 }
 
@@ -404,12 +428,12 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
     vector<unsigned int> size(2, 0);
     Scaler s;
 
-    assert(width >= display_width_);
-    assert(height >= display_height_);
+    assert(width * scale_ >= display_width_);
+    assert(height * scale_ >= display_height_);
 
     start[0] = 0; start[1] = 0; start[2] = 0;
-    size[0] = BLOCK_WIDTH;
-    size[1] = BLOCK_HEIGHT;
+    size[0] = scaled_block_width_;
+    size[1] = scaled_block_height_;
 
     /*
      * Produces the de-quantized coefficients for the input buffer using the following steps:
@@ -502,8 +526,8 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
             tileStackHeights_[j * displayTilesWide_ + i] = h;
 
             /* Send the NDDI command to update this macroblock's coefficients, one plane at a time. */
-            start[0] = i * BLOCK_WIDTH;
-            start[1] = j * BLOCK_HEIGHT;
+            start[0] = i * scaled_block_width_;
+            start[1] = j * scaled_block_height_;
             if (globalConfiguration.isSlave) {
                 start[0] += globalConfiguration.sub_x;
                 start[1] += globalConfiguration.sub_y;

@@ -109,7 +109,18 @@ p Add a proper sync mechanism.
   * Expand the latch command to optionally take a region of the display to latch. This will extend down to the
     NDDI implementation (Likely just GlNddiDisplay) such that it only computes the latched region and displays that portion updated
     alongside the previous framebuffer. Furthermore, the CostModel will reflect only that region of pixels for the Pixel Mapping Charge.
-  - Consider strengthening the thread safetly of the subregion region. For instance, its possible for two simultaneous latches to come
+  - Add scaling mode for DCT Tiler.
+    * NddiWallMasterClient will take an argument with the fv dimensions in order to reserve enough space for the stacks.
+    * Get simple scaling working where one client talks at its scale.
+    * Sort through the proper arguments for nddiwall_master_client and nddiwall_pixelbridge_client for configuration with one master
+      and one client.
+    - Fix nddiwall_pixelbridge_client to prepare its portion of the frame volume based on its scale.
+      - Frame Volume will have an 8x8 stack for unscaled and any number of scaled stacks. i.e. 8x8, 16x16, and 64x64.
+        The stacks are arranged with 8x8 at the origin (0,0), 16x16 at (8,0), etc.
+    - Update nddiwall_pixelbridge_client with proper tx/ty based on scale.
+      - PixelBridge clients will compute a tx offset based on their scale which will be applied to the tx in the coefficient matrices.
+    - Get multiple pixelbridge clients working at different scales with one master.
+  - Consider strengthening the thread safety of the subregion region. For instance, its possible for two simultaneous latches to come
     in and only the second may render. I'm not sure if this is protected by renderMutex or not. That might just cover it, actually.
   * Modify RecorderNddiDisplay to also support slave mode. Make sure recording playback of multiple clients works.
   - NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for

@@ -84,6 +84,7 @@ protected:
     static const size_t  BASIS_BLOCKS_TALL = UNSCALED_BASIC_BLOCK_HEIGHT;
 
     size_t               scaled_block_width_, scaled_block_height_, scaled_block_size_;
+    size_t               fv_tx_offset_;
 
     int                  zigZag_[BLOCK_WIDTH * BLOCK_HEIGHT];
     uint8_t              quantizationMatrix_[BLOCK_WIDTH * BLOCK_HEIGHT];

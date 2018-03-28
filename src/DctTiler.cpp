@@ -91,6 +91,8 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     scaled_block_width_ = BLOCK_WIDTH * scale_;
     scaled_block_height_ = BLOCK_HEIGHT * scale_;
     scaled_block_size_ = BLOCK_SIZE * scale_ * scale_;
+    fv_tx_offset_ = 0;
+    for (size_t s = 1; s < scale_; s <<= 1) { fv_tx_offset_ += BLOCK_WIDTH * s; }
 
     /*
      *  3 dimensional matching the Macroblock Width x Height x 64.
@@ -98,8 +100,7 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
      *  the x direction of the frame volume.
      */
     vector<unsigned int> fvDimensions;
-    fvDimensions.push_back(BLOCK_WIDTH);
-    for (size_t s = 2; s <= scale_; s++) { fvDimensions[0] += BLOCK_WIDTH * s; }
+    fvDimensions.push_back(fv_tx_offset_ + scaled_block_width_);
     fvDimensions.push_back(scaled_block_height_);
     fvDimensions.push_back(FRAMEVOLUME_DEPTH);
 
@@ -268,7 +269,7 @@ void DctTiler::InitializeCoefficientPlanes() {
     // Break the display into macroblocks and initialize each cube of coefficients to pick out the proper block from the frame volume
     for (int j = 0; j < displayTilesHigh_; j++) {
         for (int i = 0; i < displayTilesWide_; i++) {
-            coeffs[2][0] = -i * scaled_block_width_;
+            coeffs[2][0] = -i * scaled_block_width_ + fv_tx_offset_;
             coeffs[2][1] = -j * scaled_block_height_;
             start[0] = i * scaled_block_width_; start[1] = j * scaled_block_height_; start[2] = 0;
             end[0] = (i + 1) * scaled_block_width_ - 1; end[1] = (j + 1) * scaled_block_height_ - 1; end[2] = FRAMEVOLUME_DEPTH - 1;
@@ -409,8 +410,8 @@ void DctTiler::InitializeFrameVolume() {
 
     // Update the frame volume with the basis function renderings and gray block in bulk.
     vector<unsigned int> start, end;
-    start.push_back(0); start.push_back(0); start.push_back(0);
-    end.push_back(scaled_block_width_ - 1); end.push_back(scaled_block_height_ - 1); end.push_back(FRAMEVOLUME_DEPTH - 1);
+    start.push_back(fv_tx_offset_); start.push_back(0); start.push_back(0);
+    end.push_back(fv_tx_offset_ + scaled_block_width_ - 1); end.push_back(scaled_block_height_ - 1); end.push_back(FRAMEVOLUME_DEPTH - 1);
     display_->CopyPixels(basisFunctions_, start, end);
 }
 

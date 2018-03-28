@@ -114,11 +114,11 @@ p Add a proper sync mechanism.
     * Get simple scaling working where one client talks at its scale.
     * Sort through the proper arguments for nddiwall_master_client and nddiwall_pixelbridge_client for configuration with one master
       and one client.
-    - Fix nddiwall_pixelbridge_client to prepare its portion of the frame volume based on its scale.
-      - Frame Volume will have an 8x8 stack for unscaled and any number of scaled stacks. i.e. 8x8, 16x16, and 64x64.
+    * Fix nddiwall_pixelbridge_client to prepare its portion of the frame volume based on its scale.
+      * Frame Volume will have an 8x8 stack for unscaled and any number of scaled stacks. i.e. 8x8, 16x16, and 64x64.
         The stacks are arranged with 8x8 at the origin (0,0), 16x16 at (8,0), etc.
-    - Update nddiwall_pixelbridge_client with proper tx/ty based on scale.
-      - PixelBridge clients will compute a tx offset based on their scale which will be applied to the tx in the coefficient matrices.
+    * Update nddiwall_pixelbridge_client with proper tx/ty based on scale.
+      * PixelBridge clients will compute a tx offset based on their scale which will be applied to the tx in the coefficient matrices.
     - Get multiple pixelbridge clients working at different scales with one master.
   - Consider strengthening the thread safety of the subregion region. For instance, its possible for two simultaneous latches to come
     in and only the second may render. I'm not sure if this is protected by renderMutex or not. That might just cover it, actually.

@@ -586,7 +586,7 @@ void showUsage() {
     cout << "  --csv  Outputs CSV data." << endl;
     cout << "  --record  Records the NDDI commands to the file specified." << endl;
     cout << "  --subregion  Used to indicate which subregion of the display this client renders to when it's configured as one of several slaves." << endl;
-    cout << "  --scale  The output is scaled by <n> in both directions." << endl;
+    cout << "  --scale  The output is scaled by <n> in both directions. n can be 1, 2, 4, 8,..." << endl;
 }
 
 

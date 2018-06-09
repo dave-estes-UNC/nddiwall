@@ -71,6 +71,23 @@ p Add a proper sync mechanism.
     * One 4k main vertical display
     * One quarter-height 4k vertical display
     * One 4k side horizontal display
+  - Make recordings
+    - Video Conference
+      - 8 - (record) participant videos
+      - 1 - (record) presenter video
+      - 1 - (use) Previous presentation recording
+    - Stadium Jumbotron
+      - 1 - (download) 4k Soccer footage
+      - 1 - (download) 1080p commercial
+      - 1 - (render/download) Game stats
+      - 1 - (download) 1080p Soccer footage
+      - 1 - (render) Ticker
+    - City Billboard
+      - 2 - (render) static top displays
+      - 1 - (render) animated 1 of 3 top display
+      - 1 - (render) animated 2 of 3 vertical display
+      - 1 - (render) animated 3 of 3 street display
+      - 1 - (use) Elysium Trailer 4k horizontal
 * Coefficient Plans RAM savings
   x Create a new memory-thrify implementation of coefficient planes.
   x Do not preallocate coefficient and scalar memory.

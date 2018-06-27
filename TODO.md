@@ -56,10 +56,10 @@
 p Add a proper sync mechanism.
 * Define experiments
   * Video Conference (7689x4320)
-    * 4x Across Top: 1080p participant streams
-    * Middle Left: 4k Slide Show
-    * Middle Right: 1080p presenter stream scaled 2x
-    * 4x Across Bottom: 1080p paricipant streams
+    * 4x Across Top: 1080p participant streams (1920x1080)
+    * Middle Left: 4k Slide Show (3840x2160)
+    * Middle Right: 1080p presenter stream scaled 2x (3840x2160)
+    * 4x Across Bottom: 1080p paricipant streams (1920x1080)
   * Stadium Jumbotron (7680x4860)
     * Main Frame: 4k Soccer footage scaled 2x (7680x4320)
     * Top Right Frame: 1080p Video commercial (1920x1080)
@@ -67,10 +67,10 @@ p Add a proper sync mechanism.
     * Bottom Right Frame: 1080p Video second game (1920x1080)
     * Bottom Frame: Ticker (7680x540)
   * City Billboard
-    * Three 1080p displays for top of building
-    * One 4k main vertical display
-    * One quarter-height 4k vertical display
-    * One 4k side horizontal display
+    * Three 1080p displays for top of building (1920x1080)
+    * One 4k main vertical display (3840x2160)
+    * One quarter-height 4k vertical display (3840x540)
+    * One 4k side horizontal display (3840x2160)
   - Make recordings
     - Video Conference
       - 8 - (record) participant videos

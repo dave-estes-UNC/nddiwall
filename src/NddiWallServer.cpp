@@ -836,12 +836,12 @@ void outputStats() {
 #if defined(SUPRESS_EXCESS_RENDERING) || defined(SKIP_COMPUTE_WHEN_SCALER_ZERO) || defined(NO_CL) || defined(NO_GL) || defined(CLEAR_COST_MODEL_AFTER_SETUP)
     cerr << endl << "CONFIGURATION WARNINGS:" << endl;
 #ifdef SUPRESS_EXCESS_RENDERING
-    cerr << "  - Was compiled with SUPRESS_EXCESS_RENDERING, and so the numbers may be off. Recompile with \"make NO_HACKS=1\"." << endl;
+    cerr << "  - Was compiled with SUPRESS_EXCESS_RENDERING, and so the numbers may be off. Reconfig with \"cmake -DNO_HACKS=true ...\"." << endl;
 #endif
 #ifdef SKIP_COMPUTE_WHEN_SCALER_ZERO
     cerr << "  - Was compiled with SKIP_COMPUTE_WHEN_SCALER_ZERO, and so the numbers may be off when running with NO_OMP." << endl <<
-            "    When using OpenMP, the number will be fine regardless because they're register in bulk later. Recompile" << endl <<
-            "    with \"make NO_HACKS=1\"." << endl;
+            "    When using OpenMP, the number will be fine regardless because they're register in bulk later. Reconfig" << endl <<
+            "    with \"cmake -DNO_HACKS=true ...\"." << endl;
 #endif
 #ifdef NO_CL
     cerr << "  - Was compiled without OpenCL." << endl;

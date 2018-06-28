@@ -53,6 +53,7 @@ namespace nddi {
         void SetFullScaler(uint16_t scaler);
         uint16_t GetFullScaler();
         CostModel* GetCostModel();
+        void ClearCostModel();
         void Latch(uint32_t sub_x, uint32_t sub_y, uint32_t sub_w, uint32_t sub_h);
         void Shutdown();
 

@@ -28,6 +28,7 @@ using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
 using nddiwall::UpdateInputVectorRequest;
+using nddiwall::ClearCostModelRequest;
 using nddiwall::LatchRequest;
 using nddiwall::ShutdownRequest;
 
@@ -518,6 +519,17 @@ uint16_t GrpcNddiDisplay::GetFullScaler() {
 
 CostModel* GrpcNddiDisplay::GetCostModel() {
     return 0;
+}
+
+void GrpcNddiDisplay::ClearCostModel() {
+    ClearCostModelRequest request;
+    StatusReply reply;
+    ClientContext context;
+    Status status = stub_->ClearCostModel(&context, request, &reply);
+    if (!status.ok()) {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+    }
 }
 
 void GrpcNddiDisplay::Latch(uint32_t sub_x, uint32_t sub_y, uint32_t sub_w, uint32_t sub_h) {

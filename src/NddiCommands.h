@@ -32,8 +32,9 @@
   /* 19 */  m(SetPixelByteSignMode) \
   /* 20 */  m(SetFullScaler) \
   /* 21 */  m(GetFullScaler) \
-  /* 22 */  m(Latch) \
-  /* 23 */  m(Shutdown)
+  /* 22 */  m(ClearCostModel) \
+  /* 23 */  m(Latch) \
+  /* 24 */  m(Shutdown)
 
 namespace nddi {
 
@@ -575,6 +576,15 @@ namespace nddi {
 
         void play(GrpcNddiDisplay* display) {
             display->GetFullScaler();
+        }
+    };
+
+    class ClearCostModelCommandMessage : public NddiCommandMessage {
+    public:
+        ClearCostModelCommandMessage() : NddiCommandMessage(idClearCostModel) {}
+
+        void play(GrpcNddiDisplay* display) {
+            display->ClearCostModel();
         }
     };
 

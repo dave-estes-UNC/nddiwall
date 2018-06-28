@@ -12,6 +12,8 @@
 
 #include <grpc++/grpc++.h>
 
+// Only including PixelBridgeFeatures.h for warnings about configuration.
+#include "PixelBridgeFeatures.h"
 #include "Configuration.h"
 
 #include "nddi/Features.h"
@@ -55,6 +57,7 @@ using nddiwall::GetFullScalerRequest;
 using nddiwall::GetFullScalerReply;
 using nddiwall::SetFullScalerRequest;
 using nddiwall::UpdateInputVectorRequest;
+using nddiwall::ClearCostModelRequest;
 using nddiwall::LatchRequest;
 using nddiwall::ShutdownRequest;
 using nddiwall::NddiWall;
@@ -691,6 +694,18 @@ class NddiServiceImpl final : public NddiWall::Service {
       return Status::OK;
   }
 
+  Status ClearCostModel(ServerContext* context, const ClearCostModelRequest* request,
+                        StatusReply* reply) override {
+      DEBUG_MSG("Server got a request to clear the cost model." << std::endl);
+      if (myDisplay) {
+          myDisplay->GetCostModel()->clearCosts();
+          reply->set_status(reply->OK);
+      } else {
+          reply->set_status(reply->NOT_OK);
+      }
+      return Status::OK;
+  }
+
   Status Latch(ServerContext* context, const LatchRequest* request,
                StatusReply* reply) override {
       DEBUG_MSG("Server got a request to latch." << std::endl);
@@ -832,7 +847,7 @@ void outputStats() {
 
     cerr << endl;
 
-    // Warnings about Configuration
+    // Warnings about Features Configuration
 #if defined(SUPRESS_EXCESS_RENDERING) || defined(SKIP_COMPUTE_WHEN_SCALER_ZERO) || defined(NO_CL) || defined(NO_GL) || defined(CLEAR_COST_MODEL_AFTER_SETUP)
     cerr << endl << "CONFIGURATION WARNINGS:" << endl;
 #ifdef SUPRESS_EXCESS_RENDERING
@@ -850,7 +865,7 @@ void outputStats() {
     cerr << "  - Was compiled without OpenGL." << endl;
 #endif
 #ifdef CLEAR_COST_MODEL_AFTER_SETUP
-    cerr << "  - Was compiled with CLEAR_COST_MODEL_AFTER_SETUP, affecting the true cost." << endl;
+    cerr << "  - Was compiled with CLEAR_COST_MODEL_AFTER_SETUP, affecting the true cost for PixelBridge experiments." << endl;
 #endif
 #endif
 }

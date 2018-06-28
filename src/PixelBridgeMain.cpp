@@ -75,7 +75,7 @@ void setupDisplay() {
                 globalConfiguration.maxTiles, globalConfiguration.sigBits,
                 globalConfiguration.recordFile);
 
-        // Grab the display and cost model
+        // Grab the display
         myDisplay = myTiler->GetDisplay();
 
     // DCT-Tiled
@@ -99,7 +99,7 @@ void setupDisplay() {
                                globalConfiguration.recordFile);
 #endif
 
-        // Grab the display and cost model
+        // Grab the display
         myDisplay = myTiler->GetDisplay();
 
     // IT-Tiled
@@ -110,7 +110,7 @@ void setupDisplay() {
                               globalConfiguration.quality,
                               globalConfiguration.recordFile);
 
-        // Grab the display and cost model
+        // Grab the display
         myDisplay = myTiler->GetDisplay();
 
     // Flat-Tiled
@@ -123,7 +123,7 @@ void setupDisplay() {
                                 globalConfiguration.sigBits,
                                 globalConfiguration.recordFile);
 
-        // Grab the display and cost model
+        // Grab the display
         myDisplay = myTiler->GetDisplay();
 
     // Simple Framebuffer
@@ -184,6 +184,11 @@ void setupDisplay() {
         myDisplay->FillScaler(s, start, end);
 
     }
+
+#ifdef CLEAR_COST_MODEL_AFTER_SETUP
+    ((GrpcNddiDisplay*)myDisplay)->ClearCostModel();
+#endif
+
 }
 
 

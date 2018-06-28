@@ -24,6 +24,7 @@ service NddiWall {
   rpc GetFullScaler (GetFullScalerRequest) returns (GetFullScalerReply) {}
   rpc SetFullScaler (SetFullScalerRequest) returns (StatusReply) {}
   rpc UpdateInputVector (UpdateInputVectorRequest) returns (StatusReply) {}
+  rpc ClearCostModel (ClearCostModelRequest) returns (StatusReply) {}
   rpc Latch (LatchRequest) returns (StatusReply) {}
   rpc Shutdown (ShutdownRequest) returns (StatusReply) {}
 }
@@ -142,6 +143,9 @@ message SetFullScalerRequest {
 
 message UpdateInputVectorRequest {
   repeated uint32 input = 1;
+}
+
+message ClearCostModelRequest {
 }
 
 message LatchRequest {

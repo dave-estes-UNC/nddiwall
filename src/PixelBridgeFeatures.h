@@ -39,11 +39,6 @@
 //#define USE_ASYNC_DECODER
 
 /*
- * Used to dramatically narrow the various data stores. Can lead to bugs, so proceed carefully.
- */
-#define NARROW_DATA_STORES
-
-/*
  * Used to reduce the rendered frame to a much smaller region for testing on memory constrained devices.
  */
 //#define USE_SMALLER_WINDOW

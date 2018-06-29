@@ -5,14 +5,23 @@ find_package(Protobuf REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(OpenMP REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -ffast-math -std=c++11 -DGL_GLEXT_PROTOTYPES")
+
+option(HACKS "Used to turn on hacks which help speed up rendering." on)
+option(USE_OMP "Used to enable the OpenMP support." on)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -std=c++11 -DGL_GLEXT_PROTOTYPES")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG")
-if (NOT NO_HACKS)
+
+if (USE_OMP)
+    find_package(OpenMP REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+endif (USE_OMP)
+
+if (HACKS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO")
-endif(NOT NO_HACKS)
+endif(HACKS)
 
 include_directories(/usr/local/include ${OPENGL_INCLUDE_DIR} ${GLUT_INCLUDE_DIRS} /opt/AMDAPP/include/ ${OpenCV_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/cereal/include)
 link_directories(/usr/local/lib ${OPENGL_LIBRARIES} /opt/AMDAPP/lib/x86_64 /opt/AMDAPP/lib/x86)

@@ -185,7 +185,7 @@ void MultiDctTiler::InitializeCoefficientPlanes() {
             size_t scaledTilesWide = CEIL(display_width_, scaledBlockWidth);
             size_t scaledTilesHigh = CEIL(display_height_, scaledBlockHeight);
 
-#ifndef NO_OMP
+#ifdef USE_OMP
 #pragma omp parallel for
 #endif
             // Break up the display into supermacroblocks at this current scale
@@ -280,7 +280,7 @@ void MultiDctTiler::InitializeFrameVolume() {
         double          scaledPi = PI / (8.0 * sm);
 
         // Pre-render each basis function
-#ifndef NO_OMP
+#ifdef USE_OMP
 #pragma omp parallel for
 #endif
         for (int j = 0; j < config.edge_length; j++) {
@@ -394,7 +394,7 @@ vector<uint64_t> MultiDctTiler::BuildCoefficients(size_t i, size_t j, int16_t* b
     vector<uint64_t> coefficients(block_size, 0);
 
     for (size_t v = 0; v < config.edge_length; v++) {
-#ifndef NO_OMP
+#ifdef USE_OMP
 #pragma omp parallel for ordered
 #endif
         for (size_t u = 0; u < config.edge_length; u++) {
@@ -558,7 +558,7 @@ void MultiDctTiler::PrerenderCoefficients(vector<uint64_t> &coefficients, size_t
         ibfo += fvWidth_ * fvHeight_ * globalConfiguration.dctScales[d].plane_count;
     }
 
-#ifndef NO_OMP
+#ifdef USE_OMP
 #pragma omp parallel for
 #endif
     for (size_t y = 0; y < block_height; y++) {

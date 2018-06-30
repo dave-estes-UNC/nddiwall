@@ -71,7 +71,7 @@ DctTiler::DctTiler (size_t display_width, size_t display_height,
     quiet_ = !globalConfiguration.verbose;
 
 #ifdef USE_RAM_SAVING_COEFFICIENT_PLANE_FEATURES
-    #ifndef NO_CL
+    #ifdef USE_CL
     #error "OpenCL implementation doesn't support the RAM saving features."
     #endif
     saveRam_ = true;

@@ -105,8 +105,8 @@ p Add a proper sync mechanism.
   * Turn on the support for the RAM savings features via PixelBridgeFeatures.h.
   * Build in the support to the version of DctTiler in the nddiwall project. Note, a simple copy of DctTiler.* might suffice.
     * Fix crash in nddiwall_server
-- Frame Volume RAM savings
-  - If dimensionality jumps up, then we'll use a dynamic allocator that just allocates planes of RAM when an area
+p Frame Volume RAM savings
+  p If dimensionality jumps up, then we'll use a dynamic allocator that just allocates planes of RAM when an area
     of the Frame Volume is initialized.
 * Modify nddiwall_server to spit out stats like the original pixelbridge application did. Includes CSV support.
   * Get the statistics sorted out for nddi server, making sure they match the standalone pixelbridge app when using RAM
@@ -126,7 +126,7 @@ p Add a proper sync mechanism.
   * Expand the latch command to optionally take a region of the display to latch. This will extend down to the
     NDDI implementation (Likely just GlNddiDisplay) such that it only computes the latched region and displays that portion updated
     alongside the previous framebuffer. Furthermore, the CostModel will reflect only that region of pixels for the Pixel Mapping Charge.
-  - Add scaling mode for DCT Tiler.
+  * Add scaling mode for DCT Tiler.
     * NddiWallMasterClient will take an argument with the fv dimensions in order to reserve enough space for the stacks.
     * Get simple scaling working where one client talks at its scale.
     * Sort through the proper arguments for nddiwall_master_client and nddiwall_pixelbridge_client for configuration with one master
@@ -143,3 +143,8 @@ p Add a proper sync mechanism.
   - NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for
           the particular use case. Once each client has finished that number of frames, the master client will exit, triggering the
           display of the client stats.
+* Switch over NO_* Features flags to be USE_* #defines that are set with legacy makefile NO_*=1 and cmake -DUSE_*=on/off.
+* Get HACKS building and working for both on and off.
+* Get USE_OMP building and working for both on and off.
+- Get USE_GL building and working for both on and off.
+- Get USE_CL building for both on and off.

@@ -340,6 +340,11 @@ namespace nddi {
             return fullScaler_;
         }
 
+        void ClearCostModel() {
+            NddiCommandMessage* msg = new ClearCostModelCommandMessage();
+            recorder->record(msg);
+        }
+
         void Latch(uint32_t sub_x, uint32_t sub_y, uint32_t sub_w, uint32_t sub_h) {
             NddiCommandMessage* msg = new LatchCommandMessage(sub_x, sub_y, sub_w, sub_h);
             recorder->record(msg);

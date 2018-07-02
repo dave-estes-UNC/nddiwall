@@ -186,7 +186,11 @@ void setupDisplay() {
     }
 
 #ifdef CLEAR_COST_MODEL_AFTER_SETUP
-    ((GrpcNddiDisplay*)myDisplay)->ClearCostModel();
+    if (globalConfiguration.recordFile.length()) {
+         ((RecorderNddiDisplay*)myDisplay)->ClearCostModel();
+    } else {
+        ((GrpcNddiDisplay*)myDisplay)->ClearCostModel();
+    }
 #endif
 
 }

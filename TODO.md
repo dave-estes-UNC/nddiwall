@@ -152,4 +152,5 @@ p Frame Volume RAM savings
 * Add subregion support for SimulateRender.
 * Get USE_CL building for both on and off.
 * Confirm statistics for subregion rendering for GL vs. Simple vs. Headless.
-- Figure out what's crashing in the recorder.
+* Figure out what's crashing in the recorder.
+* Make sure headless statistics match GL for subregion rendering.

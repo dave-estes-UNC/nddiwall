@@ -870,7 +870,7 @@ int main(int argc, char *argv[]) {
             globalConfiguration.tileWidth = globalConfiguration.tileHeight = edge;
         }
 
-        // Setup the GlNddiDisplay and Tiler if required
+        // Setup the Nddi Display and Tiler if required
         setupDisplay();
     }
 

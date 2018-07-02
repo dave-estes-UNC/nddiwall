@@ -146,5 +146,10 @@ p Frame Volume RAM savings
 * Switch over NO_* Features flags to be USE_* #defines that are set with legacy makefile NO_*=1 and cmake -DUSE_*=on/off.
 * Get HACKS building and working for both on and off.
 * Get USE_OMP building and working for both on and off.
-- Get USE_GL building and working for both on and off.
-- Get USE_CL building for both on and off.
+* Get USE_GL building and working for both on and off.
+* Considering makeing GlNddiDisplay and BlendingGlNddiDisplay inherit from HeadlessNddiDisplay.
+* Use SimulateRender for headless operations instead of GetFrameBuffer.
+* Add subregion support for SimulateRender.
+* Get USE_CL building for both on and off.
+* Confirm statistics for subregion rendering for GL vs. Simple vs. Headless.
+- Figure out what's crashing in the recorder.

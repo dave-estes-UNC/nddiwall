@@ -4,10 +4,12 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+#ifdef USE_GL
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
+#endif
 #endif
 
 #include <grpc++/grpc++.h>
@@ -17,7 +19,11 @@
 #include "Configuration.h"
 
 #include "nddi/Features.h"
+#ifdef USE_GL
 #include "nddi/GlNddiDisplay.h"
+#else
+#include "nddi/SimpleNddiDisplay.h"
+#endif
 
 #include "nddiwall.grpc.pb.h"
 
@@ -65,7 +71,11 @@ using nddiwall::NddiWall;
 /*
  * Globals
  */
+#ifdef USE_GL
 GlNddiDisplay* myDisplay;
+#else
+SimpleNddiDisplay* myDisplay;
+#endif
 pthread_t serverThread;
 pthread_mutex_t renderMutex;
 pthread_cond_t renderCondition;
@@ -101,6 +111,7 @@ class NddiServiceImpl final : public NddiWall::Service {
         DEBUG_MSG("  - Use Single Coeffcient Plane: " << request->usesinglecoeffcientplane() << std::endl);
 
         // Initialize the NDDI display
+#ifdef USE_GL
         myDisplay = new GlNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
                                       request->displaywidth(),         // display size
                                       request->displayheight(),
@@ -109,6 +120,16 @@ class NddiServiceImpl final : public NddiWall::Service {
                                       false,                           // Is not headless
                                       request->fixed8x8macroblocks(),  // Use fixed macroblocks
                                       request->usesinglecoeffcientplane()); // Use only one coefficient plane for coefficeints
+#else
+        myDisplay = new SimpleNddiDisplay(fvDimensions,                    // framevolume dimensional sizes
+                                          request->displaywidth(),         // display size
+                                          request->displayheight(),
+                                          request->numcoefficientplanes(), // number of coefficient planes on the display
+                                          request->inputvectorsize(),      // input vector size (x, y, t)
+                                          false,                           // Is not headless
+                                          request->fixed8x8macroblocks(),  // Use fixed macroblocks
+                                          request->usesinglecoeffcientplane()); // Use only one coefficient plane for coefficeints
+#endif
 
         reply->set_status(reply->OK);
     } else {
@@ -865,7 +886,8 @@ void outputStats() {
     cerr << "  - Was compiled without OpenCL." << endl;
 #endif
 #ifndef USE_GL
-    cerr << "  - Was compiled without OpenGL." << endl;
+    cerr << "  - Was compiled without OpenGL, and so rendering was only simulated Reconfig with \"cmake -DUSE_GL=on ...\"" << endl <<
+            "    if you need accurage numbers for the rendering operations." << endl;
 #endif
 #ifdef CLEAR_COST_MODEL_AFTER_SETUP
     cerr << "  - Was compiled with CLEAR_COST_MODEL_AFTER_SETUP, affecting the true cost for PixelBridge experiments." << endl;
@@ -878,7 +900,11 @@ void renderFrame() {
     if (alive) {
         pthread_mutex_lock(&renderMutex);
         pthread_cond_wait(&renderCondition, &renderMutex);
+#ifdef USE_GL
         glutPostRedisplay();
+#else
+        if (myDisplay) { myDisplay->GetFrameBuffer(sub_x, sub_y, sub_w, sub_h); }
+#endif
         totalUpdates++;
         pthread_mutex_unlock(&renderMutex);
     } else {
@@ -891,6 +917,7 @@ void renderFrame() {
     }
 }
 
+#ifdef USE_GL
 void draw( void ) {
 
     if (!myDisplay)
@@ -970,6 +997,7 @@ void motion( int x, int y ) {
         glutPostRedisplay();
     }
 }
+#endif
 
 int main(int argc, char** argv) {
 
@@ -981,6 +1009,7 @@ int main(int argc, char** argv) {
   while (!myDisplay)
     usleep(200);
 
+#ifdef USE_GL
   // Initialize GLUT
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
@@ -1002,6 +1031,13 @@ int main(int argc, char** argv) {
 
   // Run main loop
   glutMainLoop();
+#else
+  // Take the start time stamp
+  gettimeofday(&startTime, NULL);
+  while (true) {
+      renderFrame();
+  }
+#endif
 
   return 0;
 }

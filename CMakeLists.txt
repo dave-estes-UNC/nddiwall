@@ -75,6 +75,11 @@ link_libraries(grpc++_unsecure grpc gpr ${PROTOBUF_LIBRARY})
 file(GLOB_RECURSE NDDI_SRC_FILES ${PROJECT_SOURCE_DIR}/src/nddi/*.cpp)
 set(PIXELBRIDGE_SRC_FILES src/PixelBridgeMain.cpp src/GrpcNddiDisplay.cpp src/CachedTiler.cpp src/DctTiler.cpp src/FfmpegPlayer.cpp src/FlatTiler.cpp src/ItTiler.cpp src/MultiDctTiler.cpp src/RandomPlayer.cpp src/Rewinder.cpp src/ScaledDctTiler.cpp)
 
+if (NOT USE_GL)
+    list(REMOVE_ITEM NDDI_SRC_FILES ${PROJECT_SOURCE_DIR}/src/nddi/BlendingGlNddiDisplay.cpp)
+    list(REMOVE_ITEM NDDI_SRC_FILES ${PROJECT_SOURCE_DIR}/src/nddi/GlNddiDisplay.cpp)
+endif (NOT USE_GL)
+
 if (NOT USE_CL)
     list(REMOVE_ITEM NDDI_SRC_FILES ${PROJECT_SOURCE_DIR}/src/nddi/ClNddiDisplay.cpp)
 endif (NOT USE_CL)

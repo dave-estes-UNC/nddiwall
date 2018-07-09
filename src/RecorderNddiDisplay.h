@@ -9,6 +9,7 @@
 #include <fstream>
 #include <pthread.h>
 #include <string.h>
+#include <thread>
 #include <queue>
 #include <unistd.h>
 #include <vector>
@@ -63,7 +64,7 @@ namespace nddi {
                         }
                         delete(msg);
                     }
-                } else { usleep(10); }
+                } else { std::this_thread::yield(); }
             }
             oarchive(cereal::make_nvp("id", idEOT));
         }
@@ -130,7 +131,7 @@ namespace nddi {
                             break;
                         }
                     }
-                } else { usleep(10); }
+                } else { std::this_thread::yield(); }
             }
 
             // If we created a GRPC Display, then wait a second, then latch a final time and destroy it.

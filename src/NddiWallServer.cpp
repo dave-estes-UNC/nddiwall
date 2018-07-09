@@ -903,7 +903,7 @@ void renderFrame() {
 #ifdef USE_GL
         glutPostRedisplay();
 #else
-        if (myDisplay) { myDisplay->GetFrameBuffer(sub_x, sub_y, sub_w, sub_h); }
+        if (myDisplay) { myDisplay->SimulateRender(sub_x, sub_y, sub_w, sub_h); }
 #endif
         totalUpdates++;
         pthread_mutex_unlock(&renderMutex);

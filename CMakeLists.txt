@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(nddiwall)
 
-find_package(Protobuf REQUIRED)
 find_package(OpenCV REQUIRED)
 
 option(HACKS "Used to turn on hacks which help speed up rendering." on)
@@ -42,6 +41,8 @@ if (HACKS)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSUPRESS_EXCESS_RENDERING -DSKIP_COMPUTE_WHEN_SCALER_ZERO")
 endif(HACKS)
 
+add_subdirectory(grpc)
+
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/protos")
 set(NDDIWALL_PROTO "${PROTO_PATH}/nddiwall.proto")
 set(GENERATED_PROTOBUF_PATH "${CMAKE_BINARY_DIR}/generated")
@@ -56,15 +57,16 @@ add_custom_command(
            "${NDDIWALL_PB_CPP_FILE}"
            "${NDDIWALL_GRPC_PB_H_FILE}"
            "${NDDIWALL_GRPC_PB_CPP_FILE}"
-    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    COMMAND "${CMAKE_BINARY_DIR}/grpc/third_party/protobuf/protoc"
     ARGS "--proto_path=${PROTO_PATH}"
          "--cpp_out=${GENERATED_PROTOBUF_PATH}"
          "${NDDIWALL_PROTO}"
-    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    COMMAND "${CMAKE_BINARY_DIR}/grpc/third_party/protobuf/protoc"
     ARGS "--proto_path=${PROTO_PATH}"
          "--grpc_out=${GENERATED_PROTOBUF_PATH}"
-         "--plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin"
+         "--plugin=protoc-gen-grpc=${CMAKE_BINARY_DIR}/grpc/grpc_cpp_plugin"
          "${NDDIWALL_PROTO}"
+    DEPENDS protoc grpc_cpp_plugin
     )
 set(GENERATED_PROTOBUF_FILES ${NDDIWALL_PB_H_FILE} ${NDDIWALL_PB_CPP_FILE}
     ${NDDIWALL_GRPC_PB_H_FILE} ${NDDIWALL_GRPC_PB_CPP_FILE})

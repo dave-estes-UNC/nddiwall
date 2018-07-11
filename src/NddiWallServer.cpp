@@ -895,6 +895,22 @@ void outputStats() {
 #endif
 }
 
+void cleanup() {
+    static bool clean = false;
+
+    if (!clean) {
+        outputStats();
+        delete myDisplay;
+        myDisplay = NULL;
+        server->Shutdown();
+        pthread_join(serverThread, NULL);
+#ifdef USE_GL
+        glutLeaveMainLoop();
+#endif
+        clean = true;
+    }
+}
+
 void renderFrame() {
 
     if (alive) {
@@ -908,16 +924,7 @@ void renderFrame() {
         totalUpdates++;
         pthread_mutex_unlock(&renderMutex);
     } else {
-        server->Shutdown();
-        if (myDisplay) {
-            outputStats();
-            delete myDisplay;
-            myDisplay = NULL;
-        }
-        pthread_join(serverThread, NULL);
-#ifdef USE_GL
-        glutLeaveMainLoop();
-#endif
+        cleanup();
     }
 }
 
@@ -970,16 +977,6 @@ void keyboard( unsigned char key, int x, int y ) {
     switch (key) {
         case 27: // Esc
             alive = false;
-            server->Shutdown();
-            pthread_join(serverThread, NULL);
-            if (myDisplay) {
-                outputStats();
-                delete myDisplay;
-                myDisplay = NULL;
-            }
-#ifdef USE_GL
-            glutLeaveMainLoop();
-#endif
             break;
         default:
             break;
@@ -1043,9 +1040,13 @@ int main(int argc, char** argv) {
 #else
   // Take the start time stamp
   gettimeofday(&startTime, NULL);
+
+  // Run main loop without glut
   while (alive) {
       renderFrame();
   }
+  // Attempt a cleanup again in case !alive prevented us from hitting it in renderFrame()
+  cleanup();
 #endif
 
   return 0;

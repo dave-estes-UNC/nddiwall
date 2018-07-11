@@ -154,3 +154,11 @@ p Frame Volume RAM savings
 * Confirm statistics for subregion rendering for GL vs. Simple vs. Headless.
 * Figure out what's crashing in the recorder.
 * Make sure headless statistics match GL for subregion rendering.
+- Make Ubuntu 18.04 docker instructions.
+  * Add list of dependencies to install:
+  * Update cmake to drop out the necessary protobuf tools. Can probably remove *protobuf* from above.
+  * Make Ubuntu 14.04 branch
+  * Update gPRC
+  p Build gPRC / Protobuf from the submodule
+  * Convert master to Ubuntu 18.04 line.
+  - Make fixes for ffmpeg errors on master.

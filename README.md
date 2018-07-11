@@ -18,11 +18,25 @@ built as a singled NDDI display. Features include:
 Building
 --------
 
+Install dependencies (e.g. Ubuntu 18.04 Docker image):
+
+    sudo apt-get install build-essential git cmake golang libopencv-dev freeglut3-dev
+
 Get the source:
 
     git clone https://github.com/dave-estes-UNC/nddiwall.git
     cd nddiwall
     git submodule update --init --recursive
+
+Build and install gRPC/Protobuf. See BUILDING.md in case your missing dependencies.
+
+    cd grpc
+    make -j8
+    sudo make install
+    cd third-party/protobuf
+    make -j8
+    sudo make install
+    cd ../../..
 
 From the top-level-directory, you can build Release:
 

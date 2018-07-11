@@ -59,24 +59,24 @@ FfmpegPlayer::FfmpegPlayer(const char* fileName) : fileName_(fileName), width_(0
         return; // Could not open codec
 
     // Allocate the video frame that we'll be decoding into
-    pFrame_ = avcodec_alloc_frame();
+    pFrame_ = av_frame_alloc();
 
     // Allocate the video frame that we'll be color-converting into
-    pFrameRGB_ = avcodec_alloc_frame();
+    pFrameRGB_ = av_frame_alloc();
     if (pFrameRGB_ == NULL)
         return;
 
     // Determine required buffer size and allocate buffers
-    numBytes_ = avpicture_get_size(PIX_FMT_RGB24, pCodecCtx_->width, pCodecCtx_->height);
+    numBytes_ = avpicture_get_size(AV_PIX_FMT_RGB24, pCodecCtx_->width, pCodecCtx_->height);
     buffer_ = new uint8_t[numBytes_];
 
     // Assign appropriate parts of buffer to image planes in pFrameRGB
-    avpicture_fill((AVPicture *)pFrameRGB_, buffer_, PIX_FMT_RGB24,
+    avpicture_fill((AVPicture *)pFrameRGB_, buffer_, AV_PIX_FMT_RGB24,
 		   pCodecCtx_->width, pCodecCtx_->height);
 
     // Set up the scaling and color conversion context
     pSwsCtx_ = sws_getContext(pCodecCtx_->width, pCodecCtx_->height, pCodecCtx_->pix_fmt,
-			      pCodecCtx_->width, pCodecCtx_->height, PIX_FMT_RGB24,
+			      pCodecCtx_->width, pCodecCtx_->height, AV_PIX_FMT_RGB24,
 			      SWS_POINT, NULL, NULL, NULL);
     // TODO(cdestes): Try to use this new method below and get rid of the deprecated call above.
     //pSwsCtx_ = sws_alloc_context();
@@ -156,7 +156,7 @@ uint8_t* FfmpegPlayer::decodeFrame() {
         do {
             // Free old packet
             if (packet.data != NULL)
-                av_free_packet(&packet);
+                av_packet_unref(&packet);
 
             // Read new packet
             if (av_read_frame(pFormatCtx_, &packet) < 0)
@@ -177,7 +177,7 @@ uint8_t* FfmpegPlayer::decodeFrame() {
 
     // Free last packet
     if (packet.data != NULL)
-        av_free_packet(&packet);
+        av_packet_unref(&packet);
 
   function_exit:
 

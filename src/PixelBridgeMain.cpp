@@ -5,7 +5,8 @@
 #include <queue>
 #include <pthread.h>
 
-#include <opencv/cv.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
 
 #include "PixelBridgeFeatures.h"
 #include "Configuration.h"

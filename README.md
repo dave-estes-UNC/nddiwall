@@ -28,12 +28,13 @@ Get the source:
     cd nddiwall
     git submodule update --init --recursive
 
-Build and install gRPC/Protobuf. See BUILDING.md in case your missing dependencies.
+Build and install gRPC/Protobuf.
 
     cd grpc
+    sudo apt-get install build-essential autoconf libtool pkg-config
     make -j8
     sudo make install
-    cd third-party/protobuf
+    cd third_party/protobuf
     make -j8
     sudo make install
     cd ../../..

@@ -370,8 +370,11 @@ void countChangedPixels() {
 
     static int framesDecoded = 0;
     static int framesCounted = 0;
+    static int pixelsDiff = 0;
 
-    if (!globalConfiguration.maxFrames || (totalUpdates < globalConfiguration.maxFrames)) {
+    if (globalConfiguration.maxFrames && (totalUpdates >= globalConfiguration.maxFrames)) {
+        finished = true;
+    } else {
         int pixel_count = myPlayer->width() * myPlayer->height();
 #ifdef USE_ASYNC_DECODER
         // Get a decoded frame
@@ -408,27 +411,13 @@ void countChangedPixels() {
                     // Otherwise compare the newly decode frame to the previous frame, pixel by pixel
                 } else {
                     // Count the changed pixels
-                    int diffs = 0;
-
-                    for (int offset = 0; offset < (pixel_count * 3);) {
-                        if (lastBuffer[offset] != videoBuffer[offset]) {
-                            diffs += inc;
-                            offset += 3;
-                            continue;
+                    for (int p = 0; p < pixel_count; p++) {
+                        int offset = p * 3;
+                        if ((lastBuffer[offset + 0] != videoBuffer[offset + 0]) ||
+                            (lastBuffer[offset + 1] != videoBuffer[offset + 1]) ||
+                            (lastBuffer[offset + 2] != videoBuffer[offset + 2])) {
+                            pixelsDiff+= inc;
                         }
-                        offset++;
-
-                        if (lastBuffer[offset] != videoBuffer[offset]) {
-                            diffs += inc;
-                            offset += 2;
-                            continue;
-                        }
-                        offset++;
-
-                        if (lastBuffer[offset] != videoBuffer[offset]) {
-                            diffs += inc;
-                        }
-                        offset++;
                     }
 
                     // Then copy to the lastBuffer
@@ -440,10 +429,11 @@ void countChangedPixels() {
                 framesCounted += inc;
             }
         }
-
-        if (globalConfiguration.verbose) {
-            cout << "PixelBidge Statistics:" << endl << "  Decoded Frames: " << framesDecoded << " - Counted Frames: " << framesCounted << endl;
-        }
+    }
+    if (finished) {
+        cout << "CountCSV" << endl;
+        cout << "FramesDecoded,FramesCounted,PixelsDifferent" << endl;
+        cout << framesDecoded << "," << framesCounted << "," << pixelsDiff << endl;
     }
 }
 
@@ -457,7 +447,9 @@ void computeFlow() {
     static size_t diagonal = sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
 #endif
 
-    if (!globalConfiguration.maxFrames || (totalUpdates < globalConfiguration.maxFrames)) {
+    if (globalConfiguration.maxFrames && (totalUpdates >= globalConfiguration.maxFrames)) {
+        finished = true;
+    } else {
         int pixel_count = myPlayer->width() * myPlayer->height();
 #ifdef USE_ASYNC_DECODER
         // Get a decoded frame

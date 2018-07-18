@@ -70,6 +70,12 @@ int main(int argc, char** argv) {
                                                         (unsigned int)64, (unsigned int)3,
                                                         true, true);
     } else {
+        std::cout << endl <<
+                "WARNING: While you can certainly record the commands from a master client," << std::endl <<
+                "keep in mind that the master client still kills the display when it's finished." << std::endl <<
+                "This command will get recorded, and so when it's played back it will kill the display." << std::endl <<
+                "Instead of recording and playing back the master client. It's best to actually launch a live" << std::endl <<
+                "master client and then play back the slave client recordings." << std::endl << std::endl;
         myDisplay = myRecorder = new RecorderNddiDisplay(frameVolumeDimensionalSizes,
                                                          DISPLAY_WIDTH, DISPLAY_HEIGHT,
                                                          (unsigned int)64, (unsigned int)3,
@@ -86,10 +92,12 @@ int main(int argc, char** argv) {
     std::cout << std::endl;
     std::cout << "Number of Coefficient Planes is " << myDisplay->NumCoefficientPlanes() << std::endl;
 
-    std::cout << std::endl << "Press <q>-<Enter> to Quit..." << std::endl;
-    char key = 'a';
-    while (key != 'q') {
-        std::cin >> key;
+    if (!RECORDING_FILE) {
+        std::cout << std::endl << "Press <q>-<Enter> to Quit..." << std::endl;
+        char key = 'a';
+        while (key != 'q') {
+            std::cin >> key;
+        }
     }
 
     if (myDisplayWall) {

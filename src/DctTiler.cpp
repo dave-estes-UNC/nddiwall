@@ -518,12 +518,14 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
              * and the current stack height.
              */
             size_t h = BLOCK_SIZE - 2;
-            while (h >= 0 && coefficients[h] == 0)
+            while (h > 0 && coefficients[h] == 0) {
                  h--;
-            if (h < tileStackHeights_[j * displayTilesWide_ + i])
+            }
+            if (h < tileStackHeights_[j * displayTilesWide_ + i]) {
                 coefficients.resize(tileStackHeights_[j * displayTilesWide_ + i] + 1);
-            else
+            } else {
                 coefficients.resize(h + 1);
+            }
             tileStackHeights_[j * displayTilesWide_ + i] = h;
 
             /* Send the NDDI command to update this macroblock's coefficients, one plane at a time. */

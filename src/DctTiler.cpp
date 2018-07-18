@@ -425,14 +425,12 @@ void DctTiler::InitializeFrameVolume() {
  */
 void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
 {
-    vector<unsigned int> start(3, 0);
     vector<unsigned int> size(2, 0);
     Scaler s;
 
     assert(width * scale_ >= display_width_);
     assert(height * scale_ >= display_height_);
 
-    start[0] = 0; start[1] = 0; start[2] = 0;
     size[0] = scaled_block_width_;
     size[1] = scaled_block_height_;
 
@@ -444,16 +442,18 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
      * 3. Quantize
      * 4. De-quantize
      */
+#ifdef USE_OMP
+#pragma omp parallel for ordered
+#endif
     for (size_t j = 0; j < displayTilesHigh_; j++) {
         for (size_t i = 0; i < displayTilesWide_; i++) {
+
+            vector<unsigned int> start(3, 0);
 
             /* The coefficients are stored in this array in zig-zag order */
             vector<uint64_t> coefficients(BLOCK_SIZE, 0);
 
             for (size_t v = 0; v < BLOCK_HEIGHT; v++) {
-#ifdef USE_OMP
-#pragma omp parallel for ordered
-#endif
                 for (size_t u = 0; u < BLOCK_WIDTH; u++) {
 
                     double c_r = 0.0, c_g = 0.0, c_b = 0.0;
@@ -533,6 +533,7 @@ void DctTiler::UpdateDisplay(uint8_t* buffer, size_t width, size_t height)
                 start[0] += globalConfiguration.sub_x;
                 start[1] += globalConfiguration.sub_y;
             }
+#pragma omp critical
             display_->FillScalerTileStack(coefficients, start, size);
         }
     }

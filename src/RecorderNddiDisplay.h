@@ -1,6 +1,15 @@
 #ifndef RECORDER_NDDI_DISPLAY_H
 #define RECORDER_NDDI_DISPLAY_H
 
+/**
+ * \file RecorderNddiDisplay.h
+ *
+ * \brief This file embodies a command recorder and player for the GrpcNddiDisplay.
+ *
+ * This file embodies a command recorder for the GrpcNddiDisplay. This
+ * allows for recording of nDDI commands and then their playback.
+ */
+
 #include "GrpcNddiDisplay.h"
 #include "NddiCommands.h"
 #include "nddi/Features.h"
@@ -14,12 +23,20 @@
 #include <unistd.h>
 #include <vector>
 
+///\cond
 //#include <cereal/archives/xml.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
+///\endcond
 
 namespace nddi {
 
+///\cond
+    /**
+     * \brief Implements and NDDI display where each interface is a GRPC call to the NDDI Wall Server.
+     *
+     * Implements and NDDI display where each interface is a GRPC call to the NDDI Wall Server.
+     */
     class CommandRecorder {
     public:
         CommandRecorder(string file)
@@ -183,8 +200,11 @@ namespace nddi {
         static void * pthreadFriendlyRun(void * This) {((CommandPlayer*)This)->run(); return NULL;}
         std::queue<NddiCommandMessage*> streamQueue;
     };
+///\endcond
 
     /**
+     * \brief Implements and NDDI display where each interface is a recorder of NDDI Commands.
+     *
      * Implements and NDDI display where each interface is a recorder of NDDI Commands.
      */
     class RecorderNddiDisplay : public NDimensionalDisplayInterface {

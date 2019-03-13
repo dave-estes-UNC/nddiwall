@@ -1,6 +1,6 @@
 * Create skeleton server/client using a grpc example.
 * Define simple initial service and messages to initialize NDDI Display.
-  * Contructor
+  * Constructor
 * Back in the pixelbridge project, fix costmodel to set headless based on global configuration in pixelbridge main.
 * Push latest changes to NDDI (costmodel/headless and splitting of features.h)
 * Fix GOMP link errors.
@@ -34,12 +34,12 @@
   * uint16_t GetFullScaler()
 * Find out if there's a way to memcpy into and out of GRPC request buffers. Look into "bytes" type.
 * Add a simple latch
-- Look into the rendering artifacts for fb and cache modes.
+p Look into the rendering artifacts for fb and cache modes.
 * Investigate changing vectors to straight arrays throughout the NDDI interface.
   * Then move the biggest arrays to "bytes" in the protobuffers.
-- Write a NDDI recorder/player that serializes and parses these new memcpy'able arrays to and from files. Perhaps JSON?
+* Write a NDDI recorder/player that serializes and parses these new memcpy'able arrays to and from files. Perhaps JSON?
   * Add thread safety to command queue.
-  - Kill the server when finished.
+  * Kill the server when finished.
   * Move to vectors instead of malloc'd arrays.
   * Implement remaining recorders serializers
   * Add playback.
@@ -71,23 +71,23 @@ p Add a proper sync mechanism.
     * One 4k main vertical display (3840x2160)
     * One quarter-height 4k vertical display (3840x540)
     * One 4k side horizontal display (3840x2160)
-  - Make recordings
-    - Video Conference
-      - 8 - (record) participant videos
-      - 1 - (record) presenter video
-      - 1 - (use) Previous presentation recording
-    - Stadium Jumbotron
-      - 1 - (download) 4k Soccer footage
-      - 1 - (download) 1080p commercial
-      - 1 - (render/download) Game stats
-      - 1 - (download) 1080p Soccer footage
-      - 1 - (render) Ticker
-    - City Billboard
-      - 2 - (render) static top displays
-      - 1 - (render) animated 1 of 3 top display
-      - 1 - (render) animated 2 of 3 vertical display
-      - 1 - (render) animated 3 of 3 street display
-      - 1 - (use) Elysium Trailer 4k horizontal
+  * Make recordings
+    * Video Conference
+      * 8 - (record) participant videos
+      * 1 - (record) presenter video
+      * 1 - (use) Previous presentation recording
+    * Stadium Jumbotron
+      * 1 - (download) 4k Soccer footage
+      * 1 - (download) 1080p commercial
+      * 1 - (render/download) Game stats
+      * 1 - (download) 1080p Soccer footage
+      * 1 - (render) Ticker
+    * City Billboard
+      * 2 - (render) static top displays
+      * 1 - (render) animated 1 of 3 top display
+      * 1 - (render) animated 2 of 3 vertical display
+      * 1 - (render) animated 3 of 3 street display
+      * 1 - (use) Elysium Trailer 4k horizontal
 * Coefficient Plans RAM savings
   x Create a new memory-thrify implementation of coefficient planes.
   x Do not preallocate coefficient and scalar memory.
@@ -114,7 +114,7 @@ p Frame Volume RAM savings
     * Figure out what to do with the extra bulk transmission changes that we need to log from DctTiler.
       There are some TODOs marked on #if 0 lines.
     * Copy over the outputStats() implementation from legacy PixelBridge to nddiwall_server.
-- Work out multi-client scheme
+* Work out multi-client scheme
   * Add the build targets for nddiwall_master_client and nddiwall_slave_client using nddiwall_test_client and nddiwall_pixelbridge_client.
   * Create a master client which initializes the display to the full size. When it exits, it will send the shutdown command.
   * Make any necessary changes to support multiple GRPC clients connecting to the server.
@@ -137,10 +137,10 @@ p Frame Volume RAM savings
     * Update nddiwall_pixelbridge_client with proper tx/ty based on scale.
       * PixelBridge clients will compute a tx offset based on their scale which will be applied to the tx in the coefficient matrices.
     * Get multiple pixelbridge clients working at different scales with one master.
-  - Consider strengthening the thread safety of the subregion region. For instance, its possible for two simultaneous latches to come
+  p Consider strengthening the thread safety of the subregion region. For instance, its possible for two simultaneous latches to come
     in and only the second may render. I'm not sure if this is protected by renderMutex or not. That might just cover it, actually.
   * Modify RecorderNddiDisplay to also support slave mode. Make sure recording playback of multiple clients works.
-  - NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for
+  * NOTE: The scheme above will not take synchronization into account. Instead each client will produce a given number of frames for
           the particular use case. Once each client has finished that number of frames, the master client will exit, triggering the
           display of the client stats.
 * Switch over NO_* Features flags to be USE_* #defines that are set with legacy makefile NO_*=1 and cmake -DUSE_*=on/off.
@@ -154,11 +154,39 @@ p Frame Volume RAM savings
 * Confirm statistics for subregion rendering for GL vs. Simple vs. Headless.
 * Figure out what's crashing in the recorder.
 * Make sure headless statistics match GL for subregion rendering.
-- Make Ubuntu 18.04 docker instructions.
+* Make Ubuntu 18.04 docker instructions.
   * Add list of dependencies to install:
   * Update cmake to drop out the necessary protobuf tools. Can probably remove *protobuf* from above.
   * Make Ubuntu 14.04 branch
   * Update gPRC
   p Build gPRC / Protobuf from the submodule
   * Convert master to Ubuntu 18.04 line.
-  - Make fixes for ffmpeg errors on master.
+  * Make fixes for ffmpeg errors on master.
+* Perform memory analysis
+  * Get pycachesim working
+  * Collect framevolume cost model data
+    * Add seperate counts for scaler charges. Update PixelBridge reporting, the cost model register*Charge() fxns including
+      the bulk one, and all of the places that use the bulk fxns.
+    * Refactor cost model API to use start/stop tuples. instead of address and num bytes. Then move
+      the num bytes calculation into cost model.
+    * Update NDDI Wall project to use refactored cost model.
+    * Have the cost model optionally output hyper-detailed data on memory access instead of just the summary. Add a command
+      line option.
+    * Make sure the command line option spits out an error when used in conjunction with the --headless for the
+      standalone pixelbridge project. The error can probably be placed in the cost model itself.
+    * Make sure the command line options spits out an error when using OMP. Perhaps again, the error can be added to registerBulk*
+      in the cost model itself.
+    * Make sure the command line options spits out an error when using OMP. Perhaps again, the error can be added to regiserBulk*
+      in the cost model itself.
+    * Get standalone pixelbridge running, since it's faster than using the server.
+    * Choose and script use cases. Will likely be the original pixelbridge modes and videos.
+    * Re-run pixelbridge experiments and collect cost model data.
+  * Analyze framevolume cost model data
+    * Write python app to convert framevolume cost model data into cachesim loads/stores.
+    * Add configureable strides.
+    * Add configurable frame volume cache hierarchy
+    x Add support for Input Vector and Coefficient Planes with their own serarate cache hierarchies...if possible.
+    x Design experiments with different cache hierarchies and different framevolume striding.
+    * Perform analysis.
+  - Determine bus speeds, bus bandwidth requirements, and memory speed requirements.
+    - Coefficient Plane memories are all implemented as "registers", making reads neglible. However, writes  
